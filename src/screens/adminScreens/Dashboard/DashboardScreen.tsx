@@ -10,23 +10,23 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { SectionHeader } from "../components/common/SectionHeader";
-import { BusinessOverviewCard } from "../components/dashboard/BusinessOverviewCard";
-import { CalendarSheet } from "../components/dashboard/CalendarSheet";
-import { DashboardHeader } from "../components/dashboard/DashboardHeader";
-import { DateSelectorPill } from "../components/dashboard/DateSelectorPill";
-import { StatCard, StatCardConfig } from "../components/dashboard/StatCard";
-import { SubmissionListItem } from "../components/dashboard/SubmissionListItem";
-import { useDashboard } from "../hooks/useDashboard";
+import { SectionHeader } from "../../../components/common/SectionHeader";
+import { BusinessOverviewCard } from "../../../components/dashboard/BusinessOverviewCard";
+import { CalendarSheet } from "../../../components/dashboard/CalendarSheet";
+import { DashboardHeader } from "../../../components/dashboard/DashboardHeader";
+import { DateSelectorPill } from "../../../components/dashboard/DateSelectorPill";
+import { StatCard, StatCardConfig } from "../../../components/dashboard/StatCard";
+import { SubmissionListItem } from "../../../components/dashboard/SubmissionListItem";
+import { useDashboard } from "../../../hooks/useDashboard";
 import {
   cardShadow,
   colors,
   fontSize,
   radius,
   spacing,
-} from "../theme";
-import type { DashboardStats, Submission } from "../types/dashboard";
-import { todayISO } from "../utils/format";
+} from "../../../theme";
+import type { DashboardStats, Submission } from "../../../types/dashboard";
+import { todayISO } from "../../../utils/format";
 
 const STAT_CARDS: (StatCardConfig & { pick: (s: DashboardStats) => number })[] = [
   {

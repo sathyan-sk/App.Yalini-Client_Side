@@ -8,7 +8,7 @@ import { StatusBar } from "expo-status-bar";
 
 import { AppTabBar } from "../../src/navigation/AppTabBar";
 import type { RootTabParamList } from "../../src/navigation/types";
-import DashboardScreen from "../../src/screens/DashboardScreen";
+import DashboardScreen from "../screens/adminScreens/Dashboard/DashboardScreen";
 import { PlaceholderScreen } from "../../src/screens/PlaceholderScreen";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
