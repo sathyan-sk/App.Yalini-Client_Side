@@ -29,42 +29,47 @@ function buildBusinesses(factor: number): BusinessOverview[] {
 
   return [
     {
-      id: "biz-city-taxi",
-      name: "City Taxi",
+      id: "biz-yalini-taxi",
+      name: "Yalini Cars",
       category: "Taxi",
       tone: "purple",
       icon: { family: "ion", name: "car-outline" },
       metrics: [
-        { label: "Income", amount: round50(28450 * scale), color: "success" },
-        { label: "Expense", amount: round50(9650 * scale), color: "warning" },
+        { label: "Total Income", amount: round50(28450 * scale), color: "info" },
+
         {
-          label: "Balance (Shortage)",
-          amount: round50(1200 * scale),
+
+          label: "Total Expense's",
+          amount: round50(9650 * scale),
           color: "error",
+        },
+                {
+          label: "Net Profit",
+          amount: round50(19200 * scale),
+          color: "success",
         },
       ],
     },
     {
       id: "biz-yalini-minerals",
       name: "Yalini Minerals",
-      category: "Water",
+      category: "Delivery",
       tone: "blue",
       icon: { family: "feather", name: "droplet" },
       metrics: [
-        {
-          label: "Income (Collected)",
-          amount: round50(33600 * scale),
-          color: "success",
-        },
-        {
-          label: "Settled to Admin",
-          amount: round50(28000 * scale),
-          color: "info",
-        },
-        {
-          label: "Balance (Shortage)",
-          amount: round50(5600 * scale),
+        { 
+          label: "Total Income",
+          amount: round50(12000 * scale),
+          color: "info" },
+          {
+          label: "Total Expense's",
+          amount: round50(3000 * scale),
           color: "error",
+        },
+        {
+          label: "Net Profit",
+          amount: round50(9000 * scale),
+          color: "success",
         },
       ],
     },

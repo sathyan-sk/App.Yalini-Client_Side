@@ -155,6 +155,16 @@ export default function DashboardScreen() {
               />
             ))}
           </View>
+            <Pressable
+            testID="recent-submissions-load-more"
+            onPress={noop}
+            style={({ pressed }) => [
+              styles.loadMore,
+              pressed && { opacity: 0.6 },
+            ]}
+          >
+          <Text style={styles.loadMoreText}>load more...</Text>
+          </Pressable>
         </ScrollView>
       ) : null}
 
@@ -213,6 +223,17 @@ const styles = StyleSheet.create({
   retryText: {
     color: "#FFFFFF",
     fontSize: fontSize.base,
+    fontWeight: "500",
+  },
+    loadMore: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: spacing.lg,
+    marginTop: spacing.xs,
+  },
+  loadMoreText: {
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
     fontWeight: "500",
   },
 });
