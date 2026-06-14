@@ -10,6 +10,7 @@ import { AppTabBar } from "../../src/navigation/AppTabBar";
 import type { RootTabParamList } from "../../src/navigation/types";
 import DashboardScreen from "../screens/adminScreens/Dashboard/DashboardScreen";
 import { PlaceholderScreen } from "../../src/screens/PlaceholderScreen";
+import MoreNavigator from "./MoreNavigator";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
@@ -60,12 +61,7 @@ export default function RootNavigator() {
           </Tab.Screen>
           <Tab.Screen name="More">
             {() => (
-              <PlaceholderScreen
-                title="More"
-                icon="more-horizontal"
-                description="Settings, profile and extra admin tools will appear here."
-                testID="more-screen"
-              />
+              <MoreNavigator />
             )}
           </Tab.Screen>
         </Tab.Navigator>

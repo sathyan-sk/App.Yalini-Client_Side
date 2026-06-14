@@ -37,6 +37,8 @@ export const tones = {
   green: { cardBg: "#ECFDF5", iconBg: "#D1FAE5", accent: "#059669" },
   orange: { cardBg: "#FFF7ED", iconBg: "#FFEDD5", accent: "#EA580C" },
   blue: { cardBg: "#EFF6FF", iconBg: "#DBEAFE", accent: "#2563EB" },
+  teal: { cardBg: "#F0FDFA", iconBg: "#CCFBF1", accent: "#0D9488" },
+  red: { cardBg: "#FEF2F2", iconBg: "#FEE2E2", accent: "#DC2626" },  
 } as const;
 
 export type ToneKey = keyof typeof tones;
