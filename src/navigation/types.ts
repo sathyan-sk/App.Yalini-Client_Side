@@ -3,7 +3,7 @@ export type RootTabParamList = {
   DailyRecords: undefined;
   Finance: undefined;
   Employees: undefined;
-  More: undefined;
+  Settings: undefined;
 };
 
 /**
@@ -17,18 +17,14 @@ export type EmployeesStackParamList = {
 };
 
 /**
- * Native-stack screens reachable from the \"More\" tab.
+ * Native-stack screens reachable from the Settings tab.
  * `Settings` is the entry point; `MyBusiness` mounts a full CRUD flow
- * (list → add → edit); the remaining entries stay as placeholders until
- * the respective feature lands.
+ * (list → add → edit) and `Vehicles` mounts the Vehicles module stack.
  */
-export type MoreStackParamList = {
+export type SettingsStackParamList = {
   Settings: undefined;
   MyBusiness: undefined;
   AddBusiness: undefined;
   EditBusiness: { businessId: string };
-  EmployeesAdmin: undefined;
   Vehicles: undefined;
-  Hotels: undefined;
-  AssignAssets: undefined;
 };

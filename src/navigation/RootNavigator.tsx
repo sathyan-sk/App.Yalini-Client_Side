@@ -9,16 +9,23 @@ import { StatusBar } from "expo-status-bar";
 import { AppTabBar } from "./AppTabBar";
 import type { RootTabParamList } from "./types";
 import DashboardScreen from "../screens/adminScreens/Dashboard/DashboardScreen";
-import { PlaceholderScreen } from "../screens/PlaceholderScreen";
-import MoreNavigator from "./MoreNavigator";
 import EmployeesNavigator from "./EmployeesNavigator";
+import SettingsNavigator from "./SettingsNavigator";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
+
+
 /**
- * App navigation root, built with React Navigation (bottom tabs).
- * Wrapped in NavigationIndependentTree so it owns navigation entirely,
- * independent of the expo-router shell that boots the project.
+ * App navigation root, built entirely with React Navigation (bottom tabs +
+ * nested native stacks).
+ *
+ * Wrapped in NavigationIndependentTree + NavigationContainer so it owns the
+ * navigation state completely and stays decoupled from the thin expo-router
+ * entry shell that boots the project.
+ *
+ * Tabs: Dashboard · Daily Records · Finance · Employees · Settings.
+ * (Vehicles and My Business are reachable from inside the Settings tab.)
  */
 export default function RootNavigator() {
   return (
@@ -30,32 +37,10 @@ export default function RootNavigator() {
           tabBar={(props) => <AppTabBar {...props} />}
         >
           <Tab.Screen name="Dashboard" component={DashboardScreen} />
-          <Tab.Screen name="DailyRecords">
-            {() => (
-              <PlaceholderScreen
-                title="Daily Records"
-                icon="calendar"
-                description="Daily logs and operational records will appear here."
-                testID="daily-records-screen"
-              />
-            )}
-          </Tab.Screen>
-          <Tab.Screen name="Finance">
-            {() => (
-              <PlaceholderScreen
-                title="Finance"
-                icon="credit-card"
-                description="Financial reports and the ledger will appear here."
-                testID="finance-screen"
-              />
-            )}
-          </Tab.Screen>
+          {/* <Tab.Screen name="DailyRecords" component={DailyRecordsScreen} />
+          <Tab.Screen name="Finance" component={FinanceScreen} /> */}
           <Tab.Screen name="Employees" component={EmployeesNavigator} />
-          <Tab.Screen name="More">
-            {() => (
-              <MoreNavigator />
-            )}
-          </Tab.Screen>
+          <Tab.Screen name="Settings" component={SettingsNavigator} />
         </Tab.Navigator>
       </NavigationContainer>
     </NavigationIndependentTree>

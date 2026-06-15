@@ -1,7 +1,6 @@
 import type { Ionicons } from "@expo/vector-icons";
 
 import type { ToneKey } from "../../../theme";
-import type { MoreStackParamList } from "../../../navigation/types";
 
 /** Icon descriptor for a settings row. Currently scoped to Ionicons for visual consistency. */
 export interface SettingsRowIcon {
@@ -9,12 +8,13 @@ export interface SettingsRowIcon {
   /** Background tile + icon accent tone (matches src/theme tones). */
   tone: ToneKey;
 }
-/** Names of paramless destinations in the More stack — eligible row targets. */
-type ParamlessMoreScreen = {
-  [K in keyof MoreStackParamList]: MoreStackParamList[K] extends undefined
-    ? K
-    : never;
-}[keyof MoreStackParamList];
+
+/**
+ * Tappable Settings destinations.
+ * `MyBusiness` and `Vehicles` are screens in the Settings stack;
+ * `Employees` jumps to the Employees bottom tab.
+ */
+export type SettingsRowDestination = "MyBusiness" | "Vehicles" | "Employees";
 
 /**
  * Single tappable row in the Settings screen.
@@ -24,12 +24,12 @@ export interface SettingsRow {
   title: string;
   subtitle: string;
   icon: SettingsRowIcon;
-  /** Target screen registered on MoreStackParamList — keeps placeholders type-safe. */
-  destination: Exclude<ParamlessMoreScreen, "Settings">;
+  /** Target shipped screen — all rows resolve to real destinations. */
+  destination: SettingsRowDestination;
 }
 
 /**
- * Logical grouping used to render the labelled section dividers (\"Business Setup\", \"Account\").
+ * Logical grouping used to render the labelled section dividers ("Business Setup", "Account").
  * Each section owns a coloured accent bar drawn next to the label.
  */
 export interface SettingsSection {

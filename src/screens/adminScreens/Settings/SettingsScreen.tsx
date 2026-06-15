@@ -5,7 +5,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { colors, spacing } from "../../../theme";
-import type { MoreStackParamList } from "../../../navigation/types";
+import type { SettingsStackParamList } from "../../../navigation/types";
 
 import { SettingsHeader } from "./components/SettingsHeader";
 import { SettingsSectionLabel } from "./components/SettingsSectionLabel";
@@ -18,20 +18,20 @@ import { SettingsRow } from "./types";
 const TAB_BAR_CLEARANCE = 72;
 
 type SettingsNavigationProp = NativeStackNavigationProp<
-  MoreStackParamList,
+  SettingsStackParamList,
   "Settings"
 >;
 
 /**
- * Admin → Settings screen.
+ * Admin → Settings tab.
  *
- * Renders the page header, the \"Business Setup\" section of navigable cards
- * and the \"Account\" section containing the Logout entry (which opens a
+ * Renders the page header, the "Business Setup" section of navigable cards
+ * and the "Account" section containing the Logout entry (which opens a
  * confirmation bottom sheet before resolving).
  *
- * This screen is UI-only; row taps dispatch to placeholder screens
- * registered inside `MoreNavigator`. Backend wiring will plug into the
- * existing handlers in a follow-up iteration.
+ * Every row routes to a shipped screen: My Business and Vehicles open inside
+ * the Settings stack, while Employees jumps to the Employees bottom tab
+ * (resolved up the navigator tree).
  */
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
@@ -40,7 +40,9 @@ export default function SettingsScreen() {
 
   const handleRowPress = useCallback(
     (destination: SettingsRow["destination"]) => {
-      navigation.navigate(destination);
+      // `Employees` is a sibling bottom tab, not part of this stack — React
+      // Navigation resolves it up the navigator tree, so the cast is safe.
+      navigation.navigate(destination as never);
     },
     [navigation],
   );

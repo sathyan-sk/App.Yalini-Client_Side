@@ -7,12 +7,15 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { colors, fontSize, radius, spacing } from "../theme";
 
-const TAB_CONFIG: Record<string, { label: string; icon: keyof typeof Feather.glyphMap }> = {
+const TAB_CONFIG: Record<
+  string,
+  { label: string; icon: keyof typeof Feather.glyphMap }
+> = {
   Dashboard: { label: "Dashboard", icon: "home" },
   DailyRecords: { label: "Daily Records", icon: "calendar" },
   Finance: { label: "Finance", icon: "credit-card" },
   Employees: { label: "Employees", icon: "users" },
-  More: { label: "More", icon: "more-horizontal" },
+  Settings: { label: "Settings", icon: "settings" },
 };
 
 /** Custom bottom tab bar: frosted on iOS, solid on Android, dot indicator on the active tab. */

@@ -10,7 +10,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { colors, spacing } from "../../../theme";
-import type { MoreStackParamList } from "../../../navigation/types";
+import type { SettingsStackParamList as MoreStackParamList } from "../../../navigation/types";
 import { useBusinesses } from "../../../hooks/useBusinesses";
 
 import { BusinessCard } from "./components/BusinessCard";
