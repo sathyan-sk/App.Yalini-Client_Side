@@ -54,7 +54,7 @@ const SEED_EMPLOYEES: Employee[] = [
     mobile: "9876543211",
     businessId: "biz_seed_yalini_minerals",
     businessName: "Yalini Minerals (Water)",
-    businessType: "water",
+    businessType: "water_delivery",
     pin: "1234",
     status: "active",
     createdAt: "2026-06-09",
@@ -76,7 +76,7 @@ const SEED_EMPLOYEES: Employee[] = [
     mobile: "9876543213",
     businessId: "biz_seed_yalini_minerals",
     businessName: "Yalini Minerals (Water)",
-    businessType: "water",
+    businessType: "water_delivery",
     pin: "1234",
     status: "disabled",
     createdAt: "2026-06-07",
@@ -98,7 +98,7 @@ const SEED_EMPLOYEES: Employee[] = [
     mobile: "9876543215",
     businessId: "biz_seed_yalini_minerals",
     businessName: "Yalini Minerals (Water)",
-    businessType: "water",
+    businessType: "water_delivery",
     pin: "1234",
     status: "active",
     createdAt: "2026-06-05",
@@ -114,7 +114,12 @@ export async function loadEmployees(): Promise<Employee[]> {
   try {
     const parsed = JSON.parse(raw) as Employee[];
     if (!Array.isArray(parsed)) return [...SEED_EMPLOYEES];
-    return parsed;
+    // Migrate old 'water' type to 'water_delivery'
+    const migrated = parsed.map(e => ({
+      ...e,
+      businessType: e.businessType === 'water' ? 'water_delivery' : e.businessType
+    })) as Employee[];
+    return migrated;
   } catch {
     return [...SEED_EMPLOYEES];
   }

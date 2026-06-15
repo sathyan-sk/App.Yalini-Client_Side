@@ -56,7 +56,7 @@ const SEED_BUSINESSES: Business[] = [
   {
     id: "biz_seed_yalini_minerals",
     name: "Yalini Minerals",
-    type: "water",
+    type: "water_delivery",
     mode: "manual",
     status: "active",
     location: "Chennai, Tamil Nadu",
@@ -74,7 +74,12 @@ export async function loadBusinesses(): Promise<Business[]> {
   try {
     const parsed = JSON.parse(raw) as Business[];
     if (!Array.isArray(parsed)) return [...SEED_BUSINESSES];
-    return parsed;
+    // Migrate old 'water' type to 'water_delivery'
+    const migrated = parsed.map(b => ({
+      ...b,
+      type: b.type === 'water' ? 'water_delivery' : b.type
+    })) as Business[];
+    return migrated;
   } catch {
     return [...SEED_BUSINESSES];
   }

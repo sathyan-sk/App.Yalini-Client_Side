@@ -13,7 +13,7 @@ import type {
  *  - `tone`     → drives icon-tile background + accent (see theme.tones).
  *  - `iconName` → Ionicon rendered inside the tinted tile.
  *  - `label`    → human readable name used on cards + chips.
- *  - `tagLabel` → trailing \"<Type> Business\" badge on list cards.
+ *  - `tagLabel` → trailing "<Type> Business" badge on list cards.
  *
  * Pre-defined business catalogue is INTENTIONALLY closed (Taxi + Water Delivery).
  */
@@ -34,9 +34,9 @@ export const BUSINESS_TYPE_OPTIONS: BusinessTypeOption[] = [
     iconName: "car-sport",
   },
   {
-    id: "water",
+    id: "water_delivery",
     label: "Water Delivery",
-    tagLabel: "Water Business",
+    tagLabel: "Delivery Business",
     tone: "blue",
     iconName: "water",
   },

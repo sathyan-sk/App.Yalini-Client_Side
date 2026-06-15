@@ -14,8 +14,10 @@ export interface Vehicle {
   status: VehicleStatusId;
   /** Optional notes about the vehicle */
   notes?: string;
-  /** Assigned driver name (optional) */
+  /** Assigned driver name (for display) */
   assignedDriver?: string;
+  /** Assigned employee ID (for proper tracking) */
+  assignedEmployeeId?: string;
   /** ISO-8601 date string (YYYY-MM-DD). */
   createdAt: string;
   /** ISO-8601 date string (YYYY-MM-DD). */
@@ -29,6 +31,7 @@ export interface VehicleFormValues {
   status: VehicleStatusId;
   notes?: string;
   assignedDriver?: string;
+  assignedEmployeeId?: string;
 }
 
 export type VehicleStatusFilter = VehicleStatusId | "all";

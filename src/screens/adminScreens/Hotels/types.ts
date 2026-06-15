@@ -12,6 +12,10 @@ export interface Hotel {
   name: string;
   ratePerCan: number;
   status: HotelStatusId;
+  /** Assigned employee ID (for proper tracking) */
+  assignedEmployeeId?: string;
+  /** Assigned employee name (for display) */
+  assignedEmployeeName?: string;
   /** ISO-8601 date string (YYYY-MM-DD). */
   createdAt: string;
 }
@@ -21,6 +25,8 @@ export interface HotelFormValues {
   name: string;
   ratePerCan: number;
   status: HotelStatusId;
+  assignedEmployeeId?: string;
+  assignedEmployeeName?: string;
 }
 
 export type HotelStatusFilter = HotelStatusId | "all";

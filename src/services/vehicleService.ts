@@ -28,6 +28,7 @@ const SEED_VEHICLES: Vehicle[] = [
     number: "MH12AB1234",
     status: "running",
     assignedDriver: "Ramesh Kumar",
+    assignedEmployeeId: "emp_seed_ramesh",
     notes: "Regular maintenance completed last week",
     createdAt: "2025-06-10",
     updatedAt: "2025-06-15",
@@ -37,10 +38,22 @@ const SEED_VEHICLES: Vehicle[] = [
     name: "Innova Crysta",
     number: "MH12CD5678",
     status: "maintenance",
-    assignedDriver: "Suresh Patil",
+    assignedDriver: undefined,
+    assignedEmployeeId: undefined,
     notes: "Engine checkup in progress",
     createdAt: "2025-06-05",
     updatedAt: "2025-07-01",
+  },
+  {
+    id: "veh_seed_wagon_r",
+    name: "Wagon R",
+    number: "MH12EF9012",
+    status: "running",
+    assignedDriver: undefined,
+    assignedEmployeeId: undefined,
+    notes: "",
+    createdAt: "2025-06-01",
+    updatedAt: "2025-06-01",
   },
 ];
 
@@ -74,6 +87,7 @@ export async function createVehicle(
     status: values.status,
     notes: values.notes?.trim() || undefined,
     assignedDriver: values.assignedDriver?.trim() || undefined,
+    assignedEmployeeId: values.assignedEmployeeId || undefined,
     createdAt: today,
     updatedAt: today,
   };
@@ -97,6 +111,7 @@ export async function updateVehicle(
       status: patch.status,
       notes: patch.notes?.trim() || undefined,
       assignedDriver: patch.assignedDriver?.trim() || v.assignedDriver,
+      assignedEmployeeId: patch.assignedEmployeeId || v.assignedEmployeeId,
       updatedAt: todayISODate(),
     };
     return updated;
@@ -109,4 +124,48 @@ export async function updateVehicle(
 export async function deleteVehicle(id: string): Promise<void> {
   const current = await loadVehicles();
   await saveVehicles(current.filter((v) => v.id !== id));
+}
+
+/** Assign an employee to a vehicle */
+export async function assignEmployeeToVehicle(
+  vehicleId: string,
+  employeeId: string,
+  employeeName: string,
+): Promise<Vehicle | null> {
+  const current = await loadVehicles();
+  let updated: Vehicle | null = null;
+  const next = current.map((v) => {
+    if (v.id !== vehicleId) return v;
+    updated = {
+      ...v,
+      assignedDriver: employeeName,
+      assignedEmployeeId: employeeId,
+      updatedAt: todayISODate(),
+    };
+    return updated;
+  });
+  if (!updated) return null;
+  await saveVehicles(next);
+  return updated;
+}
+
+/** Unassign an employee from a vehicle */
+export async function unassignEmployeeFromVehicle(
+  vehicleId: string,
+): Promise<Vehicle | null> {
+  const current = await loadVehicles();
+  let updated: Vehicle | null = null;
+  const next = current.map((v) => {
+    if (v.id !== vehicleId) return v;
+    updated = {
+      ...v,
+      assignedDriver: undefined,
+      assignedEmployeeId: undefined,
+      updatedAt: todayISODate(),
+    };
+    return updated;
+  });
+  if (!updated) return null;
+  await saveVehicles(next);
+  return updated;
 }

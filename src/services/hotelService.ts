@@ -28,6 +28,8 @@ const SEED_HOTELS: Hotel[] = [
     name: "Hotel Golden Palace",
     ratePerCan: 25,
     status: "active",
+    assignedEmployeeId: "emp_seed_suresh",
+    assignedEmployeeName: "Suresh Kumar",
     createdAt: "2025-06-10",
   },
   {
@@ -35,7 +37,18 @@ const SEED_HOTELS: Hotel[] = [
     name: "Hotel Blue Ocean",
     ratePerCan: 30,
     status: "inactive",
+    assignedEmployeeId: undefined,
+    assignedEmployeeName: undefined,
     createdAt: "2025-06-05",
+  },
+  {
+    id: "hotel_seed_royal_inn",
+    name: "Hotel Royal Inn",
+    ratePerCan: 28,
+    status: "active",
+    assignedEmployeeId: undefined,
+    assignedEmployeeName: undefined,
+    createdAt: "2025-06-03",
   },
 ];
 
@@ -64,6 +77,8 @@ export async function createHotel(values: HotelFormValues): Promise<Hotel> {
     name: values.name.trim(),
     ratePerCan: values.ratePerCan,
     status: values.status,
+    assignedEmployeeId: values.assignedEmployeeId || undefined,
+    assignedEmployeeName: values.assignedEmployeeName || undefined,
     createdAt: todayISODate(),
   };
   const current = await loadHotels();
@@ -84,6 +99,8 @@ export async function updateHotel(
       name: patch.name.trim(),
       ratePerCan: patch.ratePerCan,
       status: patch.status,
+      assignedEmployeeId: patch.assignedEmployeeId ?? h.assignedEmployeeId,
+      assignedEmployeeName: patch.assignedEmployeeName ?? h.assignedEmployeeName,
     };
     return updated;
   });
@@ -95,4 +112,46 @@ export async function updateHotel(
 export async function deleteHotel(id: string): Promise<void> {
   const current = await loadHotels();
   await saveHotels(current.filter((h) => h.id !== id));
+}
+
+/** Assign an employee to a hotel */
+export async function assignEmployeeToHotel(
+  hotelId: string,
+  employeeId: string,
+  employeeName: string,
+): Promise<Hotel | null> {
+  const current = await loadHotels();
+  let updated: Hotel | null = null;
+  const next = current.map((h) => {
+    if (h.id !== hotelId) return h;
+    updated = {
+      ...h,
+      assignedEmployeeId: employeeId,
+      assignedEmployeeName: employeeName,
+    };
+    return updated;
+  });
+  if (!updated) return null;
+  await saveHotels(next);
+  return updated;
+}
+
+/** Unassign an employee from a hotel */
+export async function unassignEmployeeFromHotel(
+  hotelId: string,
+): Promise<Hotel | null> {
+  const current = await loadHotels();
+  let updated: Hotel | null = null;
+  const next = current.map((h) => {
+    if (h.id !== hotelId) return h;
+    updated = {
+      ...h,
+      assignedEmployeeId: undefined,
+      assignedEmployeeName: undefined,
+    };
+    return updated;
+  });
+  if (!updated) return null;
+  await saveHotels(next);
+  return updated;
 }

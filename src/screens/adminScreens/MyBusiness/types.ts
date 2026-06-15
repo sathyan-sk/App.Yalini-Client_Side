@@ -2,14 +2,14 @@
  * Type contracts for the MyBusiness module.
  *
  * Pre-defined business catalogue (per product spec):
- *  - \"taxi\"  → Taxi service
- *  - \"water\" → Water Delivery service
+ *  - "taxi"  → Taxi service (assigns Vehicles)
+ *  - "water_delivery" → Water Delivery service (assigns Hotels)
  *
  * A Business is the persisted record managed locally (AsyncStorage). The
  * backend wiring will swap the storage layer without changing this shape.
  */
 
-export type BusinessTypeId = "taxi" | "water";
+export type BusinessTypeId = "taxi" | "water_delivery";
 
 export type BusinessModeId = "auto" | "manual";
 
