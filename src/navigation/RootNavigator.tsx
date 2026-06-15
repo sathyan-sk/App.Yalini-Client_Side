@@ -56,16 +56,6 @@ export default function RootNavigator() {
               <MoreNavigator />
             )}
           </Tab.Screen>
-          <Tab.Screen name={"Vehicles" as any}>
-            {() => (
-              <PlaceholderScreen
-                title="Vehicles"
-                icon={"car" as any}
-                description="Manage your vehicle fleet and maintenance schedules."
-                testID="vehicles-screen"
-              />
-            )}
-          </Tab.Screen>
         </Tab.Navigator>
       </NavigationContainer>
     </NavigationIndependentTree>
