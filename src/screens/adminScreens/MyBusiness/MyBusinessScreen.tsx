@@ -138,7 +138,7 @@ export default function MyBusinessScreen() {
             <View style={styles.emptyState} testID="my-business-empty">
               <Text style={styles.emptyTitle}>No businesses yet</Text>
               <Text style={styles.emptyBody}>
-                Tap &ldquo;+ Add Business&rdquo; to set up your first business and start
+                Tap "+ Add Business" to set up your first business and start
                 configuring assets.
               </Text>
             </View>

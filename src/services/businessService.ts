@@ -1,4 +1,4 @@
-import { storage } from "../utils/storage";
+import { storage } from "..utils/storage";
 
 import { DEFAULT_BUSINESS_TYPE } from "../screens/adminScreens/MyBusiness/data/businessTypes";
 import type {
@@ -135,3 +135,4 @@ export const businessService = {
     await storage.removeItem(STORAGE_KEY);
   },
 };
+"
