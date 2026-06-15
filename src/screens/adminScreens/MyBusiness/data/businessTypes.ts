@@ -1,4 +1,4 @@
-"import type { BusinessTypeDefinition, BusinessTypeId } from "../types";
+import type { BusinessTypeDefinition, BusinessTypeId } from "../types";
 
 /**
  * Static catalogue of business types supported by the app.
