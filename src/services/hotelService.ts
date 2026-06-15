@@ -6,7 +6,7 @@
  * start (matches the reference design).
  */
 
-//import { getItem, setItem } from "../utils/storage";(no file code in storage path)
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { HOTEL_STORAGE_KEY } from "../screens/adminScreens/Hotels/data/constants";
 import type { Hotel, HotelFormValues } from "../screens/adminScreens/Hotels/types";
 
@@ -40,12 +40,12 @@ const SEED_HOTELS: Hotel[] = [
 ];
 
 export async function loadHotels(): Promise<Hotel[]> {
-  const raw = await getItem(HOTEL_STORAGE_KEY, "");
-  if (!raw) {
+  try {
+    const raw = await AsyncStorage.getItem(HOTEL_STORAGE_KEY);
+    if (!raw) {
     await saveHotels(SEED_HOTELS);
     return [...SEED_HOTELS];
   }
-  try {
     const parsed = JSON.parse(raw) as Hotel[];
     if (!Array.isArray(parsed)) return [...SEED_HOTELS];
     return parsed;
@@ -55,7 +55,7 @@ export async function loadHotels(): Promise<Hotel[]> {
 }
 
 export async function saveHotels(hotels: Hotel[]): Promise<void> {
-  await setItem(HOTEL_STORAGE_KEY, JSON.stringify(hotels));
+  await AsyncStorage.setItem(HOTEL_STORAGE_KEY, JSON.stringify(hotels));
 }
 
 export async function createHotel(values: HotelFormValues): Promise<Hotel> {

@@ -11,11 +11,9 @@ export interface SettingsRowIcon {
 
 /**
  * Tappable Settings destinations.
- * `MyBusiness` and `Vehicles` are screens in the Settings stack;
  * `Employees` jumps to the Employees bottom tab.
  */
-export type SettingsRowDestination = "MyBusiness" | "Vehicles" | "Employees";
-
+export type SettingsRowDestination = "MyBusiness" | "Vehicles" | "Employees" | "Hotels";
 /**
  * Single tappable row in the Settings screen.
  */

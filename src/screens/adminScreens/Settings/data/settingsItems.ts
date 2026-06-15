@@ -36,6 +36,13 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
         icon: { name: "car-outline", tone: "purple" },
         destination: "Vehicles",
       },
+      {
+        key: "hotels",
+        title: "Hotels",
+        subtitle: "Add, view and manage hotels",
+        icon: { name: "bed-outline", tone: "orange" },
+        destination: "Hotels",
+      },
     ],
   },
 ];
