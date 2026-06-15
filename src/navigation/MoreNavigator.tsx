@@ -3,8 +3,10 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import SettingsScreen from "../screens/adminScreens/Settings/SettingsScreen";
 import { PlaceholderScreen } from "../screens/PlaceholderScreen";
+import MyBusinessScreen from "../screens/adminScreens/MyBusiness/MyBusinessScreen";
+import AddBusinessScreen from "../screens/adminScreens/MyBusiness/AddBusinessScreen";
+import EditBusinessScreen from "../screens/adminScreens/MyBusiness/EditBusinessScreen";
 import type { MoreStackParamList } from "./types";
-
 const Stack = createNativeStackNavigator<MoreStackParamList>();
 
 /**
@@ -20,16 +22,18 @@ export default function MoreNavigator() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Settings" component={SettingsScreen} />
 
-      <Stack.Screen name="MyBusiness">
-        {() => (
-          <PlaceholderScreen
-            title="My Business"
-            icon="briefcase"
-            description="Business profile, branches and KYC details will appear here."
-            testID="my-business-screen"
-          />
-        )}
-      </Stack.Screen>
+      <Stack.Screen name="MyBusiness" component={MyBusinessScreen} />
+      <Stack.Screen
+        name="AddBusiness"
+        component={AddBusinessScreen}
+        options={{ animation: "slide_from_right" }}
+      />
+      <Stack.Screen
+        name="EditBusiness"
+        component={EditBusinessScreen}
+        options={{ animation: "slide_from_right" }}
+      />
+
 
       <Stack.Screen name="EmployeesAdmin">
         {() => (

@@ -1,8 +1,15 @@
+import { SafeAreaProvider } from "react-native-safe-area-context";
+
 import RootNavigator from "../src/navigation/RootNavigator";
 
-// The project boots through the expo-router shell (protected entry point),
-// but all in-app navigation is owned by React Navigation — see
-// src/navigation/RootNavigator.tsx.
+// expo-router owns the shell; the entire in-app navigation tree (bottom tabs
+// + nested stacks) is delegated to React Navigation via RootNavigator.
+// SafeAreaProvider is mounted here so every nested screen / header can use
+// `useSafeAreaInsets`.
 export default function Index() {
-  return <RootNavigator />;
+  return (
+    <SafeAreaProvider>
+      <RootNavigator />
+    </SafeAreaProvider>
+  );
 }

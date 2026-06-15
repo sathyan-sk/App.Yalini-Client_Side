@@ -9,10 +9,15 @@ export interface SettingsRowIcon {
   /** Background tile + icon accent tone (matches src/theme tones). */
   tone: ToneKey;
 }
+/** Names of paramless destinations in the More stack — eligible row targets. */
+type ParamlessMoreScreen = {
+  [K in keyof MoreStackParamList]: MoreStackParamList[K] extends undefined
+    ? K
+    : never;
+}[keyof MoreStackParamList];
 
 /**
  * Single tappable row in the Settings screen.
- * Each row navigates to a sibling screen inside the More stack.
  */
 export interface SettingsRow {
   key: string;
@@ -20,7 +25,7 @@ export interface SettingsRow {
   subtitle: string;
   icon: SettingsRowIcon;
   /** Target screen registered on MoreStackParamList — keeps placeholders type-safe. */
-  destination: Exclude<keyof MoreStackParamList, "Settings">;
+  destination: Exclude<ParamlessMoreScreen, "Settings">;
 }
 
 /**

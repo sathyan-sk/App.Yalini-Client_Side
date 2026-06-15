@@ -7,12 +7,15 @@ export type RootTabParamList = {
 };
 /**
  * Native-stack screens reachable from the \"More\" tab.
- * `Settings` is the entry point; the rest are placeholder destinations
- * surfaced by the settings rows until each feature lands.
+ * `Settings` is the entry point; `MyBusiness` mounts a full CRUD flow
+ * (list → add → edit); the remaining entries stay as placeholders until
+ * the respective feature lands.
  */
 export type MoreStackParamList = {
   Settings: undefined;
   MyBusiness: undefined;
+  AddBusiness: undefined;
+  EditBusiness: { businessId: string };
   EmployeesAdmin: undefined;
   Vehicles: undefined;
   Hotels: undefined;
