@@ -55,39 +55,70 @@ export function AssignmentStatsCards({
   }, [assetType, employees, vehicles, hotels]);
 
   return (
-    <View style={styles.container} testID={testID}>
-      <View style={[styles.card, cardShadow]}>
-        <View style={[styles.iconContainer, { backgroundColor: stats.tone.iconBg }]}>
-          <Ionicons name="people" size={20} color={stats.tone.accent} />
+    <View style={styles.wrapper} testID={testID}>
+      <View style={styles.headerRow}>
+        <View style={styles.headerIconContainer}>
+          <Ionicons name="stats-chart" size={16} color={colors.brand} />
         </View>
-        <Text style={styles.statValue}>{stats.total}</Text>
-        <Text style={styles.statLabel}>{stats.label} Employees</Text>
+        <Text style={styles.headerLabel}>ASSIGNMENT OVERVIEW</Text>
       </View>
-
-      <View style={[styles.card, cardShadow]}>
-        <View style={[styles.iconContainer, { backgroundColor: tones.green.iconBg }]}>
-          <Ionicons name="checkmark-circle" size={20} color={tones.green.accent} />
+      
+      <View style={styles.container}>
+        <View style={[styles.card, cardShadow]}>
+          <View style={[styles.iconContainer, { backgroundColor: stats.tone.iconBg }]}>
+            <Ionicons name="people" size={20} color={stats.tone.accent} />
+          </View>
+          <Text style={styles.statValue}>{stats.total}</Text>
+          <Text style={styles.statLabel}>{stats.label} Employees</Text>
         </View>
-        <Text style={styles.statValue}>{stats.assigned}</Text>
-        <Text style={styles.statLabel}>Assigned</Text>
-      </View>
 
-      <View style={[styles.card, cardShadow]}>
-        <View style={[styles.iconContainer, { backgroundColor: tones.orange.iconBg }]}>
-          <Ionicons name={stats.icon} size={20} color={tones.orange.accent} />
+        <View style={[styles.card, cardShadow]}>
+          <View style={[styles.iconContainer, { backgroundColor: tones.green.iconBg }]}>
+            <Ionicons name="checkmark-circle" size={20} color={tones.green.accent} />
+          </View>
+          <Text style={[styles.statValue, { color: tones.green.accent }]}>{stats.assigned}</Text>
+          <Text style={styles.statLabel}>Assigned</Text>
         </View>
-        <Text style={styles.statValue}>{stats.available}</Text>
-        <Text style={styles.statLabel}>Available</Text>
+
+        <View style={[styles.card, cardShadow]}>
+          <View style={[styles.iconContainer, { backgroundColor: tones.orange.iconBg }]}>
+            <Ionicons name={stats.icon} size={20} color={tones.orange.accent} />
+          </View>
+          <Text style={[styles.statValue, { color: tones.orange.accent }]}>{stats.available}</Text>
+          <Text style={styles.statLabel}>Available</Text>
+        </View>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
+  wrapper: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: spacing.md,
+    gap: spacing.sm,
+  },
+  headerIconContainer: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.brandSoft,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerLabel: {
+    fontSize: fontSize.xs,
+    fontWeight: "700",
+    color: colors.textTertiary,
+    letterSpacing: 0.5,
+  },
+  container: {
+    flexDirection: "row",
     gap: spacing.md,
   },
   card: {
@@ -96,11 +127,13 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     padding: spacing.md,
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.borderLight,
   },
   iconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: spacing.sm,

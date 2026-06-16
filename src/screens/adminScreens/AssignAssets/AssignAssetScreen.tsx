@@ -183,11 +183,6 @@ export default function AssignAssetScreen() {
           paddingBottom: insets.bottom + TAB_BAR_CLEARANCE + spacing.lg,
         }}
       >
-        <AssetTypeSelector
-          selectedType={selectedAssetType}
-          onSelect={handleAssetTypeChange}
-          testID="asset-type-selector"
-        />
 
         <AssignmentStatsCards
           employees={employees}
@@ -195,6 +190,12 @@ export default function AssignAssetScreen() {
           hotels={hotels}
           assetType={selectedAssetType}
           testID="assignment-stats"
+        />
+
+        <AssetTypeSelector
+          selectedType={selectedAssetType}
+          onSelect={handleAssetTypeChange}
+          testID="asset-type-selector"
         />
 
         <EmployeeListSection

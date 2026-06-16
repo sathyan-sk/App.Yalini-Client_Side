@@ -19,7 +19,7 @@ const TAB_BAR_CLEARANCE = 72;
 
 type SettingsNavigationProp = NativeStackNavigationProp<
   SettingsStackParamList,
-  "Settings"
+  "SettingsHome"
 >;
 
 /**

@@ -19,7 +19,13 @@ export function AssetTypeSelector({
 }: AssetTypeSelectorProps) {
   return (
     <View style={styles.container} testID={testID}>
-      <Text style={styles.label}>SELECT ASSET TYPE</Text>
+      <View style={styles.headerRow}>
+        <View style={styles.headerIconContainer}>
+          <Ionicons name="grid" size={16} color={colors.brand} />
+        </View>
+        <Text style={styles.label}>SELECT BUSINESS TYPE</Text>
+      </View>
+      
       <View style={styles.optionsRow}>
         {ASSET_TYPE_OPTIONS.map((option) => {
           const isSelected = selectedType === option.id;
@@ -30,7 +36,11 @@ export function AssetTypeSelector({
               key={option.id}
               style={[
                 styles.optionCard,
-                isSelected && { borderColor: tone.accent, borderWidth: 2 },
+                isSelected && { 
+                  borderColor: tone.accent, 
+                  borderWidth: 2,
+                  backgroundColor: tone.cardBg,
+                },
               ]}
               onPress={() => onSelect(option.id)}
               activeOpacity={0.7}
@@ -48,7 +58,12 @@ export function AssetTypeSelector({
                   color={tone.accent}
                 />
               </View>
-              <Text style={styles.optionLabel}>{option.label}</Text>
+              <Text style={[
+                styles.optionLabel,
+                isSelected && { color: tone.accent }
+              ]}>
+                {option.label}
+              </Text>
               <Text style={styles.optionDescription} numberOfLines={2}>
                 {option.description}
               </Text>
@@ -70,12 +85,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
   },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: spacing.md,
+    gap: spacing.sm,
+  },
+  headerIconContainer: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.brandSoft,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   label: {
     fontSize: fontSize.xs,
-    fontWeight: "600",
+    fontWeight: "700",
     color: colors.textTertiary,
     letterSpacing: 0.5,
-    marginBottom: spacing.md,
   },
   optionsRow: {
     flexDirection: "row",
@@ -100,7 +128,7 @@ const styles = StyleSheet.create({
   },
   optionLabel: {
     fontSize: fontSize.lg,
-    fontWeight: "600",
+    fontWeight: "700",
     color: colors.textPrimary,
     marginBottom: spacing.xs,
   },

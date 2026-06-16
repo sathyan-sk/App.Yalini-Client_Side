@@ -21,7 +21,7 @@ import type { VehicleFormValues, VehicleStatusId } from "../../../types/vehicle"
 
 import { FormHeader } from "./components/FormHeader";
 import { FormToast } from "./components/FormToast";
-import { StatusSelectorCard } from "./components/StatusSelectorCard";
+import { StatusSelector } from "./components/StatusSelector";
 
 type VehiclesStackParamList = {
   AllVehicles: undefined;
@@ -261,32 +261,11 @@ export default function EditVehicleScreen() {
 
           {/* Vehicle Status Section */}
           <View style={styles.formCard}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.sectionIconBg}>
-                <Ionicons name="radio" size={24} color={colors.brand} />
-              </View>
-              <View>
-                <Text style={styles.sectionTitle}>Vehicle Status</Text>
-                <Text style={styles.sectionSubtitle}>
-                  Update the current status of the vehicle
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.statusRow}>
-              <StatusSelectorCard
-                statusId="enabled"
-                selected={values.status === "enabled"}
-                onSelect={() => setStatus("enabled")}
-                testID="edit-vehicle-status-enabled"
-              />
-              <StatusSelectorCard
-                statusId="disabled"
-                selected={values.status === "disabled"}
-                onSelect={() => setStatus("disabled")}
-                testID="edit-vehicle-status-disabled"
-              />
-            </View>
+            <StatusSelector
+              value={values.status}
+              onChange={setStatus}
+              testID="edit-vehicle-status"
+            />  
           </View>
 
           {/* Notes Section */}
@@ -457,10 +436,7 @@ const styles = StyleSheet.create({
     color: colors.error,
     marginTop: spacing.xs,
   },
-  statusRow: {
-    flexDirection: "row",
-    gap: spacing.sm,
-  },
+
   notesInputContainer: {
     flexDirection: "row",
     borderWidth: 1,
