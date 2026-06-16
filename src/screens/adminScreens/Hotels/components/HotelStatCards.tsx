@@ -13,8 +13,8 @@ import {
 
 interface HotelStatCardsProps {
   total: number;
-  active: number;
-  inactive: number;
+  enabled: number;
+  disabled: number;
   testID?: string;
 }
 
@@ -30,14 +30,14 @@ interface CardConfig {
 /**
  * Three-up summary row shown above the hotels search bar.
  *
- *   [Total]  [Active (green dot)]  [Inactive (red dot)]
+ *   [Total]  [Enabled (green dot)]  [Disabled (red dot)]
  *
  * Cards are equal width and match the design pixel-perfectly.
  */
 export function HotelStatCards({
   total,
-  active,
-  inactive,
+  enabled,
+  disabled,
   testID,
 }: HotelStatCardsProps) {
   const configs: CardConfig[] = [
@@ -49,17 +49,17 @@ export function HotelStatCards({
       iconName: "business",
     },
     {
-      key: "active",
-      value: active,
-      label: "Active",
+      key: "enabled",
+      value: enabled,
+      label: "Enabled",
       tone: "green",
       iconName: "ellipse",
       dotColor: "#16A34A",
     },
     {
-      key: "inactive",
-      value: inactive,
-      label: "Inactive",
+      key: "disabled",
+      value: disabled,
+      label: "Disabled",
       tone: "red",
       iconName: "ellipse",
       dotColor: "#DC2626",

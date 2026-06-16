@@ -47,11 +47,11 @@ export function AssetSelectionSheet({
   const availableAssets = useMemo(() => {
     if (assetType === "vehicle") {
       return vehicles.filter(
-        (v) => !v.assignedEmployeeId && v.status === "running"
+        (v) => !v.assignedEmployeeId && v.status === "enabled"
       );
     }
     return hotels.filter(
-      (h) => !h.assignedEmployeeId && h.status === "active"
+      (h) => !h.assignedEmployeeId && h.status === "enabled"
     );
   }, [assetType, vehicles, hotels]);
 

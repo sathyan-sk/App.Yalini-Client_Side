@@ -21,7 +21,7 @@ export function StatusSelectorCard({
 }: StatusSelectorCardProps) {
   const option = VEHICLE_STATUS_OPTIONS.find((o) => o.id === statusId)!;
   const tone = tones[option.tone];
-  const isRunning = statusId === "running";
+  const isEnabled = statusId === "enabled";
 
   return (
     <Pressable
@@ -40,7 +40,7 @@ export function StatusSelectorCard({
 
       {/* Icon */}
       <View style={[styles.iconBg, { backgroundColor: tone.iconBg }]}>
-        {isRunning ? (
+        {isEnabled ? (
           <Ionicons name="car-sport" size={24} color={tone.accent} />
         ) : (
           <Ionicons name="construct" size={24} color={tone.accent} />

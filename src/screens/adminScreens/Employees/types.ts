@@ -7,7 +7,7 @@
 
 import type { BusinessTypeId } from "../MyBusiness/types";
 
-export type EmployeeStatusId = "active" | "disabled";
+export type EmployeeStatusId = "enabled" | "disabled";
 
 export interface Employee {
   id: string;

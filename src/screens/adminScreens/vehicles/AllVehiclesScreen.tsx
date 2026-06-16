@@ -40,7 +40,7 @@ type Nav = NativeStackNavigationProp<VehiclesStackParamList, "AllVehicles">;
  *
  * Displays list of all vehicles with:
  *   1. Sticky header (title + Add CTA)
- *   2. Stat cards (Total / Running / Maintenance)
+ *   2. Stat cards (Total / Enabled / Disabled)
  *   3. Search + status filter row
  *   4. Scrollable list of VehicleCard items
  *   5. Pull to refresh
@@ -70,11 +70,11 @@ export default function AllVehiclesScreen() {
   }, [vehicles, query, filter]);
 
   const counts = useMemo(() => {
-    const running = vehicles.filter((v) => v.status === "running").length;
+    const enabled = vehicles.filter((v) => v.status === "enabled").length;
     return {
       total: vehicles.length,
-      running,
-      maintenance: vehicles.length - running,
+      enabled,
+      disabled: vehicles.length - enabled,
     };
   }, [vehicles]);
 
@@ -147,8 +147,8 @@ export default function AllVehiclesScreen() {
         >
           <VehicleStatCards
             total={counts.total}
-            running={counts.running}
-            maintenance={counts.maintenance}
+            enabled={counts.enabled}
+            disabled={counts.disabled}
             testID="vehicle-stat-cards"
           />
 

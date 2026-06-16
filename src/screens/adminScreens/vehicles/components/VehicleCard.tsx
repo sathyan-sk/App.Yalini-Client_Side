@@ -20,7 +20,7 @@ export function VehicleCard({
   onDelete,
   testID,
 }: VehicleCardProps) {
-  const isRunning = vehicle.status === "running";
+  const isRunning = vehicle.status === "enabled";
 
   return (
     <Pressable

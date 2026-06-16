@@ -3,7 +3,7 @@ export type RootTabParamList = {
   DailyRecords: undefined;
   Finance: undefined;
   Employees: undefined;
-  Settings: undefined;
+  SettingsHome: undefined;
 };
 
 /**
@@ -21,7 +21,7 @@ export type EmployeesStackParamList = {
  * `Settings` is the entry point; `MyBusiness` mounts a full CRUD flow
  */
 export type SettingsStackParamList = {
-  Settings: undefined;
+  SettingsHome: undefined;
   MyBusiness: undefined;
   AddBusiness: undefined;
   EditBusiness: { businessId: string };

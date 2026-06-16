@@ -6,10 +6,10 @@ export const HOTEL_STORAGE_KEY = "@yalini_hotels_v1";
 
 /** Status options for the filter sheet. */
 export const HOTEL_STATUS_OPTIONS: Array<{
-  id: "all" | "active" | "inactive";
+  id: "all" | "enabled" | "disabled";
   label: string;
 }> = [
   { id: "all", label: "All Status" },
-  { id: "active", label: "Active" },
-  { id: "inactive", label: "Inactive" },
+  { id: "enabled", label: "Enabled" },
+  { id: "disabled", label: "Disabled" },
 ];

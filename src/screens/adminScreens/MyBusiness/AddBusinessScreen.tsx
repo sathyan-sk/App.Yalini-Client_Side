@@ -44,7 +44,7 @@ const INITIAL_VALUES: BusinessFormValues = {
   name: "",
   type: "taxi",
   mode: "auto",
-  status: "active",
+  status: "enabled",
 };
 
 /**
@@ -55,7 +55,7 @@ const INITIAL_VALUES: BusinessFormValues = {
  * the reference design.
  *
  * Removed (per product spec): Description field.
- * Added  (per product spec): Status toggle (Active / Inactive).
+ * Added  (per product spec): Status toggle (Enabled / Disabled).
  */
 export default function AddBusinessScreen() {
   const insets = useSafeAreaInsets();

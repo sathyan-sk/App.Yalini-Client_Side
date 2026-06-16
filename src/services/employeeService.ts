@@ -45,7 +45,7 @@ const SEED_EMPLOYEES: Employee[] = [
     businessName: "City Taxi",
     businessType: "taxi",
     pin: "1234",
-    status: "active",
+    status: "enabled",
     createdAt: "2026-06-10",
   },
   {
@@ -56,7 +56,7 @@ const SEED_EMPLOYEES: Employee[] = [
     businessName: "Yalini Minerals (Water)",
     businessType: "water_delivery",
     pin: "1234",
-    status: "active",
+    status: "enabled",
     createdAt: "2026-06-09",
   },
   {
@@ -67,7 +67,7 @@ const SEED_EMPLOYEES: Employee[] = [
     businessName: "City Taxi",
     businessType: "taxi",
     pin: "1234",
-    status: "active",
+    status: "disabled",
     createdAt: "2026-06-08",
   },
   {
@@ -89,7 +89,7 @@ const SEED_EMPLOYEES: Employee[] = [
     businessName: "City Taxi",
     businessType: "taxi",
     pin: "1234",
-    status: "disabled",
+    status: "enabled",
     createdAt: "2026-06-06",
   },
   {
@@ -100,28 +100,20 @@ const SEED_EMPLOYEES: Employee[] = [
     businessName: "Yalini Minerals (Water)",
     businessType: "water_delivery",
     pin: "1234",
-    status: "active",
+    status: "enabled",
     createdAt: "2026-06-05",
   },
 ];
 
-export async function loadEmployees(): Promise<Employee[]> {
-  const raw = await storage.getItem(EMPLOYEE_STORAGE_KEY, "");
-  if (!raw) {
-    await saveEmployees(SEED_EMPLOYEES);
-    return [...SEED_EMPLOYEES];
-  }
-  try {
+export async function loadEmployees(): Promise<Employee[]>{
+  try {    const raw = await storage.getItem(EMPLOYEE_STORAGE_KEY, "");
+    if (!raw) {
+      await saveEmployees(SEED_EMPLOYEES);
+      return [...SEED_EMPLOYEES];
+    }
     const parsed = JSON.parse(raw) as Employee[];
     if (!Array.isArray(parsed)) return [...SEED_EMPLOYEES];
-    // Migrate old 'water' type to 'water_delivery'
-    const migrated = parsed.map(e => ({
-      ...e,
-      // Migrate old 'water' type to 'water_delivery'. Cast to string to avoid
-      // TypeScript mismatch with older stored values.
-      businessType: String(e.businessType) === 'water' ? 'water_delivery' : e.businessType
-    })) as Employee[];
-    return migrated;
+    return parsed;
   } catch {
     return [...SEED_EMPLOYEES];
   }

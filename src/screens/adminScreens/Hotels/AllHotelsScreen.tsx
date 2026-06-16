@@ -40,7 +40,7 @@ type Nav = NativeStackNavigationProp<HotelsStackParamList, "AllHotels">;
  *
  * Displays list of all hotels with:
  *   1. Sticky header (title + Add CTA)
- *   2. Stat cards (Total / Active / Inactive)
+ *   2. Stat cards (Total / Enabled / Disabled)
  *   3. Search + status filter row
  *   4. Scrollable list of HotelCard items
  *   5. Pull to refresh
@@ -67,11 +67,11 @@ export default function AllHotelsScreen() {
   }, [hotels, query, filter]);
 
   const counts = useMemo(() => {
-    const active = hotels.filter((h) => h.status === "active").length;
+    const enabled = hotels.filter((h) => h.status === "enabled").length;
     return {
       total: hotels.length,
-      active,
-      inactive: hotels.length - active,
+      enabled,
+      disabled: hotels.length - enabled,
     };
   }, [hotels]);
 
@@ -144,8 +144,8 @@ export default function AllHotelsScreen() {
         >
           <HotelStatCards
             total={counts.total}
-            active={counts.active}
-            inactive={counts.inactive}
+            enabled={counts.enabled}
+            disabled={counts.disabled}
             testID="hotel-stat-cards"
           />
 

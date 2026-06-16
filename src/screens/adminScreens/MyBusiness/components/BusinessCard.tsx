@@ -44,8 +44,8 @@ export function BusinessCard({
   const typeMeta = BUSINESS_TYPE_MAP[business.type];
   const palette = tones[typeMeta.tone];
   const statusColor =
-    business.status === "active" ? colors.success : colors.warning;
-  const statusLabel = business.status === "active" ? "Active" : "Inactive";
+    business.status === "enabled" ? colors.success : colors.warning;
+  const statusLabel = business.status === "enabled" ? "Enabled" : "Disabled";
 
   return (
     <Pressable

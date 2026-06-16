@@ -38,7 +38,7 @@ interface FormErrors {
 const INITIAL_VALUES: VehicleFormValues = {
   name: "",
   number: "",
-  status: "running",
+  status: "enabled",
   notes: "",
 };
 
@@ -47,7 +47,7 @@ const INITIAL_VALUES: VehicleFormValues = {
  *
  * Form to add a new vehicle to the fleet with:
  *   - Vehicle Information section (Name, Number)
- *   - Vehicle Status selection (Running / Maintenance)
+ *   - Vehicle Status selection (Enabled / Disabled)
  *   - Notes (Optional)
  *   - Save Vehicle button
  */
@@ -243,16 +243,16 @@ export default function AddVehicleScreen() {
 
             <View style={styles.statusRow}>
               <StatusSelectorCard
-                statusId="running"
-                selected={values.status === "running"}
-                onSelect={() => setStatus("running")}
-                testID="add-vehicle-status-running"
+                statusId="enabled"
+                selected={values.status === "enabled"}
+                onSelect={() => setStatus("enabled")}
+                testID="add-vehicle-status-enabled"
               />
               <StatusSelectorCard
-                statusId="maintenance"
-                selected={values.status === "maintenance"}
-                onSelect={() => setStatus("maintenance")}
-                testID="add-vehicle-status-maintenance"
+                statusId="disabled"
+                selected={values.status === "disabled"}
+                onSelect={() => setStatus("disabled")}
+                testID="add-vehicle-status-disabled"
               />
             </View>
           </View>

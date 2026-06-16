@@ -5,7 +5,7 @@
  * backend wiring will swap the storage layer without changing this shape.
  */
 
-export type HotelStatusId = "active" | "inactive";
+export type HotelStatusId = "enabled" | "disabled";
 
 export interface Hotel {
   id: string;

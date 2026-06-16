@@ -22,7 +22,7 @@ const Stack = createNativeStackNavigator<SettingsStackParamList>();
 export default function SettingsNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Settings" component={SettingsScreen} />
+      <Stack.Screen name="SettingsHome" component={SettingsScreen} />
 
       <Stack.Screen name="MyBusiness" component={MyBusinessScreen} />
       <Stack.Screen

@@ -6,15 +6,15 @@ import { colors, fontSize, radius, spacing, cardShadow } from "../../../../theme
 
 interface VehicleStatCardsProps {
   total: number;
-  running: number;
-  maintenance: number;
+  enabled: number;
+  disabled: number;
   testID?: string;
 }
 
 export function VehicleStatCards({
   total,
-  running,
-  maintenance,
+  enabled,
+  disabled,
   testID,
 }: VehicleStatCardsProps) {
   return (
@@ -38,9 +38,9 @@ export function VehicleStatCards({
         <View style={styles.statItem}>
           <View style={styles.labelRow}>
             <View style={[styles.dot, { backgroundColor: colors.running }]} />
-            <Text style={styles.statLabel}>Running</Text>
+            <Text style={styles.statLabel}>Enabled</Text>
           </View>
-          <Text style={styles.statValue}>{running}</Text>
+          <Text style={styles.statValue}>{enabled}</Text>
         </View>
         
         <View style={styles.divider} />
@@ -48,9 +48,9 @@ export function VehicleStatCards({
         <View style={styles.statItem}>
           <View style={styles.labelRow}>
             <View style={[styles.dot, { backgroundColor: colors.maintenance }]} />
-            <Text style={styles.statLabel}>Maintenance</Text>
+            <Text style={styles.statLabel}>Disabled</Text>
           </View>
-          <Text style={styles.statValue}>{maintenance}</Text>
+          <Text style={styles.statValue}>{disabled}</Text>
         </View>
       </View>
     </View>

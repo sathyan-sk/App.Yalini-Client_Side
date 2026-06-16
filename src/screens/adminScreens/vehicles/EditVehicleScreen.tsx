@@ -42,7 +42,7 @@ interface FormErrors {
  *
  * Form to edit an existing vehicle with:
  *   - Vehicle Information section (Name, Number)
- *   - Vehicle Status selection (Running / Maintenance)
+ *   - Vehicle Status selection (Enabled / Disabled)
  *   - Notes (Optional)
  *   - Save Changes button
  */
@@ -275,16 +275,16 @@ export default function EditVehicleScreen() {
 
             <View style={styles.statusRow}>
               <StatusSelectorCard
-                statusId="running"
-                selected={values.status === "running"}
-                onSelect={() => setStatus("running")}
-                testID="edit-vehicle-status-running"
+                statusId="enabled"
+                selected={values.status === "enabled"}
+                onSelect={() => setStatus("enabled")}
+                testID="edit-vehicle-status-enabled"
               />
               <StatusSelectorCard
-                statusId="maintenance"
-                selected={values.status === "maintenance"}
-                onSelect={() => setStatus("maintenance")}
-                testID="edit-vehicle-status-maintenance"
+                statusId="disabled"
+                selected={values.status === "disabled"}
+                onSelect={() => setStatus("disabled")}
+                testID="edit-vehicle-status-disabled"
               />
             </View>
           </View>

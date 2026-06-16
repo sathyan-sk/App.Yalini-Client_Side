@@ -21,8 +21,8 @@ interface StatusFilterSheetProps {
 
 const OPTIONS: Array<{ value: BusinessStatusFilter; label: string; helper: string }> = [
   { value: "all", label: "All Status", helper: "Show every business" },
-  { value: "active", label: "Active", helper: "Only operational businesses" },
-  { value: "inactive", label: "Inactive", helper: "Disabled or paused businesses" },
+  { value: "enabled", label: "Enabled", helper: "Only enabled businesses" },
+  { value: "disabled", label: "Disabled", helper: "Disabled or paused businesses" },
 ];
 
 /**

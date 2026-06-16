@@ -68,12 +68,12 @@ export function StatusFilterSheet({
                   ]}
                 >
                   <View style={styles.optionContent}>
-                    {option.id === "active" && (
+                    {option.id === "enabled" && (
                       <View
                         style={[styles.dot, { backgroundColor: colors.success }]}
                       />
                     )}
-                    {option.id === "inactive" && (
+                    {option.id === "disabled" && (
                       <View
                         style={[styles.dot, { backgroundColor: colors.warning }]}
                       />

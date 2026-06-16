@@ -5,7 +5,7 @@
  * The status can be "running" (active and available) or "maintenance" (under repair).
  */
 
-export type VehicleStatusId = "running" | "maintenance";
+export type VehicleStatusId = "enabled" | "disabled";
 
 export interface Vehicle {
   id: string;

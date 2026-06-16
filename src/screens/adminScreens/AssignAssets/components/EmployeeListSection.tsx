@@ -31,6 +31,10 @@ export function EmployeeListSection({
 }: EmployeeListSectionProps) {
   // Filter employees based on asset type (taxi employees for vehicles, water delivery for hotels)
   const filteredEmployees = employees.filter((emp) => {
+        // Exclude disabled employees
+    if (emp.status === "disabled") {
+      return false;
+    }
     if (assetType === "vehicle") {
       return emp.businessType === "taxi";
     }

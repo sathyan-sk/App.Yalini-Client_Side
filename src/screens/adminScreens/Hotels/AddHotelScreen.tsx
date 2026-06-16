@@ -38,7 +38,7 @@ interface FormErrors {
 const INITIAL_VALUES: HotelFormValues = {
   name: "",
   ratePerCan: 0,
-  status: "active",
+  status: "enabled",
 };
 
 /**
@@ -46,7 +46,6 @@ const INITIAL_VALUES: HotelFormValues = {
  *
  * Form to add a new hotel with:
  *   - Hotel Information section (Name, Rate per Can)
- *   - Hotel Status selection (Active / Inactive)
  *   - Save Hotel button
  */
 export default function AddHotelScreen() {

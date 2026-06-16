@@ -15,8 +15,8 @@ interface BusinessSearchBarProps {
 
 const FILTER_LABELS: Record<BusinessStatusFilter, string> = {
   all: "All Status",
-  active: "Active",
-  inactive: "Inactive",
+  enabled: "Enabled",
+  disabled: "Disabled",
 };
 
 /**

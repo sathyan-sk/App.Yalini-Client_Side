@@ -11,7 +11,7 @@ interface StatusSwitchRowProps {
 }
 
 /**
- * Active / Inactive toggle row used in the Add and Edit Business forms.
+ * Enabled / Disabled toggle row used in the Add and Edit Business forms.
  *
  * Renders inside a white card matching the other form rows:
  *  [label + helper text] [native switch].
@@ -24,7 +24,7 @@ export function StatusSwitchRow({
   onChange,
   testID,
 }: StatusSwitchRowProps) {
-  const isActive = value === "active";
+  const isActive = value === "enabled";
 
   return (
     <View style={styles.row} testID={testID}>
@@ -39,7 +39,7 @@ export function StatusSwitchRow({
           ]}
           testID={`${testID ?? "status-row"}-state`}
         >
-          {isActive ? "Active" : "Inactive"}
+          {isActive ? "Enabled" : "Disabled"}
           <Text style={styles.helperText}>
             {"  "}
             {isActive
@@ -52,7 +52,7 @@ export function StatusSwitchRow({
       <Switch
         testID={`${testID ?? "status-row"}-switch`}
         value={isActive}
-        onValueChange={(next) => onChange(next ? "active" : "inactive")}
+        onValueChange={(next) => onChange(next ? "enabled" : "disabled")}
         trackColor={{ false: "#D1D5DB", true: "#86EFAC" }}
         thumbColor={isActive ? colors.success : "#F3F4F6"}
         ios_backgroundColor="#D1D5DB"

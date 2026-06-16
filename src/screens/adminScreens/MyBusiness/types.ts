@@ -13,7 +13,7 @@ export type BusinessTypeId = "taxi" | "water_delivery";
 
 export type BusinessModeId = "auto" | "manual";
 
-export type BusinessStatusId = "active" | "inactive";
+export type BusinessStatusId = "enabled" | "disabled";
 
 export interface Business {
   id: string;

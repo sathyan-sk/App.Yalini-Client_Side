@@ -12,15 +12,15 @@ interface StatusSelectorProps {
 }
 
 /**
- * Active/Inactive toggle buttons matching the design exactly.
- * Active has green border and check icon, Inactive has orange border and X icon.
+ * Enabled/Disabled toggle buttons matching the design exactly.
+ * Enabled has green border and check icon, Disabled has orange border and X icon.
  */
 export function StatusSelector({
   value,
   onChange,
   testID,
 }: StatusSelectorProps) {
-  const isActive = value === "active";
+  const isActive = value === "enabled";
 
   return (
     <View style={styles.container} testID={testID}>
@@ -36,7 +36,7 @@ export function StatusSelector({
       <View style={styles.toggleRow}>
         <Pressable
           testID="status-active-button"
-          onPress={() => onChange("active")}
+          onPress={() => onChange("enabled")}
           style={({ pressed }) => [
             styles.toggleButton,
             isActive && styles.activeButton,
@@ -53,7 +53,7 @@ export function StatusSelector({
               {isActive && <View style={styles.radioInner} />}
             </View>
             <Text style={[styles.buttonText, isActive && styles.activeText]}>
-              Active
+              Enabled
             </Text>
           </View>
           {isActive && (
@@ -62,8 +62,8 @@ export function StatusSelector({
         </Pressable>
 
         <Pressable
-          testID="status-inactive-button"
-          onPress={() => onChange("inactive")}
+          testID="status-disabled-button"
+          onPress={() => onChange("disabled")}
           style={({ pressed }) => [
             styles.toggleButton,
             !isActive && styles.inactiveButton,
@@ -80,7 +80,7 @@ export function StatusSelector({
               {!isActive && <View style={styles.radioInnerInactive} />}
             </View>
             <Text style={[styles.buttonText, !isActive && styles.inactiveText]}>
-              Inactive
+              Disabled
             </Text>
           </View>
           {!isActive && (
@@ -90,8 +90,8 @@ export function StatusSelector({
       </View>
 
       <Text style={styles.helperText}>
-        Active hotels will be available for deliveries.{"\n"}
-        Inactive hotels will be temporarily unavailable.
+        Enabled hotels will be available for deliveries.{"\n"}
+        Disabled hotels will be temporarily unavailable.
       </Text>
     </View>
   );

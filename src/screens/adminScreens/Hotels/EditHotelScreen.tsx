@@ -42,7 +42,7 @@ interface FormErrors {
  *
  * Form to edit an existing hotel with:
  *   - Hotel Information section (Name, Rate per Can)
- *   - Hotel Status selection (Active / Inactive)
+ *   - Hotel Status selection (Enabled / Disabled)
  *   - Save Changes button
  */
 export default function EditHotelScreen() {

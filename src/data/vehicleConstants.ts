@@ -16,18 +16,18 @@ export interface VehicleStatusOption {
 
 export const VEHICLE_STATUS_OPTIONS: VehicleStatusOption[] = [
   {
-    id: "running",
-    label: "Running",
-    description: "Vehicle is active and available for service",
+    id: "enabled",
+    label: "enabled",
+    description: "Vehicle is enabled and available for service",
     tone: "green",
     iconName: "car-sport",
   },
   {
-    id: "maintenance",
-    label: "Maintenance",
-    description: "Vehicle is under maintenance",
-    tone: "orange",
-    iconName: "construct",
+    id: "disabled",
+    label: "disabled",
+    description: "Vehicle is disabled and not available for service",
+    tone: "red",
+    iconName: "car-sport",
   },
 ];
 

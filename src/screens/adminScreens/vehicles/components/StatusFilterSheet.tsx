@@ -25,8 +25,8 @@ const FILTER_OPTIONS: {
   color: string;
 }[] = [
   { id: "all", label: "All Vehicles", icon: "car", color: colors.brand },
-  { id: "running", label: "Running", icon: "car-sport", color: colors.running },
-  { id: "maintenance", label: "Maintenance", icon: "construct", color: colors.maintenance },
+  { id: "enabled", label: "Enabled", icon: "car-sport", color: colors.running },
+  { id: "disabled", label: "Disabled", icon: "car-sport", color: colors.maintenance },
 ];
 
 export function StatusFilterSheet({

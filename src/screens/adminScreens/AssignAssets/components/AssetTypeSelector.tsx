@@ -59,7 +59,7 @@ export function AssetTypeSelector({
               )}
             </TouchableOpacity>
           );
-        })})
+        })}
       </View>
     </View>
   );

@@ -32,10 +32,10 @@ interface HotelCardProps {
  */
 export function HotelCard({ hotel, onPress, onEdit, onDelete }: HotelCardProps) {
   const palette = tones.green;
-  const statusColor = hotel.status === "active" ? colors.success : colors.warning;
-  const statusLabel = hotel.status === "active" ? "Active" : "Inactive";
+  const statusColor = hotel.status === "enabled" ? colors.success : colors.warning;
+  const statusLabel = hotel.status === "enabled" ? "Enabled" : "Disabled";
   const statusBgColor =
-    hotel.status === "active" ? colors.successSoft : colors.warningSoft;
+    hotel.status === "enabled" ? colors.successSoft : colors.warningSoft;
 
   return (
     <Pressable

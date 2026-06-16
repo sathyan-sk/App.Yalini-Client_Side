@@ -26,9 +26,9 @@ export function AssignmentStatsCards({
   // Calculate stats based on asset type
   const stats = React.useMemo(() => {
     if (assetType === "vehicle") {
-      const taxiEmployees = employees.filter((e) => e.businessType === "taxi" && e.status === "active");
+      const taxiEmployees = employees.filter((e) => e.businessType === "taxi" && e.status === "enabled");
       const assignedVehicles = vehicles.filter((v) => v.assignedEmployeeId);
-      const availableVehicles = vehicles.filter((v) => !v.assignedEmployeeId && v.status === "running");
+      const availableVehicles = vehicles.filter((v) => !v.assignedEmployeeId && v.status === "enabled");
 
       return {
         total: taxiEmployees.length,
@@ -40,9 +40,9 @@ export function AssignmentStatsCards({
       };
     }
 
-    const deliveryEmployees = employees.filter((e) => e.businessType === "water_delivery" && e.status === "active");
+    const deliveryEmployees = employees.filter((e) => e.businessType === "water_delivery" && e.status === "enabled");
     const assignedHotels = hotels.filter((h) => h.assignedEmployeeId);
-    const availableHotels = hotels.filter((h) => !h.assignedEmployeeId && h.status === "active");
+    const availableHotels = hotels.filter((h) => !h.assignedEmployeeId && h.status === "enabled");
 
     return {
       total: deliveryEmployees.length,
