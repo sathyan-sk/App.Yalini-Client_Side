@@ -39,6 +39,7 @@ const INITIAL_VALUES: HotelFormValues = {
   name: "",
   ratePerCan: 0,
   status: "enabled",
+  location: "",
 };
 
 /**
@@ -61,6 +62,10 @@ export default function AddHotelScreen() {
   const setName = (next: string) => {
     setValues((v) => ({ ...v, name: next }));
     if (errors.name) setErrors((e) => ({ ...e, name: undefined }));
+  };
+
+  const setLocation = (next: string) => {
+    setValues((v) => ({ ...v, location: next }));
   };
 
   const setRatePerCan = (next: string) => {
@@ -92,6 +97,7 @@ export default function AddHotelScreen() {
         name: values.name.trim(),
         ratePerCan: values.ratePerCan,
         status: values.status,
+        location: values.location?.trim() || undefined,
       });
       setToastVisible(true);
       setTimeout(() => {
@@ -180,6 +186,32 @@ export default function AddHotelScreen() {
               ) : null}
             </View>
 
+            {/* Hotel Location */}
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>
+                Hotel Location
+              </Text>
+              <View style={styles.inputContainer}>
+                <Ionicons
+                  name="location-outline"
+                  size={20}
+                  color={colors.textTertiary}
+                />
+                <TextInput
+                  testID="add-hotel-location-input"
+                  value={values.location || ""}
+                  onChangeText={setLocation}
+                  placeholder="Enter hotel location (e.g., Chennai, Tamil Nadu)\"
+                  placeholderTextColor={colors.textTertiary}
+                  style={styles.input}
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                  returnKeyType="next"
+                  maxLength={100}
+                />
+              </View>
+            </View>
+            
             {/* Rate per Can */}
             <View style={styles.fieldGroup}>
               <Text style={styles.fieldLabel}>

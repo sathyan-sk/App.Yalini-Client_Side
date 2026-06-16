@@ -12,6 +12,8 @@ export interface Hotel {
   name: string;
   ratePerCan: number;
   status: HotelStatusId;
+  /** Hotel location for display purposes */
+  location?: string;
   /** Assigned employee ID (for proper tracking) */
   assignedEmployeeId?: string;
   /** Assigned employee name (for display) */
@@ -25,6 +27,7 @@ export interface HotelFormValues {
   name: string;
   ratePerCan: number;
   status: HotelStatusId;
+  location?: string;
   assignedEmployeeId?: string;
   assignedEmployeeName?: string;
 }
