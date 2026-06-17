@@ -2,9 +2,9 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
-import { colors, fontSize, radius, spacing, lightShadow } from "../../../../../theme";
-import { formatCurrency, formatDistance } from "../../../../../utils/format";
-import type { TripDetail } from "../../../../../types/dailyRecords";
+import { colors, fontSize, radius, spacing, lightShadow } from "../../../../../../theme";
+import { formatCurrency, formatDistance } from "../../../../../../utils/format";
+import type { TripDetail } from "../../../../../../types/dailyRecords";
 
 interface TripCardProps {
   trip: TripDetail;

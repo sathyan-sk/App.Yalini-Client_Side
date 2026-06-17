@@ -7,22 +7,27 @@ import {
   Text,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
-import { ScreenHeader } from "./components/common/ScreenHeader";
-import { BusinessSelector } from "./components/common/BusinessSelector";
-import { DateSelector } from "./components/common/DateSelector";
-import { TabSwitcher } from "./components/common/TabSwitcher";
-import { DriverCard } from "./components/dailyRecords/DriverCard";
+import { ScreenHeader } from "../Record's/components/common/ScreenHeader";
+import { BusinessSelector } from "../Record's/components/common/BusinessSelector";
+import { DateSelector } from "../Record's/components/common/DateSelector";
+import { TabSwitcher } from "../Record's/components/common/TabSwitcher";
+import { DriverCard } from "./components/dailyRecords/taxiBusiness/DriverCard";
 
 import { colors, spacing, fontSize } from "../../../theme";
-import { todayISO } from "../../../utils/format";
 import { mockBusinesses, mockDriverRecords } from "../../../data/mockDailyRecords";
 import type { RecordStatus } from "../../../types/dailyRecords";
+import type { DailyRecordsStackParamList } from "../../../types/navigation";
 
 const TAB_BAR_CLEARANCE = 80;
 
+type NavigationProp = NativeStackNavigationProp<DailyRecordsStackParamList>;
+
 export default function DailyRecordsScreen() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<NavigationProp>();
   
   const [selectedBusiness, setSelectedBusiness] = useState(mockBusinesses[0]);
   const [selectedDate, setSelectedDate] = useState("2026-06-10"); // Match mock data date
@@ -43,7 +48,7 @@ export default function DailyRecordsScreen() {
   };
 
   const handleRecordPress = (recordId: string) => {
-    // router.push(`/record-details/${recordId}`);
+    navigation.navigate("RecordDetails", { recordId });
   };
 
   return (
@@ -74,11 +79,15 @@ export default function DailyRecordsScreen() {
         {/* Selectors Row */}
         <View style={styles.selectorsRow}>
           <BusinessSelector
-            businessName={selectedBusiness.name}
-            onPress={() => {}}
+            businesses={mockBusinesses}
+            selectedBusiness={selectedBusiness}
+            onSelect={setSelectedBusiness}
           />
           <View style={styles.selectorGap} />
-          <DateSelector selectedDate={selectedDate} onSelect={() => {}} />
+          <DateSelector 
+            selectedDate={selectedDate} 
+            onSelect={setSelectedDate} 
+          />
         </View>
 
         {/* Tab Switcher */}

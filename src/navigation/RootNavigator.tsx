@@ -11,6 +11,7 @@ import type { RootTabParamList } from "./types";
 import DashboardScreen from "../screens/adminScreens/Dashboard/DashboardScreen";
 import EmployeesNavigator from "./EmployeesNavigator";
 import SettingsNavigator from "./SettingsNavigator";
+import DailyRecordsNavigator from "./DailyRecordsNavigator";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
@@ -37,8 +38,8 @@ export default function RootNavigator() {
           tabBar={(props) => <AppTabBar {...props} />}
         >
           <Tab.Screen name="Dashboard" component={DashboardScreen} />
-          {/* <Tab.Screen name="DailyRecords" component={DailyRecordsScreen} />
-          <Tab.Screen name="Finance" component={FinanceScreen} /> */}
+          <Tab.Screen name="DailyRecords" component={DailyRecordsNavigator} />
+          {/* <Tab.Screen name="Finance" component={FinanceScreen} /> */}
           <Tab.Screen name="Employees" component={EmployeesNavigator} />
           <Tab.Screen name="Settings" component={SettingsNavigator} />
         </Tab.Navigator>

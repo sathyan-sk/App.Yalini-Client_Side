@@ -2,8 +2,8 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 
-import { colors, fontSize, radius, spacing, cardShadow } from "../../../../../theme";
-import { formatCurrency } from "../../../../../utils/format";
+import { colors, fontSize, radius, spacing, cardShadow } from "../../../../../../theme";
+import { formatCurrency } from "../../../../../../utils/format";
 
 type FooterCardType = "fuel" | "balance";
 

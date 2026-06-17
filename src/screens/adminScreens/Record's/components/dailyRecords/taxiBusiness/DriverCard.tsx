@@ -2,11 +2,11 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
-import { colors, fontSize, radius, spacing, cardShadow } from "../../../../../theme";
-import { formatDisplayDate, formatCurrency } from "../../../../../utils/format";
-import { Avatar } from "../common/Avatar";
-import { StatusBadge } from "../common/StatusBadge";
-import type { DriverRecord } from "../../../../../types/dailyRecords";
+import { colors, fontSize, radius, spacing, cardShadow } from "../../../../../../theme";
+import { formatDisplayDate, formatCurrency } from "../../../../../../utils/format";
+import { Avatar } from "../../common/Avatar";
+import { StatusBadge } from "../../common/StatusBadge";
+import type { DriverRecord } from "../../../../../../types/dailyRecords";
 
 
 interface DriverCardProps {

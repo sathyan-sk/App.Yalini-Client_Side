@@ -11,6 +11,14 @@ export function todayISO(): string {
   return dayjs().format("YYYY-MM-DD");
 }
 
+export function formatINR(amount: number): string {
+  try {
+    return new Intl.NumberFormat("en-IN").format(amount);
+  } catch {
+    return String(amount);
+  }
+}
+
 /**
  * Format date to display format (e.g., "10 Jun 2026")
  */
