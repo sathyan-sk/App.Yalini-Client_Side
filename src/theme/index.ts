@@ -1,6 +1,6 @@
 /**
- * Central design tokens for the app.
- * Source of truth: /app/design_guidelines.json
+ * Central design tokens for the app - Extended for Daily Records screens.
+ * Colors aligned with the design specifications.
  */
 
 export const colors = {
@@ -10,32 +10,46 @@ export const colors = {
   surfaceTertiary: "#F3F4F6",
 
   // Text
-  textPrimary: "#111827",
-  textSecondary: "#4B5563",
+  textPrimary: "#212121",
+  textSecondary: "#757575",
   textTertiary: "#9CA3AF",
 
-  // Brand
-  brand: "#4F46E5",
+  // Brand - Deep Purple as primary
+  brand: "#4527A0",
   brandSoft: "#EEF2FF",
+  brandLight: "#F5F3FF",
+
+  // Primary Blue
+  primaryBlue: "#1E88E5",
+  primaryBlueSoft: "#E3F2FD",
 
   // Status
-  success: "#16A34A",
+  success: "#00C853",
+  successDark: "#2E7D32",
   successSoft: "#DCFCE7",
-  warning: "#EA580C",
-  warningSoft: "#FFEDD5",
-  error: "#DC2626",
-  errorSoft: "#FEE2E2",
-  info: "#2563EB",
-  
-    // Vehicle specific
-  running: "#34C759",
-  runningSoft: "#E8F8EC",
-  maintenance: "#FF9500",
-  maintenanceSoft: "#FFF5E6",
+  warning: "#FFAB00",
+  warningSoft: "#FFF8E1",
+  error: "#C62828",
+  errorSoft: "#FFEBEE",
+  info: "#1E88E5",
+  infoSoft: "#E3F2FD",
+
+  // Tab colors
+  tabActive: "#4527A0",
+  tabInactive: "#F5F5F5",
+  tabTextActive: "#FFFFFF",
+  tabTextInactive: "#757575",
 
   // Borders
   border: "#E5E7EB",
   borderLight: "#F0F1F4",
+
+  // Avatar colors
+  avatarBlue: "#1E88E5",
+  avatarPurple: "#673AB7",
+  avatarGreen: "#00C853",
+  avatarOrange: "#F57C00",
+  avatarVividPurple: "#6200EA",
 } as const;
 
 /** Tinted palettes used by stat cards, business icons and tag chips. */
@@ -45,7 +59,7 @@ export const tones = {
   orange: { cardBg: "#FFF7ED", iconBg: "#FFEDD5", accent: "#EA580C" },
   blue: { cardBg: "#EFF6FF", iconBg: "#DBEAFE", accent: "#2563EB" },
   teal: { cardBg: "#F0FDFA", iconBg: "#CCFBF1", accent: "#0D9488" },
-  red: { cardBg: "#FEF2F2", iconBg: "#FEE2E2", accent: "#DC2626" },  
+  red: { cardBg: "#FEF2F2", iconBg: "#FEE2E2", accent: "#DC2626" },
 } as const;
 
 export type ToneKey = keyof typeof tones;
@@ -57,23 +71,26 @@ export const spacing = {
   lg: 16,
   xl: 24,
   xxl: 32,
-  xxxl: 30,
+  xxxl: 40,
 } as const;
 
 export const radius = {
+  xs: 4,
   sm: 6,
-  md: 12,
-  lg: 20,
+  md: 8,
+  lg: 12,
+  xl: 20,
   pill: 999,
 } as const;
 
 export const fontSize = {
-  xs: 11,
+  xs: 10,
   sm: 12,
   base: 14,
   lg: 16,
-  xl: 20,
-  xxl: 24,
+  xl: 18,
+  xxl: 20,
+  xxxl: 24,
 } as const;
 
 /** Tier-1 soft shadow used on white cards. */
@@ -83,4 +100,13 @@ export const cardShadow = {
   shadowRadius: 8,
   shadowOffset: { width: 0, height: 2 },
   elevation: 2,
+} as const;
+
+/** Lighter shadow for inner cards */
+export const lightShadow = {
+  shadowColor: "#000000",
+  shadowOpacity: 0.03,
+  shadowRadius: 4,
+  shadowOffset: { width: 0, height: 2 },
+  elevation: 1,
 } as const;
