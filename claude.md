@@ -8,7 +8,7 @@
 | App                | Yalini Mobile — multi-role business operations admin (UI-only today)  |
 | Framework          | **Expo SDK 54** (`expo ~54.0.35`)                                     |
 | Language           | **TypeScript** (`~5.9.3`)                                             |
-| Routing            | **React Navigation v7** (NOT Expo Router for in-app navigation)       |
+| Routing            | **React Navigation v7**      |
 | Tabs               | `@react-navigation/bottom-tabs`                                       |
 | Stacks             | `@react-navigation/native-stack`                                      |
 | Icons              | `@expo/vector-icons` (Ionicons + Feather only — pick one per surface) |
@@ -17,30 +17,6 @@
 | Status             | UI-only · backend wiring is the next milestone                        |
 
 ### Boot sequence
-
-```
-expo-router shell (app/_layout.tsx)
-        └── app/index.tsx
-                └── src/navigation/RootNavigator.tsx   ← React Navigation owns everything from here
-                        ├── Tab: Dashboard      → src/screens/adminScreens/Dashboard/DashboardScreen.tsx
-                        ├── Tab: DailyRecords   → PlaceholderScreen
-                        ├── Tab: Finance        → PlaceholderScreen
-                        ├── Tab: Employees      → PlaceholderScreen
-                        └── Tab: More           → src/navigation/MoreNavigator.tsx (native stack)
-                                                        ├── Settings  (SettingsScreen.tsx)
-                                                        ├── MyBusiness     → PlaceholderScreen
-                                                        ├── EmployeesAdmin → PlaceholderScreen
-                                                        ├── Vehicles       → PlaceholderScreen
-                                                        ├── Hotels         → PlaceholderScreen
-                                                        └── AssignAssets   → PlaceholderScreen
-```
-
-`app/index.tsx` wraps `RootNavigator` in `NavigationIndependentTree` so the
-expo-router shell (kept only because the platform requires it) doesn't fight
-the React Navigation tree.
-
-**Do not touch** `app/_layout.tsx` icon-font prewarm logic — it prevents an
-Expo Go Android crash when `@expo/vector-icons` mounts before fonts register.
 
 ---
 

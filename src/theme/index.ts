@@ -50,6 +50,8 @@ export const colors = {
   avatarGreen: "#00C853",
   avatarOrange: "#F57C00",
   avatarVividPurple: "#6200EA",
+  avatarTeal: "#00897B",
+  avatarCyan: "#00ACC1",
 } as const;
 
 /** Tinted palettes used by stat cards, business icons and tag chips. */
@@ -60,6 +62,7 @@ export const tones = {
   blue: { cardBg: "#EFF6FF", iconBg: "#DBEAFE", accent: "#2563EB" },
   teal: { cardBg: "#F0FDFA", iconBg: "#CCFBF1", accent: "#0D9488" },
   red: { cardBg: "#FEF2F2", iconBg: "#FEE2E2", accent: "#DC2626" },
+  cyan: { cardBg: "#ECFEFF", iconBg: "#CFFAFE", accent: "#0891B2" },
 } as const;
 
 export type ToneKey = keyof typeof tones;

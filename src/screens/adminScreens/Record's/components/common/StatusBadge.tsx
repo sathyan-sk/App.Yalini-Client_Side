@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { colors, fontSize, radius } from "../../../../../theme";
-import type { RecordStatus } from "../../../../../types/dailyRecords";
+import type { RecordStatus } from "../../../../../types/taxiRecords";
 
 const STATUS_CONFIG: Record<
   RecordStatus,

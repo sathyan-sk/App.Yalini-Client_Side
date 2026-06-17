@@ -2,7 +2,7 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { colors, fontSize, radius, spacing } from "../../../../../theme";
-import type { RecordStatus } from "../../../../../types/dailyRecords";
+import type { RecordStatus } from "../../../../../types/taxiRecords";
 
 interface TabSwitcherProps {
   activeTab: RecordStatus | "all";

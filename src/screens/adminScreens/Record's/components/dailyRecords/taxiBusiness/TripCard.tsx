@@ -4,7 +4,7 @@ import { Feather } from "@expo/vector-icons";
 
 import { colors, fontSize, radius, spacing, lightShadow } from "../../../../../../theme";
 import { formatCurrency, formatDistance } from "../../../../../../utils/format";
-import type { TripDetail } from "../../../../../../types/dailyRecords";
+import type { TripDetail } from "../../../../../../types/taxiRecords";
 
 interface TripCardProps {
   trip: TripDetail;

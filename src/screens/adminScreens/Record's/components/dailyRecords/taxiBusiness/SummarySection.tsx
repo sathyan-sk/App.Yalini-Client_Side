@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { colors, fontSize, radius, spacing } from "../../../../../../theme";
 import { SummaryMetricCard } from "./SummaryMetricCard";
-import type { DriverRecord } from "../../../../../../types/dailyRecords";
+import type { DriverRecord } from "../../../../../../types/taxiRecords";
 
 interface SummarySectionProps {
   record: DriverRecord;

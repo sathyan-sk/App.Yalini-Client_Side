@@ -9,8 +9,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-import { cardShadow, colors, fontSize, radius, spacing } from "../../../../../theme";
-import type { Business } from "../../../../../types/dailyRecords";
+import { cardShadow, colors, fontSize, radius, spacing } from "../../../../../../src/theme";
+import type { Business } from "../../../../../types/waterRecords";
 
 interface BusinessSelectorProps {
   businesses: Business[];
@@ -30,6 +30,17 @@ export function BusinessSelector({
     setVisible(false);
   };
 
+  const getBusinessIcon = (type?: string): keyof typeof Ionicons.glyphMap => {
+    switch (type) {
+      case "taxi":
+        return "car";
+      case "water":
+        return "water";
+      default:
+        return "business";
+    }
+  };
+
   return (
     <>
       <Pressable
@@ -38,7 +49,11 @@ export function BusinessSelector({
         testID="business-selector"
       >
         <View style={styles.iconContainer}>
-          <Ionicons name="car" size={16} color={colors.brand} />
+          <Ionicons 
+            name={getBusinessIcon(selectedBusiness?.type)} 
+            size={16} 
+            color={colors.brand} 
+          />
         </View>
         <View style={styles.content}>
           <Text style={styles.label}>Business</Text>
@@ -71,14 +86,21 @@ export function BusinessSelector({
                   ]}
                   onPress={() => handleSelect(business)}
                 >
-                  <Text
-                    style={[
-                      styles.optionText,
-                      selectedBusiness?.id === business.id && styles.optionTextSelected,
-                    ]}
-                  >
-                    {business.name}
-                  </Text>
+                  <View style={styles.optionContent}>
+                    <Ionicons 
+                      name={getBusinessIcon(business.type)} 
+                      size={20} 
+                      color={selectedBusiness?.id === business.id ? colors.brand : colors.textSecondary} 
+                    />
+                    <Text
+                      style={[
+                        styles.optionText,
+                        selectedBusiness?.id === business.id && styles.optionTextSelected,
+                      ]}
+                    >
+                      {business.name}
+                    </Text>
+                  </View>
                   {selectedBusiness?.id === business.id && (
                     <Ionicons name="checkmark" size={20} color={colors.brand} />
                   )}
@@ -171,6 +193,11 @@ const styles = StyleSheet.create({
   },
   optionSelected: {
     backgroundColor: colors.brandSoft,
+  },
+  optionContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
   },
   optionText: {
     fontSize: fontSize.base,

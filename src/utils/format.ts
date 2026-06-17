@@ -50,3 +50,16 @@ export function getInitials(name: string): string {
   }
   return name.substring(0, 2).toUpperCase();
 }
+
+/**
+ * Format number with suffix (e.g., 1.2K, 1.5M)
+ */
+export function formatCompactNumber(num: number): string {
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1) + "M";
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1) + "K";
+  }
+  return num.toString();
+}

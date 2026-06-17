@@ -3,7 +3,7 @@
  * Delete this file once backend is integrated
  */
 
-import type { Business, DriverRecord, TripDetail } from "../types/dailyRecords";
+import type { Business, DriverRecord, TripDetail } from "../types/taxiRecords";
 import { colors } from "../theme";
 
 const AVATAR_COLORS = [

@@ -10,37 +10,40 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
-import { ScreenHeader } from "../Record's/components/common/ScreenHeader";
-import { BusinessSelector } from "../Record's/components/common/BusinessSelector";
-import { DateSelector } from "../Record's/components/common/DateSelector";
-import { TabSwitcher } from "../Record's/components/common/TabSwitcher";
-import { DriverCard } from "./components/dailyRecords/taxiBusiness/DriverCard";
+import { ScreenHeader } from "../common/ScreenHeader";
+import { BusinessSelector } from "../common/BusinessSelector";
+import { DateSelector } from "../common/DateSelector";
+import { TabSwitcher } from "../common/TabSwitcher";
+import { DeliveryPersonCard } from "../dailyRecords/waterBusiness/DeliveryPersonCard";
 
-import { colors, spacing, fontSize } from "../../../theme";
-import { mockBusinesses, mockDriverRecords } from "../../../data/mockDailyRecords";
-import type { RecordStatus } from "../../../types/taxiRecords";
-import type { DailyRecordsStackParamList } from "../../../types/navigation";
+import { colors, spacing, fontSize } from "../../../../../theme";
+import { mockBusinesses, mockWaterDeliveryRecords } from "../../../../../data/mockWaterRecords";
+import type { RecordStatus } from "../../../../../types/waterRecords";
+import type { WaterRecordsStackParamList } from "../../../../../types/navigation";
 
 const TAB_BAR_CLEARANCE = 80;
 
-type NavigationProp = NativeStackNavigationProp<DailyRecordsStackParamList>;
+type NavigationProp = NativeStackNavigationProp<WaterRecordsStackParamList>;
 
-export default function DailyRecordsScreen() {
+export default function WaterDailyRecordsScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
   
-  const [selectedBusiness, setSelectedBusiness] = useState(mockBusinesses[0]);
-  const [selectedDate, setSelectedDate] = useState("2026-06-10"); // Match mock data date
+  // Filter to only show water businesses
+  const waterBusinesses = mockBusinesses.filter(b => b.type === "water");
+  
+  const [selectedBusiness, setSelectedBusiness] = useState(waterBusinesses[0]);
+  const [selectedDate, setSelectedDate] = useState("2025-07-10"); // Match mock data date
   const [activeTab, setActiveTab] = useState<RecordStatus>("submitted");
   const [refreshing, setRefreshing] = useState(false);
 
   // Filter records based on tab
   const filteredRecords = useMemo(() => {
-    return mockDriverRecords.filter((record) => record.status === activeTab);
+    return mockWaterDeliveryRecords.filter((record) => record.status === activeTab);
   }, [activeTab]);
 
-  const submittedCount = mockDriverRecords.filter((r) => r.status === "submitted").length;
-  const pendingCount = mockDriverRecords.filter((r) => r.status === "pending").length;
+  const submittedCount = mockWaterDeliveryRecords.filter((r) => r.status === "submitted").length;
+  const pendingCount = mockWaterDeliveryRecords.filter((r) => r.status === "pending").length;
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -48,7 +51,7 @@ export default function DailyRecordsScreen() {
   };
 
   const handleRecordPress = (recordId: string) => {
-    navigation.navigate("RecordDetails", { recordId });
+    navigation.navigate("WaterRecordDetails", { recordId });
   };
 
   return (
@@ -79,7 +82,7 @@ export default function DailyRecordsScreen() {
         {/* Selectors Row */}
         <View style={styles.selectorsRow}>
           <BusinessSelector
-            businesses={mockBusinesses}
+            businesses={waterBusinesses}
             selectedBusiness={selectedBusiness}
             onSelect={setSelectedBusiness}
           />
@@ -104,7 +107,7 @@ export default function DailyRecordsScreen() {
         <View style={styles.listContainer}>
           {filteredRecords.length > 0 ? (
             filteredRecords.map((record) => (
-              <DriverCard
+              <DeliveryPersonCard
                 key={record.id}
                 record={record}
                 onPress={() => handleRecordPress(record.id)}
