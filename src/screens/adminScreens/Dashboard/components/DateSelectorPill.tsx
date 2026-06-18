@@ -2,8 +2,8 @@ import React from "react";
 import { Pressable, StyleSheet, Text } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
-import { cardShadow, colors, fontSize, radius, spacing } from "../../theme";
-import { formatDisplayDate } from "../../utils/format";
+import { cardShadow, colors, fontSize, radius, spacing } from "../../../../theme";
+import { formatDisplayDate } from "../../../../utils/format";
 
 interface DateSelectorPillProps {
   isoDate: string;

@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Feather, Ionicons } from "@expo/vector-icons";
 
-import { colors, fontSize, radius, spacing, ToneKey, tones } from "../../theme";
+import { colors, fontSize, radius, spacing, ToneKey, tones } from "../../../../theme";
 
 export interface StatCardConfig {
   key: string;

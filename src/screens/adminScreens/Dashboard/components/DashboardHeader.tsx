@@ -2,7 +2,7 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
-import { colors, fontSize, spacing } from "../../theme";
+import { colors, fontSize, spacing } from "../../../../theme";
 
 interface DashboardHeaderProps {
   onMenuPress: () => void;

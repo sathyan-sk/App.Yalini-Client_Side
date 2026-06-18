@@ -2,8 +2,8 @@ import React from "react";
 import { Modal, Platform, Pressable, StyleSheet, Text, View } from "react-native";import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Calendar, DateData } from "react-native-calendars";
 
-import { colors, fontSize, radius, spacing } from "../../theme";
-import { todayISO } from "../../utils/format";
+import { colors, fontSize, radius, spacing } from "../../../../theme";
+import { todayISO } from "../../../../utils/format";
 
 interface CalendarSheetProps {
   visible: boolean;

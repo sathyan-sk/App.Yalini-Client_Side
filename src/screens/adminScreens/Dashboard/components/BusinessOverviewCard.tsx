@@ -9,9 +9,9 @@ import {
   radius,
   spacing,
   tones,
-} from "../../theme";
-import type { BusinessOverview, MetricColor } from "../../types/dashboard";
-import { formatINR } from "../../utils/format";
+} from "../../../../theme";
+import type { BusinessOverview, MetricColor } from "../../../../types/dashboard";
+import { formatINR } from "../../../../utils/format";
 
 const METRIC_COLORS: Record<MetricColor, string> = {
   success: colors.success,

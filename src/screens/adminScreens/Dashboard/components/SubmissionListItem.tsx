@@ -2,10 +2,10 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
-import { StatusPill } from "../../components/common/StatusPill";
-import { colors, fontSize, radius, spacing } from "../../theme";
-import type { Submission } from "../../types/dashboard";
-import { formatDisplayDate } from "../../utils/format";
+import { StatusPill } from "../../../../components/common/StatusPill";
+import { colors, fontSize, radius, spacing } from "../../../../theme";
+import type { Submission } from "../../../../types/dashboard";
+import { formatDisplayDate } from "../../../../utils/format";
 
 interface SubmissionListItemProps {
   submission: Submission;
