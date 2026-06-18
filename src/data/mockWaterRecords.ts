@@ -103,6 +103,7 @@ export const mockWaterDeliveryRecords: WaterDeliveryRecord[] = [
     return {
       id: "water-rec-1",
       deliveryPersonName: "Rajan Kumar",
+      employeeId: "emp_seed_rajan",
       date: "2025-07-10",
       status: "submitted" as const,
       avatarColor: AVATAR_COLORS[0],
@@ -116,6 +117,7 @@ export const mockWaterDeliveryRecords: WaterDeliveryRecord[] = [
     return {
       id: "water-rec-2",
       deliveryPersonName: "Senthil Murugan",
+      employeeId: "emp_seed_senthil",
       date: "2025-07-10",
       status: "submitted" as const,
       avatarColor: AVATAR_COLORS[1],
@@ -129,6 +131,7 @@ export const mockWaterDeliveryRecords: WaterDeliveryRecord[] = [
     return {
       id: "water-rec-3",
       deliveryPersonName: "Vignesh Raja",
+      employeeId: "emp_seed_vignesh",
       date: "2025-07-10",
       status: "submitted" as const,
       avatarColor: AVATAR_COLORS[2],
@@ -142,6 +145,7 @@ export const mockWaterDeliveryRecords: WaterDeliveryRecord[] = [
     return {
       id: "water-rec-4",
       deliveryPersonName: "Karthik Selvam",
+      employeeId: "emp_seed_karthik",
       date: "2025-07-10",
       status: "submitted" as const,
       avatarColor: AVATAR_COLORS[3],
@@ -155,6 +159,7 @@ export const mockWaterDeliveryRecords: WaterDeliveryRecord[] = [
     return {
       id: "water-rec-5",
       deliveryPersonName: "Arun Prasad",
+      employeeId: "emp_seed_arun",
       date: "2025-07-10",
       status: "pending" as const,
       avatarColor: AVATAR_COLORS[4],
@@ -168,6 +173,7 @@ export const mockWaterDeliveryRecords: WaterDeliveryRecord[] = [
     return {
       id: "water-rec-6",
       deliveryPersonName: "Manikandan S",
+      employeeId: "emp_seed_manikandan",
       date: "2025-07-10",
       status: "pending" as const,
       avatarColor: AVATAR_COLORS[5],

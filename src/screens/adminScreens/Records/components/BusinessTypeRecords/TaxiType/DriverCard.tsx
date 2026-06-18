@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
 import { colors, fontSize, radius, spacing, cardShadow } from "../../../../../../theme";
-import { formatDisplayDate, formatCurrency } from "../../../../../../utils/format";
+import { formatCurrency } from "../../../../../../utils/format";
 import { Avatar } from "../../common/Avatar";
 import { StatusBadge } from "../../common/StatusBadge";
 import type { DriverRecord } from "../../../../../../types/taxiRecords";
@@ -30,7 +30,7 @@ export function DriverCard({ record, onPress, testID }: DriverCardProps) {
         <Avatar name={record.driverName} color={record.avatarColor} size={44} />
         <View style={styles.headerContent}>
           <Text style={styles.driverName}>{record.driverName}</Text>
-          <Text style={styles.date}>{formatDisplayDate(record.date)}</Text>
+          <Text style={styles.vehicleName}>{record.vehicleName}</Text>
         </View>
         <StatusBadge status={record.status} />
         <Feather
@@ -107,6 +107,17 @@ const styles = StyleSheet.create({
     fontSize: fontSize.lg,
     fontWeight: "600",
     color: colors.textPrimary,
+  },
+  vehicleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 2,
+  },
+  vehicleName: {
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
   date: {
     fontSize: fontSize.sm,

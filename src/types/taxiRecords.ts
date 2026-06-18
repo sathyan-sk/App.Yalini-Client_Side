@@ -7,6 +7,10 @@ export type RecordStatus = "submitted" | "pending";
 export interface DriverRecord {
   id: string;
   driverName: string;
+  employeeId: string; // Reference to employee in storage
+  vehicleId: string; // Reference to vehicle in storage
+  vehicleName: string; // Vehicle name for display
+  vehicleNumber: string; // Vehicle registration number
   date: string; // ISO date string (YYYY-MM-DD)
   status: RecordStatus;
   avatarColor: string;

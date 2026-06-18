@@ -26,6 +26,7 @@ export interface HotelDelivery {
 export interface WaterDeliveryRecord {
   id: string;
   deliveryPersonName: string;
+  employeeId: string; // Reference to employee in storage
   date: string; // ISO date string (YYYY-MM-DD)
   status: RecordStatus;
   avatarColor: string;
