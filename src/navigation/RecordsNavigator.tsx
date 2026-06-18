@@ -1,26 +1,31 @@
+import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import RecordsHomeScreen from "../screens/adminScreens/Records/RecordsHomeScreen";
 import TaxiRecordDetailsScreen from "../screens/adminScreens/Records/components/BusinessTypeRecords/TaxiRecordDetailsScreen";
-import WaterDailyRecordsScreen from "../screens/adminScreens/Records/components/BusinessTypeRecords/WaterRecordsScreen";
 import WaterRecordDetailsScreen from "../screens/adminScreens/Records/components/BusinessTypeRecords/WaterRecordDetailsScreen";
+import type { RecordsStackParamList } from "../types/navigation";
 
+const Stack = createNativeStackNavigator<RecordsStackParamList>();
 
-const Stack = createNativeStackNavigator();
-
-export default function RecordsStack() {
+/**
+ * Records Stack Navigator
+ * One module = One Stack = Multiple screens inside it
+ * 
+ * Screens:
+ * - RecordsHome: Entry point showing list of all records (Taxi + Water businesses)
+ * - TaxiRecordDetails: Detailed view for taxi/cab driver records
+ * - WaterRecordDetails: Detailed view for water delivery records
+ */
+export default function RecordsNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      
-      {/* Entry */}
-      <Stack.Screen name="DailyRecords" component={RecordsHomeScreen} />
+      {/* Entry Point - Records List */}
+      <Stack.Screen name="RecordsHome" component={RecordsHomeScreen} />
 
-      {/* Taxi Records */}
-      <Stack.Screen name="TaxiRecordDetailed" component={TaxiRecordDetailsScreen} />
-
-      {/* Water Records */}
-      <Stack.Screen name="WaterRecords" component={WaterDailyRecordsScreen} />
-      <Stack.Screen name="WaterRecordDetailed" component={WaterRecordDetailsScreen} />
+      {/* Detail Screens */}
+      <Stack.Screen name="TaxiRecordDetails" component={TaxiRecordDetailsScreen} />
+      <Stack.Screen name="WaterRecordDetails" component={WaterRecordDetailsScreen} />
     </Stack.Navigator>
   );
 }

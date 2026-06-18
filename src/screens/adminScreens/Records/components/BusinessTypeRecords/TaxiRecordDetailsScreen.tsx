@@ -19,12 +19,13 @@ import { FooterSummaryCard } from "./TaxiType/FooterSummaryCard";
 
 import { colors, spacing, fontSize, radius } from "../../../../../theme";
 import { getMockRecordById } from "../../../../../data/mockDailyRecords";
-import type { DailyRecordsStackParamList } from "../../../../../types/navigation";
+import type { RecordsStackParamList } from "../../../../../types/navigation";
+
 
 const TAB_BAR_CLEARANCE = 80;
 
-type ScreenRouteProp = RouteProp<DailyRecordsStackParamList, "RecordDetails">;
-type NavigationProp = NativeStackNavigationProp<DailyRecordsStackParamList>;
+type ScreenRouteProp = RouteProp<RecordsStackParamList, "TaxiRecordDetails">;
+type NavigationProp = NativeStackNavigationProp<RecordsStackParamList>;
 
 export default function TaxiRecordDetailed() {
   const insets = useSafeAreaInsets();

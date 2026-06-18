@@ -22,14 +22,14 @@ import { mockBusinesses, mockDriverRecords } from "../../../data/mockDailyRecord
 import { mockWaterDeliveryRecords } from "../../../data/mockWaterRecords";
 import type { RecordStatus } from "../../../types/taxiRecords";
 import type { RecordStatus as WaterRecordStatus } from "../../../types/waterRecords";
-import type { DailyRecordsStackParamList } from "../../../types/navigation";
+import type { RecordsStackParamList } from "../../../types/navigation";
 import type { Business } from "../../../types/waterRecords";
 
 const TAB_BAR_CLEARANCE = 80;
 
-type NavigationProp = NativeStackNavigationProp<DailyRecordsStackParamList>;
+type NavigationProp = NativeStackNavigationProp<RecordsStackParamList>;
 
-export default function DailyRecord() {
+export default function RecordsHomeScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
   
@@ -85,12 +85,12 @@ export default function DailyRecord() {
     setTimeout(() => setRefreshing(false), 1000);
   };
 
-  // Handle record press based on business type
+  // Handle record press based on business type - FIXED NAVIGATION
   const handleRecordPress = (recordId: string) => {
     if (isWaterBusiness) {
       navigation.navigate("WaterRecordDetails", { recordId });
     } else {
-      navigation.navigate("RecordDetails", { recordId });
+      navigation.navigate("TaxiRecordDetails", { recordId });
     }
   };
 

@@ -19,11 +19,11 @@ import { DeliveryPersonCard } from "./WaterType/DeliveryPersonCard";
 import { colors, spacing, fontSize } from "../../../../../theme";
 import { mockBusinesses, mockWaterDeliveryRecords } from "../../../../../data/mockWaterRecords";
 import type { RecordStatus } from "../../../../../types/waterRecords";
-import type { WaterRecordsStackParamList } from "../../../../../types/navigation";
+import type { RecordsStackParamList } from "../../../../../types/navigation";
 
 const TAB_BAR_CLEARANCE = 80;
 
-type NavigationProp = NativeStackNavigationProp<WaterRecordsStackParamList>;
+type NavigationProp = NativeStackNavigationProp<RecordsStackParamList>;
 
 export default function WaterRecords() {
   const insets = useSafeAreaInsets();
