@@ -12,27 +12,26 @@ import type { RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Feather } from "@expo/vector-icons";
 
-import { DriverInfoHeader } from "./components/dailyRecords/taxiBusiness/DriverInfoHeader";
-import { SummarySection } from "./components/dailyRecords/taxiBusiness/SummarySection";
-import { TripCard } from "./components/dailyRecords/taxiBusiness/TripCard";
-import { FooterSummaryCard } from "./components/dailyRecords/taxiBusiness/FooterSummaryCard";
+import { DeliveryPersonInfoHeader } from "./WaterType/DeliveryPersonInfoHeader";
+import { WaterSummarySection } from "./WaterType/WaterSummarySection";
+import { HotelDeliveryCard } from "./WaterType/HotelDeliveryCard";
 
-import { colors, spacing, fontSize, radius } from "../../../theme";
-import { getMockRecordById } from "../../../data/mockDailyRecords";
-import type { DailyRecordsStackParamList } from "../../../types/navigation";
+import { colors, spacing, fontSize, radius } from "../../../../../theme";
+import { getMockWaterRecordById } from "../../../../../data/mockWaterRecords";
+import type { DailyRecordsStackParamList } from "../../../../../types/navigation";
 
 const TAB_BAR_CLEARANCE = 80;
 
-type ScreenRouteProp = RouteProp<DailyRecordsStackParamList, "RecordDetails">;
+type ScreenRouteProp = RouteProp<DailyRecordsStackParamList, "WaterRecordDetails">;
 type NavigationProp = NativeStackNavigationProp<DailyRecordsStackParamList>;
 
-export default function RecordDetailsScreen() {
+export default function WaterRecordDetailed() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<ScreenRouteProp>();
   
   const { recordId } = route.params;
-  const record = getMockRecordById(recordId);
+  const record = getMockWaterRecordById(recordId);
 
   if (!record) {
     return (
@@ -74,26 +73,27 @@ export default function RecordDetailsScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Driver Info Header Card */}
-        <DriverInfoHeader record={record} />
+        {/* Delivery Person Info Header Card */}
+        <DeliveryPersonInfoHeader record={record} />
 
         {/* Summary Section */}
-        <SummarySection record={record} />
+        <WaterSummarySection record={record} />
 
-        {/* Trip Details Section */}
-        <View style={styles.tripSection}>
+        {/* Hotel Deliveries Section */}
+        <View style={styles.hotelSection}>
           <Text style={styles.sectionTitle}>
-            Trip Details ({record.tripDetails.length})
+            Hotel Deliveries ({record.hotelDeliveries.length})
           </Text>
-          {record.tripDetails.map((trip) => (
-            <TripCard key={trip.id} trip={trip} />
+          <Text style={styles.sectionSubtitle}>
+            Tap on a card to expand details
+          </Text>
+          {record.hotelDeliveries.map((hotel, index) => (
+            <HotelDeliveryCard 
+              key={hotel.id} 
+              hotel={hotel} 
+              index={index + 1}
+            />
           ))}
-        </View>
-
-        {/* Footer Cards */}
-        <View style={styles.footerSection}>
-          <FooterSummaryCard type="fuel" value={record.fuelExpense} />
-          <FooterSummaryCard type="balance" value={record.balanceShortage} />
         </View>
       </ScrollView>
     </View>
@@ -147,17 +147,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
   },
-  tripSection: {
+  hotelSection: {
     marginBottom: spacing.lg,
   },
   sectionTitle: {
     fontSize: fontSize.lg,
     fontWeight: "700",
     color: colors.textPrimary,
-    marginBottom: spacing.md,
+    marginBottom: spacing.xs,
   },
-  footerSection: {
-    marginTop: spacing.md,
+  sectionSubtitle: {
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
   },
   emptyText: {
     fontSize: fontSize.lg,

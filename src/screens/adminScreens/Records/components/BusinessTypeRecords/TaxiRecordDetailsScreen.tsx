@@ -12,26 +12,27 @@ import type { RouteProp } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Feather } from "@expo/vector-icons";
 
-import { DeliveryPersonInfoHeader } from "./waterBusiness/DeliveryPersonInfoHeader";
-import { WaterSummarySection } from "./waterBusiness/WaterSummarySection";
-import { HotelDeliveryCard } from "./waterBusiness/HotelDeliveryCard";
+import { DriverInfoHeader } from "./TaxiType/DriverInfoHeader";
+import { SummarySection } from "./TaxiType/SummarySection";
+import { TripCard } from "./TaxiType/TripCard";
+import { FooterSummaryCard } from "./TaxiType/FooterSummaryCard";
 
 import { colors, spacing, fontSize, radius } from "../../../../../theme";
-import { getMockWaterRecordById } from "../../../../../data/mockWaterRecords";
+import { getMockRecordById } from "../../../../../data/mockDailyRecords";
 import type { DailyRecordsStackParamList } from "../../../../../types/navigation";
 
 const TAB_BAR_CLEARANCE = 80;
 
-type ScreenRouteProp = RouteProp<DailyRecordsStackParamList, "WaterRecordDetails">;
+type ScreenRouteProp = RouteProp<DailyRecordsStackParamList, "RecordDetails">;
 type NavigationProp = NativeStackNavigationProp<DailyRecordsStackParamList>;
 
-export default function WaterRecordDetailsScreen() {
+export default function TaxiRecordDetailed() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<ScreenRouteProp>();
   
   const { recordId } = route.params;
-  const record = getMockWaterRecordById(recordId);
+  const record = getMockRecordById(recordId);
 
   if (!record) {
     return (
@@ -73,27 +74,26 @@ export default function WaterRecordDetailsScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Delivery Person Info Header Card */}
-        <DeliveryPersonInfoHeader record={record} />
+        {/* Driver Info Header Card */}
+        <DriverInfoHeader record={record} />
 
         {/* Summary Section */}
-        <WaterSummarySection record={record} />
+        <SummarySection record={record} />
 
-        {/* Hotel Deliveries Section */}
-        <View style={styles.hotelSection}>
+        {/* Trip Details Section */}
+        <View style={styles.tripSection}>
           <Text style={styles.sectionTitle}>
-            Hotel Deliveries ({record.hotelDeliveries.length})
+            Trip Details ({record.tripDetails.length})
           </Text>
-          <Text style={styles.sectionSubtitle}>
-            Tap on a card to expand details
-          </Text>
-          {record.hotelDeliveries.map((hotel, index) => (
-            <HotelDeliveryCard 
-              key={hotel.id} 
-              hotel={hotel} 
-              index={index + 1}
-            />
+          {record.tripDetails.map((trip) => (
+            <TripCard key={trip.id} trip={trip} />
           ))}
+        </View>
+
+        {/* Footer Cards */}
+        <View style={styles.footerSection}>
+          <FooterSummaryCard type="fuel" value={record.fuelExpense} />
+          <FooterSummaryCard type="balance" value={record.balanceShortage} />
         </View>
       </ScrollView>
     </View>
@@ -147,19 +147,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
   },
-  hotelSection: {
+  tripSection: {
     marginBottom: spacing.lg,
   },
   sectionTitle: {
     fontSize: fontSize.lg,
     fontWeight: "700",
     color: colors.textPrimary,
-    marginBottom: spacing.xs,
-  },
-  sectionSubtitle: {
-    fontSize: fontSize.sm,
-    color: colors.textSecondary,
     marginBottom: spacing.md,
+  },
+  footerSection: {
+    marginTop: spacing.md,
   },
   emptyText: {
     fontSize: fontSize.lg,

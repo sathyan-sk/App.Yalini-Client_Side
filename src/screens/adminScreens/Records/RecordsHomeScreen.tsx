@@ -14,8 +14,8 @@ import { ScreenHeader } from "./components/common/ScreenHeader";
 import { BusinessSelector } from "./components/common/BusinessSelector";
 import { DateSelector } from "./components/common/DateSelector";
 import { TabSwitcher } from "./components/common/TabSwitcher";
-import { DriverCard } from "./components/dailyRecords/taxiBusiness/DriverCard";
-import { DeliveryPersonCard } from "./components/dailyRecords/waterBusiness/DeliveryPersonCard";
+import { DriverCard } from "./components/BusinessTypeRecords/TaxiType/DriverCard";
+import { DeliveryPersonCard } from "./components/BusinessTypeRecords/WaterType/DeliveryPersonCard";
 
 import { colors, spacing, fontSize } from "../../../theme";
 import { mockBusinesses, mockDriverRecords } from "../../../data/mockDailyRecords";
@@ -29,7 +29,7 @@ const TAB_BAR_CLEARANCE = 80;
 
 type NavigationProp = NativeStackNavigationProp<DailyRecordsStackParamList>;
 
-export default function DailyRecordsScreen() {
+export default function DailyRecord() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
   

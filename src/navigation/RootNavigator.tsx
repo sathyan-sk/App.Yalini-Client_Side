@@ -1,14 +1,12 @@
 import React from "react";
-import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { StatusBar } from "expo-status-bar";
 
 import { AppTabBar } from "./AppTabBar";
 import type { RootTabParamList } from "./types";
 import DashboardScreen from "../screens/adminScreens/Dashboard/DashboardScreen";
 import EmployeesNavigator from "./EmployeesNavigator";
 import SettingsNavigator from "./SettingsNavigator";
-import DailyRecordsNavigator from "./DailyRecordsNavigator";
+import DailyRecordsNavigator from "./RecordsNavigator";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 /**
@@ -20,8 +18,6 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
  */
 export default function RootNavigator() {
   return (
-      <NavigationContainer>
-        <StatusBar style="dark" />
         <Tab.Navigator
           screenOptions={{ headerShown: false }}
         tabBar={(props) => <AppTabBar {...props} />}
@@ -32,6 +28,5 @@ export default function RootNavigator() {
           <Tab.Screen name="Settings" component={SettingsNavigator} />
           
         </Tab.Navigator>
-      </NavigationContainer>
   );
 }

@@ -14,7 +14,7 @@ import { ScreenHeader } from "../common/ScreenHeader";
 import { BusinessSelector } from "../common/BusinessSelector";
 import { DateSelector } from "../common/DateSelector";
 import { TabSwitcher } from "../common/TabSwitcher";
-import { DeliveryPersonCard } from "./waterBusiness/DeliveryPersonCard";
+import { DeliveryPersonCard } from "./WaterType/DeliveryPersonCard";
 
 import { colors, spacing, fontSize } from "../../../../../theme";
 import { mockBusinesses, mockWaterDeliveryRecords } from "../../../../../data/mockWaterRecords";
@@ -25,7 +25,7 @@ const TAB_BAR_CLEARANCE = 80;
 
 type NavigationProp = NativeStackNavigationProp<WaterRecordsStackParamList>;
 
-export default function WaterDailyRecordsScreen() {
+export default function WaterRecords() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
   
