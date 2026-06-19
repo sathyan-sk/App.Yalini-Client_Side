@@ -92,7 +92,6 @@ export default function LoginScreen() {
       showToast("Staff module coming soon", "info");
       return;
     }
-    // ADMIN → RootNavigator will swap to AdminNavigator on next render.
   }, [mobile, pin, signIn, signOut, showToast]);
 
   const canSubmit = mobile.length === 10 && pin.length === 4 && !isSubmitting;

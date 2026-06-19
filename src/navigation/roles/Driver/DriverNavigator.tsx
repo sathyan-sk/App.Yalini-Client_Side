@@ -3,7 +3,6 @@
  *
  * The Login flow currently blocks driver logins with a toast and never
  * routes here, but the component exists so the role-based switch in
- * `RootNavigator` always has a target if the gate is relaxed later.
  */
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
