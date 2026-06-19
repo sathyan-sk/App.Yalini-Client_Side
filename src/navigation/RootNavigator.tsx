@@ -49,9 +49,6 @@ function RoleBasedNavigator() {
       return <DriverNavigator />;
     case "STAFF":
       return <StaffNavigator />;
-    default:
-      // Fallback to Admin if role is somehow undefined
-      return <AdminNavigator />;
   }
 }
 

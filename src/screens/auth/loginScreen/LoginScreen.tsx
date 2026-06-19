@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
 
   // White form card inside cream area
   formCard: {
-    backgroundColor: "##FFFFFF",
+    backgroundColor: "#FFFFFF",
     borderRadius: 22,
     padding: 20,
     shadowColor: "#101828",

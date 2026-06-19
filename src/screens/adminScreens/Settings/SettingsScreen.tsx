@@ -13,7 +13,7 @@ import { SettingsRowCard } from "./components/SettingsRowCard";
 import { LogoutConfirmSheet } from "./components/LogoutConfirmSheet";
 import { ACCOUNT_SECTION, SETTINGS_SECTIONS } from "./data/settingsItems";
 import { SettingsRow } from "./types";
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore } from "../../../store/authStore";
 
 /** Reserve room for the floating bottom tab bar (matches DashboardScreen). */
 const TAB_BAR_CLEARANCE = 72;
