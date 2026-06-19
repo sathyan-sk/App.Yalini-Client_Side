@@ -6,9 +6,18 @@ import { PlaceholderScreen } from "../screens/PlaceholderScreen";
 import MyBusinessScreen from "../screens/adminScreens/MyBusiness/MyBusinessScreen";
 import AddBusinessScreen from "../screens/adminScreens/MyBusiness/AddBusinessScreen";
 import EditBusinessScreen from "../screens/adminScreens/MyBusiness/EditBusinessScreen";
-import type { MoreStackParamList } from "./types";
 import VehiclesNavigator from "./VehiclesNavigator";
 
+type MoreStackParamList = {
+  Settings: undefined;
+  MyBusiness: undefined;
+  AddBusiness: undefined;
+  EditBusiness: undefined;
+  EmployeesAdmin: undefined;
+  Vehicles: undefined;
+  Hotels: undefined;
+  AssignAssets: undefined;
+};
 
 const Stack = createNativeStackNavigator<MoreStackParamList>();
 

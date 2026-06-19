@@ -4,7 +4,7 @@
  * - Single in-memory cache + listener fan-out so all screens that mount
  *   `useBusinesses` see the same snapshot and re-render on every mutation
  *   (e.g. Add -> back -> List should reflect the new row instantly).
- * - Asynchronously hydrated from the local storage service on first read.
+ * - Asynchronously hydrated from the Mock Service Layer on first read.
  */
 import { useCallback, useEffect, useState } from "react";
 

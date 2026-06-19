@@ -1,135 +1,85 @@
 /**
- * Business persistence service — local-only (AsyncStorage) for the UI milestone.
+ * Business persistence service — Mock Service Layer implementation.
  *
- * The shared `storage` util only round-trips primitives, so the businesses
- * list is serialised to a single JSON string under {@link BUSINESS_STORAGE_KEY}.
- * Replace `loadBusinesses`/`saveBusinesses` here when wiring a real backend —
- * the rest of the module reads through {@link useBusinesses}.
- *
- * First-run UX is non-empty: if no record exists yet, two demo businesses are
- * seeded so the list, search, and stat cards have meaningful content on cold
- * start (matches the reference design).
+ * This service now uses the central mock data store instead of AsyncStorage.
+ * To wire a real backend, replace the mock store calls with API calls.
+ * 
+ * The mock service layer maintains coherent data relationships and
+ * simulates async behavior for easy backend migration.
  */
 
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
-  BUSINESS_STORAGE_KEY,
-} from "../screens/adminScreens/MyBusiness/data/constants";
-
-const storage = {
-  async getItem(key: string, defaultValue = ""): Promise<string> {
-    const value = await AsyncStorage.getItem(key);
-    return value ?? defaultValue;
-  },
-  async setItem(key: string, value: string): Promise<void> {
-    await AsyncStorage.setItem(key, value);
-  },
-};
+  getBusinesses,
+  getBusinessById,
+  createBusiness as createBusinessInStore,
+  updateBusiness as updateBusinessInStore,
+  deleteBusiness as deleteBusinessInStore,
+} from './mockData';
+import type { MockBusiness } from './mockData/types';
 import type {
   Business,
   BusinessFormValues,
-} from "../screens/adminScreens/MyBusiness/types";
+} from '../screens/adminScreens/MyBusiness/types';
 
-/** Strict ISO date (YYYY-MM-DD) for `createdAt`. */
-function todayISODate(): string {
-  return new Date().toISOString().slice(0, 10);
-}
+// Type conversion: MockBusiness is compatible with Business
+const toBusinessType = (mock: MockBusiness): Business => mock as Business;
 
-/** RN-safe unique id generator (no crypto.randomUUID polyfill required). */
-function generateId(): string {
-  return `biz_${Date.now().toString(36)}_${Math.random()
-    .toString(36)
-    .slice(2, 8)}`;
-}
-
-const SEED_BUSINESSES: Business[] = [
-  {
-    id: "biz_seed_city_taxi",
-    name: "City Taxi",
-    type: "taxi",
-    mode: "auto",
-    status: "enabled",
-    location: "Chennai, Tamil Nadu",
-    employees: 8,
-    createdAt: "2026-06-10",
-  },
-  {
-    id: "biz_seed_yalini_minerals",
-    name: "Yalini Minerals",
-    type: "water_delivery",
-    mode: "manual",
-    status: "enabled",
-    location: "Chennai, Tamil Nadu",
-    employees: 6,
-    createdAt: "2026-06-05",
-  },
-];
-
+/**
+ * Load all businesses from the mock data store.
+ */
 export async function loadBusinesses(): Promise<Business[]> {
-  const raw = await storage.getItem(BUSINESS_STORAGE_KEY, "");
-  if (!raw) {
-    await saveBusinesses(SEED_BUSINESSES);
-    return [...SEED_BUSINESSES];
-  }
-  try {
-    const parsed = JSON.parse(raw) as Business[];
-    if (!Array.isArray(parsed)) return [...SEED_BUSINESSES];
-    // Migrate old 'water' type to 'water_delivery'
-    const migrated = parsed.map(b => ({
-      ...b,
-      // migrate legacy 'water' type to 'water_delivery'
-      type: (b.type as unknown as string) === 'water' ? 'water_delivery' : b.type
-    })) as Business[];
-    return migrated;
-  } catch {
-    return [...SEED_BUSINESSES];
-  }
+  const businesses = await getBusinesses();
+  return businesses.map(toBusinessType);
 }
 
-export async function saveBusinesses(businesses: Business[]): Promise<void> {
-  await storage.setItem(BUSINESS_STORAGE_KEY, JSON.stringify(businesses));
+/**
+ * Save businesses - no-op in mock mode since the store manages persistence.
+ */
+export async function saveBusinesses(_businesses: Business[]): Promise<void> {
+  // In mock mode, we don't need to save the entire list
+  console.log('[MockService] saveBusinesses called - no-op in mock mode');
 }
 
-export async function createBusiness(
-  values: BusinessFormValues,
-): Promise<Business> {
-  const next: Business = {
-    id: generateId(),
+/**
+ * Create a new business.
+ */
+export async function createBusiness(values: BusinessFormValues): Promise<Business> {
+  const created = await createBusinessInStore({
     name: values.name.trim(),
     type: values.type,
     mode: values.mode,
     status: values.status,
-    employees: 0,
-    createdAt: todayISODate(),
-  };
-  const current = await loadBusinesses();
-  await saveBusinesses([next, ...current]);
-  return next;
+  });
+  return toBusinessType(created);
 }
 
+/**
+ * Update an existing business by ID.
+ */
 export async function updateBusiness(
   id: string,
-  patch: BusinessFormValues,
+  patch: BusinessFormValues
 ): Promise<Business | null> {
-  const current = await loadBusinesses();
-  let updated: Business | null = null;
-  const next = current.map((b) => {
-    if (b.id !== id) return b;
-    updated = {
-      ...b,
-      name: patch.name.trim(),
-      type: patch.type,
-      mode: patch.mode,
-      status: patch.status,
-    };
-    return updated;
+  const updated = await updateBusinessInStore(id, {
+    name: patch.name.trim(),
+    type: patch.type,
+    mode: patch.mode,
+    status: patch.status,
   });
-  if (!updated) return null;
-  await saveBusinesses(next);
-  return updated;
+  return updated ? toBusinessType(updated) : null;
 }
 
+/**
+ * Delete a business by ID.
+ */
 export async function deleteBusiness(id: string): Promise<void> {
-  const current = await loadBusinesses();
-  await saveBusinesses(current.filter((b) => b.id !== id));
+  await deleteBusinessInStore(id);
+}
+
+/**
+ * Get a single business by ID.
+ */
+export async function getBusinessByIdFromService(id: string): Promise<Business | undefined> {
+  const business = await getBusinessById(id);
+  return business ? toBusinessType(business) : undefined;
 }

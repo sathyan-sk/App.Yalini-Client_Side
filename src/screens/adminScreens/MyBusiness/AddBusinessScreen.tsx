@@ -14,7 +14,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { colors, fontSize, radius, spacing } from "../../../theme";
-import type { SettingsStackParamList as MoreStackParamList } from "../../../navigation/types";
+import type { SettingsStackParamList as MoreStackParamList } from "../../../types/navigation";
 import { useBusinesses } from "../../../hooks/useBusinesses";
 
 import { FormHeader } from "./components/FormHeader";

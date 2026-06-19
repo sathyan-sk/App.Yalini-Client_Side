@@ -43,5 +43,8 @@ export const VEHICLE_STATUS_MAP: Record<VehicleStatusId, VehicleStatusOption> =
 /** Deep navy used by the form-screen sticky headers (Add / Edit). Matches design ref. */
 export const FORM_HEADER_BG = "#0F1F4D";
 
-/** AsyncStorage key for the persisted vehicle list (versioned for safe migrations). */
+/** 
+ * Key identifier for vehicle data (kept for potential future persistence).
+ * Note: The app now uses the Mock Service Layer for data management.
+ */
 export const VEHICLE_STORAGE_KEY = "@yalini/vehicles/v1";

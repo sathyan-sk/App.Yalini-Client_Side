@@ -1,7 +1,8 @@
 /**
  * Type contracts for the Hotels module.
  *
- * A Hotel is the persisted record managed locally (AsyncStorage). The
+ * A Hotel is the persisted record managed via the Mock Service Layer. The
+ * backend wiring will swap the storage layer without changing this shape.
  * backend wiring will swap the storage layer without changing this shape.
  */
 

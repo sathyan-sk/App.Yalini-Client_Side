@@ -5,7 +5,10 @@
 /** Deep navy used by the form-screen sticky headers (Add / Edit). Matches design ref. */
 export const FORM_HEADER_BG = "#0F1F4D";
 
-/** AsyncStorage key for the persisted employees list (versioned for safe migrations). */
+/** 
+ * Key identifier for employee data (kept for potential future persistence).
+ * Note: The app now uses the Mock Service Layer for data management.
+ */
 export const EMPLOYEE_STORAGE_KEY = "@yalini/employees/v1";
 
 /** Generate initials from full name for avatar display */

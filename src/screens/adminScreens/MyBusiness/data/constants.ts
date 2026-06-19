@@ -81,5 +81,8 @@ export const BUSINESS_MODE_OPTIONS: BusinessModeOption[] = [
 /** Deep navy used by the form-screen sticky headers (Add / Edit). Matches design ref. */
 export const FORM_HEADER_BG = "#0F1F4D";
 
-/** AsyncStorage key for the persisted business list (versioned for safe migrations). */
+/** 
+ * Key identifier for the business data (kept for potential future persistence).
+ * Note: The app now uses the Mock Service Layer for data management.
+ */
 export const BUSINESS_STORAGE_KEY = "@yalini/businesses/v1";

@@ -10,7 +10,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { colors, spacing } from "../../../theme";
-import type { SettingsStackParamList as MoreStackParamList } from "../../../navigation/types";
+import type { SettingsStackParamList as MoreStackParamList } from "../../../types/navigation";
 import { useBusinesses } from "../../../hooks/useBusinesses";
 
 import { BusinessCard } from "./components/BusinessCard";
@@ -38,7 +38,7 @@ type Nav = NativeStackNavigationProp<MoreStackParamList, "MyBusiness">;
  *   4. Scrollable list of `BusinessCard` items.
  *   5. Dashed \"About Business Types\" footer banner.
  *
- * State lives in `useBusinesses` (AsyncStorage-backed). Search + filter are
+ * State lives in `useBusinesses` (Mock Service Layer-backed). Search + filter are
  * derived client-side so navigation back/forward stays instant.
  */
 export default function MyBusinessScreen() {
@@ -62,11 +62,11 @@ export default function MyBusinessScreen() {
   }, [businesses, query, filter]);
 
   const counts = useMemo(() => {
-    const active = businesses.filter((b) => b.status === "active").length;
+    const disabled = businesses.filter((b) => b.status === "disabled").length;
     return {
       total: businesses.length,
-      active,
-      disabled: businesses.length - active,
+      active: businesses.length - disabled,
+      disabled,
     };
   }, [businesses]);
 

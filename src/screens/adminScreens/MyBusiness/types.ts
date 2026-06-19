@@ -5,8 +5,8 @@
  *  - "taxi"  → Taxi service (assigns Vehicles)
  *  - "water_delivery" → Water Delivery service (assigns Hotels)
  *
- * A Business is the persisted record managed locally (AsyncStorage). The
- * backend wiring will swap the storage layer without changing this shape.
+  * A Business is the persisted record managed via the Mock Service Layer.
+ * The backend wiring will swap the storage layer without changing this shape.
  */
 
 export type BusinessTypeId = "taxi" | "water_delivery";
