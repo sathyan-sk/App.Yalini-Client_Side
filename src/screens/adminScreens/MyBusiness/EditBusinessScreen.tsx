@@ -19,7 +19,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { colors, fontSize, radius, spacing } from "../../../theme";
-import type { SettingsStackParamList as MoreStackParamList } from "../../../types/navigation";
+import type { SettingsStackParamList } from "../../../types/navigation";
 import { useBusinesses } from "../../../hooks/useBusinesses";
 
 import { FormHeader } from "./components/FormHeader";
@@ -34,8 +34,8 @@ import type {
   BusinessStatusId,
 } from "./types";
 
-type Nav = NativeStackNavigationProp<MoreStackParamList, "EditBusiness">;
-type Rt = RouteProp<MoreStackParamList, "EditBusiness">;
+type Nav = NativeStackNavigationProp<SettingsStackParamList, "EditBusiness">;
+type Rt = RouteProp<SettingsStackParamList, "EditBusiness">;
 
 interface FormErrors {
   name?: string;

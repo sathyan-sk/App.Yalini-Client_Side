@@ -10,7 +10,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { colors, spacing } from "../../../theme";
-import type { EmployeesStackParamList } from "../../../navigation/types";
+import type { EmployeesStackParamList } from "../../../types/navigation";
 import { useEmployees } from "../../../hooks/useEmployees";
 import { useBusinesses } from "../../../hooks/useBusinesses";
 

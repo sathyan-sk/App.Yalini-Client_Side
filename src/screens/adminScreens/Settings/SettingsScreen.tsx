@@ -5,7 +5,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { colors, spacing } from "../../../theme";
-import type { SettingsStackParamList } from "../../../navigation/types";
+import type { SettingsStackParamList } from "../../../types/navigation";
 
 import { SettingsHeader } from "./components/SettingsHeader";
 import { SettingsSectionLabel } from "./components/SettingsSectionLabel";

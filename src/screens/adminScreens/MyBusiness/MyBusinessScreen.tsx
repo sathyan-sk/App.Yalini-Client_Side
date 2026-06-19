@@ -10,7 +10,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { colors, spacing } from "../../../theme";
-import type { SettingsStackParamList as MoreStackParamList } from "../../../types/navigation";
+import type { SettingsStackParamList } from "../../../types/navigation";
 import { useBusinesses } from "../../../hooks/useBusinesses";
 
 import { BusinessCard } from "./components/BusinessCard";
@@ -26,7 +26,7 @@ import type { Business, BusinessStatusFilter } from "./types";
 /** Bottom-tab clearance so cards aren't tucked behind the floating tab bar. */
 const TAB_BAR_CLEARANCE = 72;
 
-type Nav = NativeStackNavigationProp<MoreStackParamList, "MyBusiness">;
+type Nav = NativeStackNavigationProp<SettingsStackParamList, "MyBusiness">;
 
 /**
  * Settings → My Business landing screen.

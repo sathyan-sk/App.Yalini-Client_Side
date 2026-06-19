@@ -35,7 +35,7 @@ import type { Hotel } from "../Hotels/types";
 import { AssignmentStatsCards } from "./components/AllAssignmentStatsCards";
 import { AssignmentCard } from "./components/AllAssignmentCard";
 import { AssignmentSearchBar } from "./components/AllAssignmentSearchBar";
-import type { SettingsStackParamList } from "../../../navigation/types";
+import type { SettingsStackParamList } from "../../../types/navigation";
 import { AllAssignmentsHeader } from "./components/AllAssignmentsHeader";
 
 type Nav = NativeStackNavigationProp<SettingsStackParamList, "AssignAssets">;

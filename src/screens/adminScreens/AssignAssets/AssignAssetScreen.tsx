@@ -36,7 +36,7 @@ import type { AssetType } from "./types";
 import type { Employee } from "../Employees/types";
 import type { Vehicle } from "../../../types/vehicle";
 import type { Hotel } from "../Hotels/types";
-import type { SettingsStackParamList } from "../../../navigation/types";
+import type { SettingsStackParamList } from "../../../types/navigation";
 
 import { AssignmentHeader } from "./components/AssignmentHeader";
 import { AssetTypeSelector } from "./components/AssetTypeSelector";

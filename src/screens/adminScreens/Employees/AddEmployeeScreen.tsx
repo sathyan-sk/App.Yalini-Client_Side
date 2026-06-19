@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
 import { colors, fontSize, radius, spacing } from "../../../theme";
-import type { EmployeesStackParamList } from "../../../navigation/types";
+import type { EmployeesStackParamList } from "../../../types/navigation";
 import { useEmployees } from "../../../hooks/useEmployees";
 import { useBusinesses } from "../../../hooks/useBusinesses";
 
