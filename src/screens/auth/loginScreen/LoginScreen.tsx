@@ -19,13 +19,16 @@
  */
 import React, { useCallback, useState } from "react";
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TouchableWithoutFeedback,
   View,
+  useWindowDimensions,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -36,7 +39,6 @@ import { LoginHero } from "./components/LoginHero";
 import { MobileField } from "./components/MobileField";
 import { PinField } from "./components/PinField";
 import { LoginButton } from "./components/LoginButton";
-import { TricolourStrip } from "./components/TricolourStrip";
 import { LoginToast } from "./components/LoginToast";
 
 type ToastTone = "error" | "info" | "success";
@@ -50,6 +52,8 @@ interface ToastState {
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
+  const { height: screenHeight } = useWindowDimensions();
+
 
   const isSubmitting = useAuthStore((s) => s.isSubmitting);
   const signIn = useAuthStore((s) => s.signIn);
@@ -64,6 +68,8 @@ export default function LoginScreen() {
   }, []);
 
   const handleLogin = useCallback(async () => {
+        // Dismiss keyboard before validation
+    Keyboard.dismiss();
     // Local validation
     if (mobile.length !== 10) {
       showToast("Enter a valid 10-digit mobile number", "error");
@@ -96,6 +102,9 @@ export default function LoginScreen() {
 
   const canSubmit = mobile.length === 10 && pin.length === 4 && !isSubmitting;
 
+    // Calculate minimum content height to ensure scrolling works properly
+  const minContentHeight = screenHeight - insets.top - insets.bottom;
+
   return (
     <View style={styles.root} testID="login-screen">
       <StatusBar style="dark" />
@@ -111,18 +120,22 @@ export default function LoginScreen() {
 
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView
           contentContainerStyle={[
             styles.scrollContent,
-            { paddingTop: insets.top + 8 },
+            { 
+            paddingTop: insets.top + 8,
+            minHeight: minContentHeight,
+            },
           ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          bounces={false}
-        >
+          bounces={true}
+          alwaysBounceVertical={true}        >
           {/* Brand hero on white */}
           <LoginHero />
 
@@ -184,8 +197,8 @@ export default function LoginScreen() {
             </View>
           </View>
         </ScrollView>
+        </TouchableWithoutFeedback>
 
-        <TricolourStrip />
       </KeyboardAvoidingView>
     </View>
   );
@@ -206,6 +219,7 @@ const styles = StyleSheet.create({
 
   // Cream curved area below hero
   creamShell: {
+    flex: 1,
     backgroundColor: authColors.cream,
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,

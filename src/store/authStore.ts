@@ -63,15 +63,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   async bootstrap() {
     const session = await restoreSession();
-      if (__DEV__) {
-    set({ status: "unauthenticated" })
-    return
-    // if (session) {
-    //   set({
-    //     status: "authenticated",
-    //     token: session.token,
-    //     user: session.user,
-    //   });
+    if (session) {
+      set({
+        status: "authenticated",
+        token: session.token,
+        user: session.user,
+      });
     } else {
       set({ status: "unauthenticated" });
     }
