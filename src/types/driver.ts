@@ -130,11 +130,40 @@ export interface SessionInfo {
   sessionStatus: "Day Started" | "Day Ended";
   sessionDate: string;
   sessionTime: string;
+  isActive: boolean;
+}
+/**
+ * Expense data structure for trips
+ */
+export interface TripExpense {
+  fuel: number;
+  toll: number;
+  food: number;
+  other: number;
+  notes?: string;
+  total: number;
+}
+
+/**
+ * Extended Trip type with expense details for EditTrip screen
+ */
+export interface AllTripsTrip extends Trip {
+  expense?: TripExpense;
+}
+
+/**
+ * Edit Trip Form Data
+ */
+export interface EditTripFormData {
+  from: string;
+  to: string;
+  amount: string;
+  paymentMode: PaymentMode;
 }
 
 export interface AllTripsData {
   sessionInfo: SessionInfo;
-  trips: Trip[];
+  trips: AllTripsTrip[];
   totalTrips: number;
   totalIncome: number;
   totalExpenses: number;

@@ -3,7 +3,7 @@
  * Contains session info and trips list matching the design
  */
 
-import type { AllTripsData, Trip, SessionInfo } from '../../../../types/driver';
+import type { AllTripsData, Trip, SessionInfo, AllTripsTrip } from '../../../../types/driver';
 
 // Mock session data
 export const MOCK_SESSION_INFO: SessionInfo = {
@@ -13,10 +13,11 @@ export const MOCK_SESSION_INFO: SessionInfo = {
   sessionStatus: 'Day Started',
   sessionDate: '10 May 2024',
   sessionTime: '08:05 AM',
+  isActive: true,
 };
 
 // Mock trips data matching the design
-export const MOCK_TRIPS: Trip[] = [
+export const MOCK_TRIPS: AllTripsTrip[] = [
   {
     id: 'trip_001',
     tripNumber: 1,
@@ -56,7 +57,7 @@ export const MOCK_TRIPS: Trip[] = [
 ];
 
 // Calculate totals from mock trips
-const calculateTotals = (trips: Trip[]) => {
+const calculateTotals = (trips: AllTripsTrip[]) => {
   const totalIncome = trips.reduce((sum, trip) => sum + trip.amount, 0);
   const totalExpenses = trips.reduce((sum, trip) => sum + trip.totalExpense, 0);
   return {
