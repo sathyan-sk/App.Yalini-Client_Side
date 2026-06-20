@@ -1,10 +1,10 @@
 /**
- * EditTripScreen - Screen to edit trip details in Driver module
- * Allows driver to update trip info and view/edit expenses
- * Follows the design specifications with pixel-perfect implementation
+ * EditPreviewScreen - Screen to view and edit trip details in Driver module
+ * Allows driver to view trip info, update details, and navigate to edit expense
+ * Uses tripStore for data management
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, spacing } from '../../../theme';
 import {
@@ -24,42 +25,59 @@ import {
   ExpenseSummaryCard,
   ActionButtons,
 } from './components';
-import { MOCK_ALL_TRIPS_DATA } from '../AllTrips/data/mockData';
-import { DEFAULT_EXPENSE } from './data/mockData';
-import type { EditTripFormData, PaymentMode, AllTripsTrip } from '../../../types/driver';
+import { useTripStore, TripWithExpense, TripExpense } from '../../../store/tripStore';
+import type { AllTripsStackParamList } from '../../../types/navigation';
+import type { EditTripFormData, PaymentMode } from '../../../types/driver';
 
 const BACKGROUND_COLOR = colors.surfaceSecondary;
 
-type EditTripRouteParams = {
-  EditTrip: {
-    tripId: string;
-  };
+type EditPreviewNavigationProp = NativeStackNavigationProp<AllTripsStackParamList, 'EditPreview'>;
+type EditPreviewRouteProp = RouteProp<AllTripsStackParamList, 'EditPreview'>;
+
+// Default expense data when no expense exists
+const DEFAULT_EXPENSE: TripExpense = {
+  fuel: 0,
+  toll: 0,
+  food: 0,
+  other: 0,
+  notes: '',
+  total: 0,
 };
 
-export default function EditTripScreen() {
+export default function EditPreviewScreen() {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
-  const route = useRoute<RouteProp<EditTripRouteParams, 'EditTrip'>>();
+  const navigation = useNavigation<EditPreviewNavigationProp>();
+  const route = useRoute<EditPreviewRouteProp>();
 
-  // Get trip ID from route params (default to first trip for demo)
-  const tripId = route.params?.tripId || MOCK_ALL_TRIPS_DATA.trips[0].id;
+  const { tripId } = route.params;
 
-  // Find the trip from mock data
-  const trip = useMemo(() => {
-    return MOCK_ALL_TRIPS_DATA.trips.find((t) => t.id === tripId) || MOCK_ALL_TRIPS_DATA.trips[0];
-  }, [tripId]);
+  // Get trip data and actions from store
+  const { getTripById, updateTrip, deleteTrip } = useTripStore();
+  const trip = getTripById(tripId);
 
   // Form state initialized from trip data
   const [formData, setFormData] = useState<EditTripFormData>({
-    from: trip.from,
-    to: trip.to,
-    amount: trip.amount.toString(),
-    paymentMode: trip.paymentMode,
+    from: '',
+    to: '',
+    amount: '',
+    paymentMode: 'cash',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Initialize form data when trip loads
+  useEffect(() => {
+    if (trip) {
+      setFormData({
+        from: trip.from,
+        to: trip.to,
+        amount: trip.amount.toString(),
+        paymentMode: trip.paymentMode,
+      });
+    }
+  }, [trip?.id]); // Only re-initialize when tripId changes
+
   // Get expense data (use default if no expense)
-  const expenseData = trip.expense || DEFAULT_EXPENSE;
+  const expenseData = trip?.expense || DEFAULT_EXPENSE;
 
   // Form handlers
   const handleFromChange = useCallback((value: string) => {
@@ -96,8 +114,10 @@ export default function EditTripScreen() {
   }, [navigation]);
 
   const handleEditExpense = useCallback(() => {
-    Alert.alert('Edit Expense', 'Expense editing screen coming soon!');
-  }, []);
+    // Navigate to AddExpenseForTrip screen with mode 'edit'
+    const mode = trip?.hasExpense ? 'edit' : 'add';
+    navigation.navigate('AddExpenseForTrip', { tripId, mode });
+  }, [navigation, tripId, trip?.hasExpense]);
 
   const handleSaveChanges = useCallback(async () => {
     // Validation
@@ -117,8 +137,13 @@ export default function EditTripScreen() {
     setIsSubmitting(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Update trip in store
+      updateTrip(tripId, {
+        from: formData.from.trim(),
+        to: formData.to.trim(),
+        amount: parseFloat(formData.amount),
+        paymentMode: formData.paymentMode,
+      });
 
       Alert.alert('Success', 'Trip updated successfully!', [
         {
@@ -131,7 +156,7 @@ export default function EditTripScreen() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, navigation]);
+  }, [formData, navigation, tripId, updateTrip]);
 
   const handleDeleteTrip = useCallback(() => {
     Alert.alert(
@@ -143,6 +168,7 @@ export default function EditTripScreen() {
           text: 'Delete',
           style: 'destructive',
           onPress: () => {
+            deleteTrip(tripId);
             Alert.alert('Deleted', 'Trip deleted successfully!', [
               {
                 text: 'OK',
@@ -153,13 +179,27 @@ export default function EditTripScreen() {
         },
       ]
     );
-  }, [navigation]);
+  }, [navigation, tripId, deleteTrip]);
 
-  // Create a modified trip object for the summary card
-  const displayTrip: AllTripsTrip = {
+  // If trip not found, show error and go back
+  if (!trip) {
+    return (
+      <View style={styles.container}>
+        <EditTripHeader onBackPress={handleBackPress} />
+        <View style={styles.errorContainer}>
+          <Alert.alert('Error', 'Trip not found', [
+            { text: 'OK', onPress: () => navigation.goBack() }
+          ]);
+        </View>
+      </View>
+    );
+  }
+
+  // Create a display trip object with current form data
+  const displayTrip: TripWithExpense = {
     ...trip,
-    from: formData.from,
-    to: formData.to,
+    from: formData.from || trip.from,
+    to: formData.to || trip.to,
     amount: parseFloat(formData.amount) || trip.amount,
     paymentMode: formData.paymentMode,
   };
@@ -201,6 +241,7 @@ export default function EditTripScreen() {
           <ExpenseSummaryCard
             expense={expenseData}
             onEditExpense={handleEditExpense}
+            hasExpense={trip.hasExpense}
           />
 
           {/* Action Buttons */}
@@ -230,5 +271,10 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

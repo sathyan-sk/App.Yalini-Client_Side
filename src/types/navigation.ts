@@ -3,6 +3,8 @@
  * Unified navigation types to ensure consistency across the app
  */
 
+import type { AllTripsTrip, TripExpense } from './driver';
+
 // Admin Tab Navigation
 export type RootTabParamList = {
   Dashboard: undefined;
@@ -15,7 +17,7 @@ export type RootTabParamList = {
 export type DriverTabParamList = {
   DriverHome: undefined;
   AddTrip: undefined;
-  AllTrips: undefined;
+  AllTripsStack: undefined;
   Checkout: undefined;
 };
 
@@ -23,6 +25,18 @@ export type DriverTabParamList = {
 export type DriverStackParamList = {
   DriverStartDay: undefined;
   DriverMain: undefined;
+};
+
+// AllTrips Stack Navigation (stack within AllTrips tab)
+export type AllTripsStackParamList = {
+  AllTripsList: undefined;
+  EditPreview: {
+    tripId: string;
+  };
+  AddExpenseForTrip: {
+    tripId: string;
+    mode: 'add' | 'edit';
+  };
 };
 
 /**

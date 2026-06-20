@@ -8,16 +8,26 @@ import { Feather } from '@expo/vector-icons';
 
 import { colors, spacing, fontSize, radius } from '../../../../theme';
 import { TripCard } from './TripCard';
-import type { Trip } from '../../../../types/driver';
+import type { TripWithExpense } from '../../../../store/tripStore';
 
 interface TripsListProps {
-  trips: Trip[];
-  onTripPress: (trip: Trip) => void;
-  onAddExpense: (trip: Trip) => void;
+  trips: TripWithExpense[];
+  onTripPress: (trip: TripWithExpense) => void;
+  onAddExpense: (trip: TripWithExpense) => void;
 }
 
 export function TripsList({ trips, onTripPress, onAddExpense }: TripsListProps) {
   const tripCount = trips.length;
+
+  if (tripCount === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Feather name="inbox" size={48} color={colors.textTertiary} />
+        <Text style={styles.emptyText}>No trips added yet</Text>
+        <Text style={styles.emptySubtext}>Add trips from the Add Trip tab</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -27,7 +37,8 @@ export function TripsList({ trips, onTripPress, onAddExpense }: TripsListProps) 
         <View style={styles.headerInfoRow}>
           <Feather name="info" size={14} color={colors.textSecondary} />
           <Text style={styles.headerInfoText}>
-            Add expenses for all trips{"\n"}to proceed to checkout
+            Add expenses for all trips{" "}
+            to proceed to checkout
           </Text>
         </View>
       </View>
@@ -71,5 +82,22 @@ const styles = StyleSheet.create({
     marginLeft: spacing.xs,
     textAlign: 'right',
     lineHeight: 16,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.xl * 2,
+    marginBottom: spacing.md,
+  },
+  emptyText: {
+    fontSize: fontSize.lg,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    marginTop: spacing.md,
+  },
+  emptySubtext: {
+    fontSize: fontSize.sm,
+    color: colors.textTertiary,
+    marginTop: spacing.xs,
   },
 });

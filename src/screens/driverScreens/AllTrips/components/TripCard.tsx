@@ -8,10 +8,10 @@ import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 
 import { colors, spacing, fontSize, radius, cardShadow } from '../../../../theme';
-import type { Trip } from '../../../../types/driver';
+import type { TripWithExpense } from '../../../../store/tripStore';
 
 interface TripCardProps {
-  trip: Trip;
+  trip: TripWithExpense;
   onPress: () => void;
   onAddExpense: () => void;
 }

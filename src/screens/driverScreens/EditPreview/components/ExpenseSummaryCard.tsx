@@ -1,5 +1,6 @@
 /**
  * ExpenseSummaryCard - Shows expense breakdown for the trip
+ * Handles both cases: when expense exists and when it doesn't
  */
 
 import React from 'react';
@@ -7,11 +8,12 @@ import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { MaterialIcons, Feather } from '@expo/vector-icons';
 
 import { colors, spacing, fontSize, radius, cardShadow } from '../../../../theme';
-import type { TripExpense } from '../../../../types/driver';
+import type { TripExpense } from '../../../../store/tripStore';
 
 interface ExpenseSummaryCardProps {
   expense: TripExpense;
   onEditExpense: () => void;
+  hasExpense?: boolean;
 }
 
 interface ExpenseItemProps {
@@ -31,7 +33,35 @@ function ExpenseItem({ icon, label, amount, color }: ExpenseItemProps) {
   );
 }
 
-export function ExpenseSummaryCard({ expense, onEditExpense }: ExpenseSummaryCardProps) {
+export function ExpenseSummaryCard({ expense, onEditExpense, hasExpense = true }: ExpenseSummaryCardProps) {
+  // If no expense, show \"Add Expense\" UI
+  if (!hasExpense) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.sectionTitle}>Expense Summary</Text>
+        </View>
+        
+        <TouchableOpacity 
+          style={styles.noExpenseContainer}
+          onPress={onEditExpense}
+          activeOpacity={0.7}
+        >
+          <View style={styles.noExpenseContent}>
+            <View style={styles.warningBadge}>
+              <Feather name="alert-circle" size={24} color="#F57C00" />
+            </View>
+            <View style={styles.noExpenseText}>
+              <Text style={styles.noExpenseTitle}>No expense added</Text>
+              <Text style={styles.noExpenseSubtitle}>Tap to add expense for this trip</Text>
+            </View>
+            <Feather name="chevron-right" size={24} color="#F57C00" />
+          </View>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -54,6 +84,14 @@ export function ExpenseSummaryCard({ expense, onEditExpense }: ExpenseSummaryCar
         <ExpenseItem icon="restaurant" label="Food" amount={expense.food} color="#FF9800" />
         <ExpenseItem icon="more-horiz" label="Other" amount={expense.other} color="#6366F1" />
       </View>
+
+      {/* Notes if any */}
+      {expense.notes && expense.notes.trim() !== '' && (
+        <View style={styles.notesSection}>
+          <Text style={styles.notesLabel}>Notes:</Text>
+          <Text style={styles.notesText}>{expense.notes}</Text>
+        </View>
+      )}
 
       {/* Total */}
       <View style={styles.totalRow}>
@@ -112,6 +150,23 @@ const styles = StyleSheet.create({
     fontSize: fontSize.base,
     color: colors.textSecondary,
   },
+  notesSection: {
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  notesLabel: {
+    fontSize: fontSize.sm,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+  },
+  notesText: {
+    fontSize: fontSize.sm,
+    color: colors.textPrimary,
+    lineHeight: 20,
+  },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -129,5 +184,39 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xl,
     fontWeight: '700',
     color: colors.textPrimary,
+  },
+  noExpenseContainer: {
+    backgroundColor: '#FFF3E0',
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    borderWidth: 1,
+    borderColor: '#FFCC80',
+    borderStyle: 'dashed',
+  },
+  noExpenseContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  warningBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#FFE0B2',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.md,
+  },
+  noExpenseText: {
+    flex: 1,
+  },
+  noExpenseTitle: {
+    fontSize: fontSize.base,
+    fontWeight: '700',
+    color: '#F57C00',
+    marginBottom: 4,
+  },
+  noExpenseSubtitle: {
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
   },
 });

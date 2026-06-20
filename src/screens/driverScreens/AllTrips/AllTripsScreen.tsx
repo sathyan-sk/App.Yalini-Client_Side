@@ -2,9 +2,10 @@
  * AllTripsScreen - Screen to view all trips and manage expenses in Driver module
  * Shows session info, trips list with expense status, and summary
  * Follows the design specifications with pixel-perfect implementation
+ * Now connected to tripStore for real data management
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   StyleSheet,
   View,
@@ -14,6 +15,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, spacing } from '../../../theme';
 import {
@@ -24,23 +26,31 @@ import {
   InfoBanner,
   SummaryFooter,
 } from './components';
-import { MOCK_ALL_TRIPS_DATA, MOCK_TRIPS } from './data/mockData';
-import type { Trip, AllTripsData } from '../../../types/driver';
+import { useTripStore, TripWithExpense } from '../../../store/tripStore';
+import type { AllTripsStackParamList } from '../../../types/navigation';
 
 const BACKGROUND_COLOR = colors.surfaceSecondary;
 
+type AllTripsNavigationProp = NativeStackNavigationProp<AllTripsStackParamList, 'AllTripsList'>;
+
 export default function AllTripsScreen() {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AllTripsNavigationProp>();
 
-  // State
-  const [data, setData] = useState<AllTripsData>(MOCK_ALL_TRIPS_DATA);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  // Get data from tripStore
+  const {
+    session,
+    trips,
+    totalTrips,
+    totalIncome,
+    totalExpenses,
+    netAmount,
+  } = useTripStore();
 
   // Check if all trips have expenses added
   const allExpensesAdded = useMemo(() => {
-    return data.trips.every((trip) => trip.hasExpense);
-  }, [data.trips]);
+    return trips.every((trip) => trip.hasExpense);
+  }, [trips]);
 
   // Handlers
   const handleMenuPress = useCallback(() => {
@@ -51,22 +61,22 @@ export default function AllTripsScreen() {
     Alert.alert('Filter', 'Filter trips by date, payment mode, etc.');
   }, []);
 
-  const handleTripPress = useCallback((trip: Trip) => {
-    // Navigate to EditTrip screen with trip data
-    // @ts-ignore - Stack navigator handles this
-    navigation.navigate('EditTrip', { tripId: trip.id, trip });
+  const handleTripPress = useCallback((trip: TripWithExpense) => {
+    // Navigate to EditPreview screen with trip ID
+    navigation.navigate('EditPreview', { tripId: trip.id });
   }, [navigation]);
 
-  const handleAddExpense = useCallback((trip: Trip) => {
-    // Navigate to AddExpense screen with trip data
-    // @ts-ignore - Stack navigator handles this
-    navigation.navigate('AddExpense', { tripId: trip.id, trip });
+  const handleAddExpense = useCallback((trip: TripWithExpense) => {
+    // Navigate to AddExpense screen with trip ID
+    const mode = trip.hasExpense ? 'edit' : 'add';
+    navigation.navigate('AddExpenseForTrip', { tripId: trip.id, mode });
   }, [navigation]);
 
   const handleProceedToCheckout = useCallback(() => {
     if (allExpensesAdded) {
-      // @ts-ignore
-      navigation.navigate('Checkout');
+      // Navigate to Checkout tab
+      // Since we're inside a stack within a tab, we need to navigate to parent
+      navigation.getParent()?.navigate('Checkout');
     } else {
       Alert.alert(
         'Cannot Proceed',
@@ -76,13 +86,18 @@ export default function AllTripsScreen() {
   }, [allExpensesAdded, navigation]);
 
   const handleRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    // Reset to mock data (in real app, would fetch fresh data)
-    setData(MOCK_ALL_TRIPS_DATA);
-    setIsRefreshing(false);
+    // In a real app, this would refetch data from API
+    // For now, the store already has the data
+    await new Promise((resolve) => setTimeout(resolve, 500));
   }, []);
+
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
+
+  const onRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await handleRefresh();
+    setIsRefreshing(false);
+  }, [handleRefresh]);
 
   return (
     <View style={styles.container}>
@@ -102,24 +117,24 @@ export default function AllTripsScreen() {
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
-            onRefresh={handleRefresh}
+            onRefresh={onRefresh}
             tintColor={colors.primaryBlue}
             colors={[colors.primaryBlue]}
           />
         }
       >
         {/* Service Info Card */}
-        <ServiceInfoCard sessionInfo={data.sessionInfo} />
+        <ServiceInfoCard sessionInfo={session} />
 
         {/* Summary Stats Row */}
         <SummaryStatsRow
-          totalTrips={data.totalTrips}
-          totalIncome={data.totalIncome}
+          totalTrips={totalTrips}
+          totalIncome={totalIncome}
         />
 
         {/* Trips List */}
         <TripsList
-          trips={data.trips}
+          trips={trips}
           onTripPress={handleTripPress}
           onAddExpense={handleAddExpense}
         />
@@ -129,9 +144,9 @@ export default function AllTripsScreen() {
 
         {/* Summary Footer */}
         <SummaryFooter
-          totalIncome={data.totalIncome}
-          totalExpenses={data.totalExpenses}
-          netAmount={data.netAmount}
+          totalIncome={totalIncome}
+          totalExpenses={totalExpenses}
+          netAmount={netAmount}
           canProceed={allExpensesAdded}
           onProceedToCheckout={handleProceedToCheckout}
         />
