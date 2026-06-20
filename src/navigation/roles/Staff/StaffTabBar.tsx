@@ -16,6 +16,8 @@ import { AppTabBar, TabBarConfig } from "../../AppTabBar";
 import type { StaffTabParamList } from "../../../types/navigation";
 import { colors } from "../../../theme";
 
+import StaffHomeScreen from "../../../screens/staffScreens/Home/StaffHomeScreen";
+
 // ─────────────────────────────────────
 // PLACEHOLDER SCREENS
 // These will be replaced with actual screens as they are developed
@@ -30,21 +32,6 @@ function PlaceholderScreen({ title }: { title: string }) {
   );
 }
 
-function StaffHomeScreen() {
-  return <PlaceholderScreen title="Staff Home" />;
-}
-
-function AddDeliveryScreen() {
-  return <PlaceholderScreen title="Add Delivery" />;
-}
-
-function AllDeliveriesScreen() {
-  return <PlaceholderScreen title="All Deliveries" />;
-}
-
-function StaffCheckoutScreen() {
-  return <PlaceholderScreen title="Checkout" />;
-}
 
 // ─────────────────────────────────────
 // STAFF TAB CONFIG
@@ -67,9 +54,6 @@ export default function StaffTabBar() {
       )}
     >
       <Tab.Screen name="StaffHome" component={StaffHomeScreen} />
-      <Tab.Screen name="AddDelivery" component={AddDeliveryScreen} />
-      <Tab.Screen name="AllDeliveries" component={AllDeliveriesScreen} />
-      <Tab.Screen name="StaffCheckout" component={StaffCheckoutScreen} />
     </Tab.Navigator>
   );
 }
