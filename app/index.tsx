@@ -1,21 +1,26 @@
+/**
+ * Entry point — renders the RootNavigator which handles auth and role-based routing.
+ * Uses NavigationIndependentTree to work with expo-router.
+ */
+import React from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { StyleSheet } from "react-native";
 
 import RootNavigator from "../src/navigation/RootNavigator";
 
-/**
- * expo-router owns the shell; the entire in-app navigation tree
- * (bottom tabs + nested native stacks) is delegated to React Navigation
- * via `RootNavigator`. SafeAreaProvider is mounted here so every nested
- * screen / header can call `useSafeAreaInsets`.
- *
- * IMPORTANT: only one `NavigationContainer` may exist in the tree.
- * `RootNavigator` owns it (wrapped in `NavigationIndependentTree` so
- * it boots independently of expo-router's internal navigator).
- */
 export default function Index() {
   return (
-    <SafeAreaProvider>
-      <RootNavigator />
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={styles.container}>
+      <SafeAreaProvider>
+        <RootNavigator />
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});

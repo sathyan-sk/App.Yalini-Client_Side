@@ -85,14 +85,8 @@ export default function LoginScreen() {
       showToast(result.error, "error");
       return;
     }
+    // DRIVER module is will be there implemented - allow login.
 
-    // Authenticated. Gate non-Admin roles until their modules ship.
-    if (result.role === "DRIVER") {
-      // Roll the session back so RootNavigator stays on LoginScreen.
-      await signOut();
-      showToast("Driver module coming soon", "info");
-      return;
-    }
     if (result.role === "STAFF") {
       await signOut();
       showToast("Staff module coming soon", "info");
