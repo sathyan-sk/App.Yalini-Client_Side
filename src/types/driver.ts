@@ -53,6 +53,7 @@ export interface DriverHomeData {
   recentActivity: RecentActivity[];
   notificationCount: number;
 }
+
 /**
  * Trip Form Data - Used for Add Trip screen
  */
@@ -64,20 +65,26 @@ export interface TripFormData {
 }
 
 /**
- * Trip - Complete trip data structure
+ * Trip - Complete trip data structure for AllTrips screen
  */
 export interface Trip {
   id: string;
+  tripNumber: number;
   from: string;
   to: string;
   amount: number;
   paymentMode: PaymentMode;
-  driverId: string;
-  vehicleId: string;
-  sessionId: string;
-  createdAt: string;
-  status: "completed" | "cancelled";
+  date: string;
+  time: string;
+  hasExpense: boolean;
+  totalExpense: number;
+  driverId?: string;
+  vehicleId?: string;
+  sessionId?: string;
+  createdAt?: string;
+  status?: "completed" | "cancelled";
 }
+
 /**
  * Type definitions for AddExpense screen
  */
@@ -112,3 +119,24 @@ export interface ExpenseFormData {
 }
 
 export type ExpenseField = 'fuel' | 'toll' | 'food' | 'other';
+
+/**
+ * AllTrips Screen Data Types
+ */
+export interface SessionInfo {
+  serviceName: string;
+  driverName: string;
+  vehicleNumber: string;
+  sessionStatus: "Day Started" | "Day Ended";
+  sessionDate: string;
+  sessionTime: string;
+}
+
+export interface AllTripsData {
+  sessionInfo: SessionInfo;
+  trips: Trip[];
+  totalTrips: number;
+  totalIncome: number;
+  totalExpenses: number;
+  netAmount: number;
+}

@@ -16,7 +16,8 @@ import type { DriverTabParamList } from "../../../types/navigation"
 
 import DriverHomeScreen from "../../../screens/driverScreens/Home/DriverHomeScreen"
 import AddTripScreen from "../../../screens/driverScreens/AddTrip/AddTripScreen"
-import addExpense from "../../../screens/driverScreens/AddExpense/AddExpenseScreen"
+import AllTripsScreen from "@/screens/driverScreens/AllTrips/AllTripsScreen"
+import AddExpenseScreen from "../../../screens/driverScreens/AddExpense/AddExpenseScreen"
 
 // ─────────────────────────────────────
 // DRIVER TAB CONFIG
@@ -24,6 +25,7 @@ import addExpense from "../../../screens/driverScreens/AddExpense/AddExpenseScre
 const DRIVER_TAB_CONFIG: TabBarConfig = {
   DriverHome: { label: "Home",      icon: "home"         },
   AddTrip:    { label: "Add Trip",  icon: "plus-circle"  },
+  AddExpense: { label: "Add Expense", icon: "dollar-sign"  },
   AllTrips:   { label: "All Trips", icon: "list"         },
   Checkout:   { label: "Checkout",  icon: "check-square" },
 }
@@ -43,7 +45,8 @@ export default function DriverTabBar() {
     > 
       <Tab.Screen name="DriverHome" component={DriverHomeScreen} />
       <Tab.Screen name="AddTrip"    component={AddTripScreen}    />
-      <Tab.Screen name="AddTrip"   component={addExpense}       />
+      <Tab.Screen name={"AddExpense" as keyof DriverTabParamList} component={AddExpenseScreen} />
+      <Tab.Screen name="AllTrips"   component={AllTripsScreen} />
     </Tab.Navigator>
   )
 }
