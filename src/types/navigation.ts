@@ -3,11 +3,29 @@
  * Unified navigation types to ensure consistency across the app
  */
 
+// Admin Tab Navigation
 export type RootTabParamList = {
   Dashboard: undefined;
   DailyRecords: undefined;
   Employees: undefined;
   Settings: undefined;
+};
+
+// Driver Tab Navigation
+export type DriverTabParamList = {
+  DriverHome: undefined;
+  AddTrip: undefined;
+  AllTrips: undefined;
+  Checkout: undefined;
+  More: undefined;
+};
+
+// Driver Stack Navigation
+export type DriverStackParamList = {
+  DriverTabs: undefined;
+  AddExpense: { tripId?: string };
+  TripDetails: { tripId: string };
+  StartDayInfo: undefined;
 };
 
 /**

@@ -1,15 +1,15 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import SettingsScreen from "../screens/adminScreens/Settings/SettingsScreen";
-import MyBusinessScreen from "../screens/adminScreens/MyBusiness/MyBusinessScreen";
-import AddBusinessScreen from "../screens/adminScreens/MyBusiness/AddBusinessScreen";
-import EditBusinessScreen from "../screens/adminScreens/MyBusiness/EditBusinessScreen";
+import SettingsScreen from "../../../screens/adminScreens/Settings/SettingsScreen";
+import MyBusinessScreen from "../../../screens/adminScreens/MyBusiness/MyBusinessScreen";
+import AddBusinessScreen from "../../../screens/adminScreens/MyBusiness/AddBusinessScreen";
+import EditBusinessScreen from "../../../screens/adminScreens/MyBusiness/EditBusinessScreen";
 import VehiclesNavigator from "./VehiclesNavigator";
 import HotelsNavigator from "./HotelsNavigator";
-import AllAssignmentsScreen from "../screens/adminScreens/AssignAssets/AllAssignmentsScreen";
-import AssignAssetScreen from "../screens/adminScreens/AssignAssets/AssignAssetScreen";
-import type { SettingsStackParamList } from "../types/navigation";
+import AllAssignmentsScreen from "../../../screens/adminScreens/AssignAssets/AllAssignmentsScreen";
+import AssignAssetScreen from "../../../screens/adminScreens/AssignAssets/AssignAssetScreen";
+import type { SettingsStackParamList } from "../../../types/navigation";
 
 const Stack = createNativeStackNavigator<SettingsStackParamList>();
 

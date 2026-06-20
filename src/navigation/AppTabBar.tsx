@@ -7,36 +7,60 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { colors, fontSize, radius, spacing } from "../theme";
 
-const TAB_CONFIG: Record<
-  string,
-  { label: string; icon: keyof typeof Feather.glyphMap }
-> = {
-  Dashboard: { label: "Dashboard", icon: "home" },
-  DailyRecords: { label: "Records", icon: "file-text" },
-  Employees: { label: "Employees", icon: "users" },
-  Settings: { label: "Settings", icon: "settings" },
-};
+// ─────────────────────────────────────
+// TAB CONFIG TYPE
+// exported so each navigator can define its own
+// ─────────────────────────────────────
+export interface TabItemConfig {
+  label: string
+  icon:  keyof typeof Feather.glyphMap
+}
 
-/** Custom bottom tab bar: frosted on iOS, solid on Android, dot indicator on the active tab. */
-export function AppTabBar({ state, navigation }: BottomTabBarProps) {
+export type TabBarConfig = Record<string, TabItemConfig>
+
+// ─────────────────────────────────────
+// PROPS
+// ─────────────────────────────────────
+interface AppTabBarProps extends BottomTabBarProps {
+  tabConfig: TabBarConfig   // ← each navigator passes its own
+}
+
+/**
+ * AppTabBar — shared custom bottom tab bar.
+ *
+ * Frosted glass on iOS, solid on Android.
+ * Dot indicator on active tab.
+ *
+ * Knows nothing about roles — each navigator
+ * passes its own tabConfig so this component
+ * stays pure and reusable across all roles.
+ */
+export function AppTabBar({
+  state,
+  navigation,
+  tabConfig,       // ← received from navigator
+}: AppTabBarProps) {
   const insets = useSafeAreaInsets();
 
   const content = (
     <View style={styles.row}>
       {state.routes.map((route, index) => {
-        const config = TAB_CONFIG[route.name];
-        const focused = state.index === index;
+        const config  = tabConfig[route.name]
+        const focused = state.index === index
+
+        // skip if route not in config
+        if (!config) return null
 
         const onPress = () => {
           const event = navigation.emit({
             type: "tabPress",
             target: route.key,
             canPreventDefault: true,
-          });
+          })
           if (!focused && !event.defaultPrevented) {
-            navigation.navigate(route.name);
+            navigation.navigate(route.name)
           }
-        };
+        }
 
         return (
           <Pressable
@@ -60,24 +84,31 @@ export function AppTabBar({ state, navigation }: BottomTabBarProps) {
             </Text>
             <View style={[styles.dot, focused && styles.dotActive]} />
           </Pressable>
-        );
+        )
       })}
     </View>
-  );
+  )
 
   return (
     <View
-      style={[styles.container, { paddingBottom: Math.max(insets.bottom, spacing.sm) }]}
+      style={[
+        styles.container,
+        { paddingBottom: Math.max(insets.bottom, spacing.sm) }
+      ]}
       testID="bottom-tab-bar"
     >
       {Platform.OS === "ios" ? (
-        <BlurView intensity={80} tint="light" style={StyleSheet.absoluteFill} />
+        <BlurView
+          intensity={80}
+          tint="light"
+          style={StyleSheet.absoluteFill}
+        />
       ) : (
         <View style={[StyleSheet.absoluteFill, styles.solidBg]} />
       )}
       {content}
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({

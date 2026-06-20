@@ -1,10 +1,10 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import RecordsHomeScreen from "../screens/adminScreens/Records/RecordsHomeScreen";
-import TaxiRecordDetailsScreen from "../screens/adminScreens/Records/components/BusinessTypeRecords/TaxiRecordDetailsScreen";
-import WaterRecordDetailsScreen from "../screens/adminScreens/Records/components/BusinessTypeRecords/WaterRecordDetailsScreen";
-import type { RecordsStackParamList } from "../types/navigation";
+import RecordsHomeScreen from "../../../screens/adminScreens/Records/RecordsHomeScreen";
+import TaxiRecordDetailsScreen from "../../../screens/adminScreens/Records/components/BusinessTypeRecords/TaxiRecordDetailsScreen";
+import WaterRecordDetailsScreen from "../../../screens/adminScreens/Records/components/BusinessTypeRecords/WaterRecordDetailsScreen";
+import type { RecordsStackParamList } from "../../../types/navigation";
 
 const Stack = createNativeStackNavigator<RecordsStackParamList>();
 

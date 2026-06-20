@@ -9,9 +9,9 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import AllHotelsScreen from "../screens/adminScreens/Hotels/AllHotelsScreen";
-import AddHotelScreen from "../screens/adminScreens/Hotels/AddHotelScreen";
-import EditHotelScreen from "../screens/adminScreens/Hotels/EditHotelScreen";
+import AllHotelsScreen from "../../../screens/adminScreens/Hotels/AllHotelsScreen";
+import AddHotelScreen from "../../../screens/adminScreens/Hotels/AddHotelScreen";
+import EditHotelScreen from "../../../screens/adminScreens/Hotels/EditHotelScreen";
 
 export type HotelsStackParamList = {
   AllHotels: undefined;

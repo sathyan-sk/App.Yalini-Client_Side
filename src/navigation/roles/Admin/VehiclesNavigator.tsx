@@ -9,9 +9,9 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import AllVehiclesScreen from "../screens/adminScreens/vehicles/AllVehiclesScreen";
-import AddVehicleScreen from "../screens/adminScreens/vehicles/AddVehicleScreen";
-import EditVehicleScreen from "../screens/adminScreens/vehicles/EditVehicleScreen";
+import AllVehiclesScreen from "../../../screens/adminScreens/vehicles/AllVehiclesScreen";
+import AddVehicleScreen from "../../../screens/adminScreens/vehicles/AddVehicleScreen";
+import EditVehicleScreen from "../../../screens/adminScreens/vehicles/EditVehicleScreen";
 
 export type VehiclesStackParamList = {
   AllVehicles: undefined;

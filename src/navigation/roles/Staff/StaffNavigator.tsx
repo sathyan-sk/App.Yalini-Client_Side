@@ -1,17 +1,50 @@
 /**
- * Staff module navigator — shows the Start Day screen and future staff screens.
+ * StaffNavigator — bottom tab navigator for STAFF role.
+ *
+ * Tabs:
+ *   Home     → StaffHomeScreen     (session status + cans summary)
+ *   Delivery → DeliveryNavigator   (list + add + edit deliveries)
+ *   Expense  → ExpenseNavigator    (list + add expense entries)
+ *   Checkout → CheckoutScreen      (balance summary + submit session)
  */
-import React from "react";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import React from "react"
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
 
-import StaffStartDayScreen from "../../../screens/staffScreens/StartDay/StaffStartDayScreen";
+import { AppTabBar, TabBarConfig } from "@/src/navigation/AppTabBar"
+import type { StaffTabParamList } from "@/src/types/navigation"
 
-const Stack = createNativeStackNavigator();
+import StaffHomeScreen   from "@/src/screens/staffScreens/Home/StaffHomeScreen"
+import CheckoutScreen    from "@/src/screens/staffScreens/Checkout/CheckoutScreen"
+import DeliveryNavigator from "./DeliveryNavigator"
+import ExpenseNavigator  from "./ExpenseNavigator"
+
+// ─────────────────────────────────────
+// STAFF TAB CONFIG
+// ─────────────────────────────────────
+const STAFF_TAB_CONFIG: TabBarConfig = {
+  StaffHome:      { label: "Home",     icon: "home"         },
+  StaffDelivery:  { label: "Delivery", icon: "package"      },
+  StaffExpense:   { label: "Expense",  icon: "credit-card"  },
+  StaffCheckout:  { label: "Checkout", icon: "check-circle" },
+}
+
+const Tab = createBottomTabNavigator<StaffTabParamList>()
 
 export default function StaffNavigator() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="StaffStartDay" component={StaffStartDayScreen} />
-    </Stack.Navigator>
-  );
+    <Tab.Navigator
+      screenOptions={{ headerShown: false }}
+      tabBar={(props) => (
+        <AppTabBar
+          {...props}
+          tabConfig={STAFF_TAB_CONFIG}
+        />
+      )}
+    >
+      <Tab.Screen name="StaffHome"      component={StaffHomeScreen}   />
+      <Tab.Screen name="StaffDelivery"  component={DeliveryNavigator} />
+      <Tab.Screen name="StaffExpense"   component={ExpenseNavigator}  />
+      <Tab.Screen name="StaffCheckout"  component={CheckoutScreen}    />
+    </Tab.Navigator>
+  )
 }

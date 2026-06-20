@@ -23,6 +23,9 @@ export const colors = {
   primaryBlue: "#1E88E5",
   primaryBlueSoft: "#E3F2FD",
 
+  // Header Dark Navy
+  headerDark: "#1A237E",
+
   // Status
   success: "#00C853",
   successDark: "#2E7D32",
