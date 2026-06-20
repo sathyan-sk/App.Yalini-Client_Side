@@ -1,10 +1,12 @@
 /**
  * Trip Store - Zustand store for managing trips and expenses across screens
- * Handles the workflow: AddTrip -> AddExpense (optional) -> AllTrips -> EditTrip -> Checkout
+ * Handles the workflow: AddTrip -> AddExpense (optional) -> AllTrips -> EditTrip -> Checkout -> Success
+ * Updated with session submission support
  */
 
 import { create } from 'zustand';
-import type { Trip, PaymentMode } from '../types/driver';
+import type { Trip, PaymentMode, SessionSubmissionData } from '../types/driver';
+import { submitDriverSession } from '../services/driverService';
 
 export interface TripExpense {
   fuel: number;
@@ -23,10 +25,13 @@ interface SessionInfo {
   serviceName: string;
   driverName: string;
   vehicleNumber: string;
-  sessionStatus: 'Day Started' | 'Day Ended';
+  sessionStatus: 'Day Started' | 'Day Ended' | 'Submitted';
   sessionDate: string;
   sessionTime: string;
   isActive: boolean;
+  sessionId?: string;
+  driverId?: string;
+  vehicleId?: string;
 }
 
 interface TripStore {
@@ -42,9 +47,15 @@ interface TripStore {
   totalExpenses: number;
   netAmount: number;
   
+  // Submission state
+  isSubmitting: boolean;
+  submissionError: string | null;
+  lastSubmissionId: string | null;
+  
   // Actions
   startSession: () => void;
   endSession: () => void;
+  submitSession: () => Promise<{ success: boolean; error?: string }>;
   
   // Trip actions
   addTrip: (trip: Omit<Trip, 'id' | 'tripNumber' | 'date' | 'time' | 'hasExpense' | 'totalExpense'>) => string;
@@ -59,6 +70,7 @@ interface TripStore {
   // Utility
   recalculateTotals: () => void;
   resetStore: () => void;
+  clearSubmissionError: () => void;
 }
 
 // Generate unique ID
@@ -92,6 +104,9 @@ const initialSession: SessionInfo = {
   sessionDate: getCurrentDate(),
   sessionTime: '08:05 AM',
   isActive: true,
+  sessionId: `SESSION_${Date.now()}`,
+  driverId: 'DRIVER_001',
+  vehicleId: 'VEHICLE_001',
 };
 
 // Sample initial trips (matching the mockData)
@@ -169,6 +184,9 @@ export const useTripStore = create<TripStore>((set, get) => ({
   session: initialSession,
   trips: initialTrips,
   ...initialTotals,
+  isSubmitting: false,
+  submissionError: null,
+  lastSubmissionId: null,
 
   // Session actions
   startSession: () => {
@@ -179,6 +197,7 @@ export const useTripStore = create<TripStore>((set, get) => ({
         sessionDate: getCurrentDate(),
         sessionTime: getCurrentTime(),
         isActive: true,
+        sessionId: `SESSION_${Date.now()}`,
       },
     });
   },
@@ -191,6 +210,66 @@ export const useTripStore = create<TripStore>((set, get) => ({
         isActive: false,
       },
     });
+  },
+
+  submitSession: async () => {
+    const state = get();
+    
+    // Check if all trips have expenses
+    const tripsWithoutExpenses = state.trips.filter(trip => !trip.hasExpense);
+    if (tripsWithoutExpenses.length > 0) {
+      const error = `Please add expenses for all ${tripsWithoutExpenses.length} remaining trip(s)`;
+      set({ submissionError: error });
+      return { success: false, error };
+    }
+
+    set({ isSubmitting: true, submissionError: null });
+
+    try {
+      // Prepare submission data
+      const submissionData: SessionSubmissionData = {
+        sessionId: state.session.sessionId || `SESSION_${Date.now()}`,
+        driverId: state.session.driverId || 'DRIVER_001',
+        vehicleId: state.session.vehicleId || 'VEHICLE_001',
+        sessionDate: state.session.sessionDate,
+        startTime: state.session.sessionTime,
+        endTime: getCurrentTime(),
+        totalTrips: state.totalTrips,
+        totalIncome: state.totalIncome,
+        totalExpenses: state.totalExpenses,
+        netAmount: state.netAmount,
+        trips: state.trips,
+      };
+
+      // Call service to submit
+      const response = await submitDriverSession(submissionData);
+
+      if (response.success) {
+        set({
+          session: {
+            ...state.session,
+            sessionStatus: 'Submitted',
+            isActive: false,
+          },
+          isSubmitting: false,
+          lastSubmissionId: response.submissionId || null,
+        });
+        return { success: true };
+      } else {
+        set({
+          isSubmitting: false,
+          submissionError: response.message || 'Submission failed',
+        });
+        return { success: false, error: response.message };
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      set({
+        isSubmitting: false,
+        submissionError: errorMessage,
+      });
+      return { success: false, error: errorMessage };
+    }
   },
 
   // Trip actions
@@ -316,12 +395,24 @@ export const useTripStore = create<TripStore>((set, get) => ({
 
   resetStore: () => {
     set({
-      session: initialSession,
+      session: {
+        ...initialSession,
+        sessionDate: getCurrentDate(),
+        sessionTime: getCurrentTime(),
+        sessionId: `SESSION_${Date.now()}`,
+      },
       trips: [],
       totalTrips: 0,
       totalIncome: 0,
       totalExpenses: 0,
       netAmount: 0,
+      isSubmitting: false,
+      submissionError: null,
+      lastSubmissionId: null,
     });
+  },
+
+  clearSubmissionError: () => {
+    set({ submissionError: null });
   },
 }));

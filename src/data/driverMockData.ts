@@ -1,27 +1,29 @@
 /**
- * Mock data for Driver Home Screen
- * Realistic INR amounts and Indian context
+ * Mock data for Driver module
+ * Used when USE_MOCK is true in featureFlags
  */
 
 import type { DriverHomeData } from "../types/driver";
 
-// Mock data for driver with active day session
-export const DRIVER_HOME_DATA_ACTIVE: DriverHomeData = {
+/**
+ * Default driver home data - no trips scenario
+ */
+export const DEFAULT_DRIVER_HOME_DATA: DriverHomeData = {
   driver: {
-    id: "emp_seed_ramesh",
+    id: "DRIVER_001",
     name: "Ramesh Kumar",
     businessName: "City Taxi Service",
     businessType: "taxi",
     role: "Driver",
   },
   assignment: {
-    vehicleId: "veh_seed_swift_dzire",
-    vehicleName: "Swift Dzire",
+    vehicleId: "VEHICLE_001",
+    vehicleName: "Innova Crysta",
     vehicleNumber: "TN 01 AB 1234",
     isAssigned: true,
   },
   sessionStatus: "OPEN",
-  sessionDate: "10 May 2024",
+  sessionDate: "19 Jun 2026",
   sessionStartTime: "08:05 AM",
   todayOverview: {
     totalTrips: 0,
@@ -32,67 +34,71 @@ export const DRIVER_HOME_DATA_ACTIVE: DriverHomeData = {
   notificationCount: 2,
 };
 
-// Mock data with trips
+/**
+ * Driver home data with trips - active day scenario
+ */
 export const DRIVER_HOME_DATA_WITH_TRIPS: DriverHomeData = {
   driver: {
-    id: "emp_seed_ramesh",
+    id: "DRIVER_001",
     name: "Ramesh Kumar",
     businessName: "City Taxi Service",
     businessType: "taxi",
     role: "Driver",
   },
   assignment: {
-    vehicleId: "veh_seed_swift_dzire",
-    vehicleName: "Swift Dzire",
+    vehicleId: "VEHICLE_001",
+    vehicleName: "Innova Crysta",
     vehicleNumber: "TN 01 AB 1234",
     isAssigned: true,
   },
   sessionStatus: "OPEN",
-  sessionDate: "10 May 2024",
+  sessionDate: "19 Jun 2026",
   sessionStartTime: "08:05 AM",
   todayOverview: {
     totalTrips: 5,
-    totalIncome: 2350,
-    totalExpenses: 450,
+    totalIncome: 3250,
+    totalExpenses: 520,
   },
   recentActivity: [
     {
-      id: "act_1",
+      id: "activity_1",
       type: "trip",
-      description: "Trip to Airport",
-      amount: 850,
-      time: "11:30 AM",
+      description: "Trip to RS Puram",
+      amount: 900,
+      time: "01:15 PM",
     },
     {
-      id: "act_2",
+      id: "activity_2",
       type: "expense",
-      description: "Fuel (5L Petrol)",
-      amount: 550,
+      description: "Fuel expense added",
+      amount: 120,
+      time: "01:20 PM",
+    },
+    {
+      id: "activity_3",
+      type: "trip",
+      description: "Trip to Peelamedu",
+      amount: 900,
       time: "10:45 AM",
     },
-    {
-      id: "act_3",
-      type: "trip",
-      description: "Trip to Central Station",
-      amount: 350,
-      time: "09:15 AM",
-    },
   ],
-  notificationCount: 2,
+  notificationCount: 3,
 };
 
-// Mock data for no assignment
-export const DRIVER_HOME_DATA_NO_ASSIGNMENT: DriverHomeData = {
+/**
+ * Driver without vehicle assignment scenario
+ */
+export const DRIVER_NO_ASSIGNMENT_DATA: DriverHomeData = {
   driver: {
-    id: "emp_seed_ramesh",
-    name: "Ramesh Kumar",
+    id: "DRIVER_002",
+    name: "Suresh Babu",
     businessName: "City Taxi Service",
     businessType: "taxi",
     role: "Driver",
   },
   assignment: null,
   sessionStatus: "OPEN",
-  sessionDate: "10 May 2024",
+  sessionDate: "19 Jun 2026",
   sessionStartTime: "",
   todayOverview: {
     totalTrips: 0,
@@ -102,6 +108,3 @@ export const DRIVER_HOME_DATA_NO_ASSIGNMENT: DriverHomeData = {
   recentActivity: [],
   notificationCount: 1,
 };
-
-// Default mock data
-export const DEFAULT_DRIVER_HOME_DATA = DRIVER_HOME_DATA_ACTIVE;

@@ -1,5 +1,6 @@
 /**
  * Type definitions for Driver module
+ * Updated to support session submission flow and success screen
  */
 
 export type SessionStatus = "OPEN" | "SUBMITTED";
@@ -127,7 +128,7 @@ export interface SessionInfo {
   serviceName: string;
   driverName: string;
   vehicleNumber: string;
-  sessionStatus: "Day Started" | "Day Ended";
+  sessionStatus: "Day Started" | "Day Ended" | "Submitted";
   sessionDate: string;
   sessionTime: string;
   isActive: boolean;
@@ -168,4 +169,28 @@ export interface AllTripsData {
   totalIncome: number;
   totalExpenses: number;
   netAmount: number;
+}
+
+/**
+ * Session Submission Types
+ */
+export interface SessionSubmissionData {
+  sessionId: string;
+  driverId: string;
+  vehicleId: string;
+  sessionDate: string;
+  startTime: string;
+  endTime: string;
+  totalTrips: number;
+  totalIncome: number;
+  totalExpenses: number;
+  netAmount: number;
+  trips: Trip[];
+}
+
+export interface SessionSubmissionResponse {
+  success: boolean;
+  message: string;
+  submissionId?: string;
+  submittedAt?: string;
 }

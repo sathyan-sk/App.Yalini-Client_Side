@@ -1,6 +1,7 @@
 /**
  * Navigation type definitions for the app
  * Unified navigation types to ensure consistency across the app
+ * Updated to support SubmittedSuccessfully screen
  */
 
 import type { AllTripsTrip, TripExpense } from './driver';
@@ -25,6 +26,7 @@ export type DriverTabParamList = {
 export type DriverStackParamList = {
   DriverStartDay: undefined;
   DriverMain: undefined;
+  SubmittedSuccessfully: undefined;
 };
 
 // AllTrips Stack Navigation (stack within AllTrips tab)
