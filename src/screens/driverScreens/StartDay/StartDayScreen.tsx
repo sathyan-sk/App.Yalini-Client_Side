@@ -47,17 +47,9 @@ export default function DriverStartDayScreen({ showNoAssignment = false }: Drive
   };
 
   const handleStartDay = () => {
-    Alert.alert(
-      'Start Day',
-      'Your day has started! Safe travels.',
-      [{ 
-        text: 'OK',
-        onPress: () => {
+
           // Navigate to DriverMain (bottom tabs) after starting day
           navigation.replace('DriverMain');
-        }
-      }]
-    );
   };
 
   const handleContactAdmin = () => {
