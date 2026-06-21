@@ -15,10 +15,11 @@ import {
 import { Feather, MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 
 import { colors, spacing, fontSize, radius, cardShadow } from "../../../../theme";
-import type { TripFormData, PaymentMode } from "../../../../types/driver";
+import type { TripFormData, PaymentMode, TripType } from "../../../../types/driver";
 
 interface TripDetailsFormProps {
   formData: TripFormData;
+  onTripTypeChange: (type: TripType) => void;
   onFromChange: (value: string) => void;
   onToChange: (value: string) => void;
   onAmountChange: (value: string) => void;

@@ -7,6 +7,8 @@ export type SessionStatus = "OPEN" | "SUBMITTED";
 
 export type PaymentMode = "cash" | "online";
 
+export type TripType = "vendor" | "private";
+
 export interface DriverAssignment {
   vehicleId: string;
   vehicleName: string;
@@ -59,6 +61,7 @@ export interface DriverHomeData {
  * Trip Form Data - Used for Add Trip screen
  */
 export interface TripFormData {
+  tripType: TripType;
   from: string;
   to: string;
   amount: string;
@@ -71,6 +74,7 @@ export interface TripFormData {
 export interface Trip {
   id: string;
   tripNumber: number;
+  tripType: TripType;
   from: string;
   to: string;
   amount: number;
@@ -156,6 +160,7 @@ export interface AllTripsTrip extends Trip {
  * Edit Trip Form Data
  */
 export interface EditTripFormData {
+  tripType: TripType;
   from: string;
   to: string;
   amount: string;

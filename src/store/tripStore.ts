@@ -5,7 +5,7 @@
  */
 
 import { create } from 'zustand';
-import type { Trip, PaymentMode, SessionSubmissionData } from '../types/driver';
+import type { Trip, PaymentMode, TripType, SessionSubmissionData } from '../types/driver';
 import { submitDriverSession } from '../services/driverService';
 
 export interface TripExpense {
@@ -114,6 +114,7 @@ const initialTrips: TripWithExpense[] = [
   {
     id: 'trip_001',
     tripNumber: 1,
+    tripType: 'vendor',
     from: 'Coimbatore',
     to: 'Airport',
     amount: 650,
@@ -134,6 +135,7 @@ const initialTrips: TripWithExpense[] = [
   {
     id: 'trip_002',
     tripNumber: 2,
+    tripType: 'private',
     from: 'Airport',
     to: 'Peelamedu',
     amount: 900,
@@ -146,6 +148,7 @@ const initialTrips: TripWithExpense[] = [
   {
     id: 'trip_003',
     tripNumber: 3,
+    tripType: 'vendor',
     from: 'Peelamedu',
     to: 'RS Puram',
     amount: 900,
@@ -279,6 +282,7 @@ export const useTripStore = create<TripStore>((set, get) => ({
     const newTrip: TripWithExpense = {
       id: newTripId,
       tripNumber: trips.length + 1,
+      tripType: tripData.tripType,
       from: tripData.from,
       to: tripData.to,
       amount: tripData.amount,
