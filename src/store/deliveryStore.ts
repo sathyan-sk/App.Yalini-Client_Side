@@ -3,55 +3,19 @@
  *
  * Uses Zustand for lightweight, TypeScript-first state management.
  * Manages delivery session state, form data, and delivery records.
+ * 
+ * FIXED: Types are now consistent with AddDelivery/types.ts
  */
 import { create } from 'zustand';
-/**
- * Session status types
- */
-export type SessionStatus = 'PENDING' | 'ACTIVE' | 'SUBMITTED';
+import type {
+  SessionStatus,
+  HotelOption,
+  DeliverySessionData,
+  DeliveryRecord,
+} from '../screens/staffScreens/AddDelivery/types';
 
-/**
- * Hotel option for selection
- */
-export interface HotelOption {
-  id: string;
-  name: string;
-  location?: string;
-}
-
-/**
- * Delivery session data
- */
-export interface DeliverySessionData {
-  id: string;
-  staffName: string;
-  serviceName: string;
-  sessionDate: string;
-  sessionTime: string;
-  sessionStatus: SessionStatus;
-}
-
-/**
- * Delivery record
- */
-export interface DeliveryRecord {
-  id: string;
-  hotelId: string;
-  hotelName: string;
-  ratePerCan: number;
-  loadedCans: number;
-  cansDelivered: number;
-  cansReturned: number;
-  outstandingCans: number;
-  receivedIncome: number;
-  paymentMode: 'CASH' | 'ONLINE';
-  expenseCategory?: 'FUEL' | 'OTHERS';
-  estAmount: number;
-  expenseAmount?: number;
-  expenseDescription?: string;
-  timestamp: string;
-  notes?: string;
-}
+// Re-export types for convenience
+export type { SessionStatus, HotelOption, DeliverySessionData, DeliveryRecord };
 
 /**
  * Delivery store state shape.
@@ -61,7 +25,7 @@ interface DeliveryState {
   session: DeliverySessionData;
   /** List of deliveries made in current session */
   deliveries: DeliveryRecord[];
-  /** Available hotels for selection */
+  /** Available hotels for selection - now includes ratePerCan */
   hotels: HotelOption[];
   /** Loading state */
   isLoading: boolean;

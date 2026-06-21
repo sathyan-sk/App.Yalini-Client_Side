@@ -3,7 +3,7 @@
  * Types for editing saved delivery records.
  */
 
-import type { DeliveryRecord, PaymentMode, ExpenseCategory } from '../AddDelivery/types';
+import type { PaymentMode, ExpenseCategory } from '../AddDelivery/types';
 
 /**
  * Form data for editing a delivery.

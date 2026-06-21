@@ -1,9 +1,13 @@
 /**
  * Type definitions for Add Delivery Screen
  * Defines all types used in the delivery recording flow.
+ * These types serve as the single source of truth for the staff module.
  */
 
-import type { HotelStatusId } from '../../adminScreens/Hotels/types';
+/**
+ * Hotel status options.
+ */
+export type HotelStatusId = 'enabled' | 'disabled';
 
 /**
  * Payment mode options for delivery transactions.
@@ -20,11 +24,11 @@ export type ExpenseCategory = 'FUEL' | 'OTHERS';
  * Session status indicating if the day's work has been submitted.
  * Used to control form editability.
  */
-export type SessionStatus = 'ACTIVE' | 'SUBMITTED';
-
+export type SessionStatus = 'PENDING' | 'ACTIVE' | 'SUBMITTED';
 
 /**
  * Hotel item from the master list for dropdown selection.
+ * Used consistently across service and store layers.
  */
 export interface HotelOption {
   /** Unique identifier */
@@ -83,6 +87,7 @@ export interface DeliveryFormErrors {
 
 /**
  * Session data for the current delivery session.
+ * Consistent session status types across the app.
  */
 export interface DeliverySessionData {
   /** Session ID */
@@ -95,12 +100,13 @@ export interface DeliverySessionData {
   sessionDate: string;
   /** Session start time */
   sessionTime: string;
-  /** Session status */
+  /** Session status - supports PENDING, ACTIVE, SUBMITTED */
   sessionStatus: SessionStatus;
 }
 
 /**
  * A single saved delivery record.
+ * Uses createdAt consistently (not timestamp).
  */
 export interface DeliveryRecord {
   /** Unique delivery ID */
@@ -129,6 +135,8 @@ export interface DeliveryRecord {
   expenseCategory?: ExpenseCategory;
   /** Optional expense amount */
   expenseAmount?: number;
-  /** Timestamp of delivery */
+  /** Timestamp of delivery - ISO string */
   createdAt: string;
+  /** Optional notes */
+  notes?: string;
 }
