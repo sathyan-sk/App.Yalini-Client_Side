@@ -12,6 +12,11 @@ import type { HotelStatusId } from '../../adminScreens/Hotels/types';
 export type PaymentMode = 'CASH' | 'ONLINE';
 
 /**
+ * Expense category options for optional expense tracking.
+ */
+export type ExpenseCategory = 'FUEL' | 'OTHERS';
+
+/**
  * Session status indicating if the day's work has been submitted.
  * Used to control form editability.
  */
@@ -43,16 +48,24 @@ export interface DeliveryFormValues {
   hotelName: string;
   /** Rate per can for the selected hotel */
   ratePerCan: number;
+  /** Number of cans loaded on the vehicle */
+  loadedCans: number;
   /** Number of cans delivered to hotel */
   cansDelivered: number;
   /** Number of empty cans returned from hotel */
   cansReturned: number;
   /** Auto-calculated: cansDelivered - cansReturned */
   outstandingCans: number;
-  /** Money collected from hotel (Income) */
-  income: number;
+  /** Auto-calculated: cansDelivered * ratePerCan */
+  estAmount: number;
+  /** Money received from hotel (Income Received) */
+  receivedIncome: number;
   /** Payment mode: CASH or ONLINE */
   paymentMode: PaymentMode;
+  /** Optional expense category */
+  expenseCategory?: ExpenseCategory;
+  /** Optional expense amount */
+  expenseAmount?: number;
 }
 
 /**
@@ -60,9 +73,11 @@ export interface DeliveryFormValues {
  */
 export interface DeliveryFormErrors {
   hotelId?: string;
+  loadedCans?: string;
   cansDelivered?: string;
   cansReturned?: string;
-  income?: string;
+  receivedIncome?: string;
+  expenseAmount?: string;
 }
 
 /**
@@ -95,16 +110,24 @@ export interface DeliveryRecord {
   hotelName: string;
   /** Rate per can at time of delivery */
   ratePerCan: number;
+  /** Cans loaded */
+  loadedCans: number;
   /** Cans delivered */
   cansDelivered: number;
   /** Cans returned */
   cansReturned: number;
   /** Outstanding cans */
   outstandingCans: number;
-  /** Income collected */
-  income: number;
+  /** Estimated amount (auto-calculated) */
+  estAmount: number;
+  /** Income received */
+  receivedIncome: number;
   /** Payment mode */
   paymentMode: PaymentMode;
+  /** Optional expense category */
+  expenseCategory?: ExpenseCategory;
+  /** Optional expense amount */
+  expenseAmount?: number;
   /** Timestamp of delivery */
   createdAt: string;
 }

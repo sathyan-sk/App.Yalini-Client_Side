@@ -2,9 +2,11 @@
  * CansInformationForm - Form section for cans-related inputs.
  *
  * Includes:
+ * - Loaded Cans (numeric input)
  * - Cans Delivered (numeric input)
  * - Cans Returned (numeric input)
  * - Outstanding Cans (auto-calculated, read-only)
+ * - Est. Amount (auto-calculated, read-only)
  */
 import React from 'react';
 import { StyleSheet, View, Text, TextInput } from 'react-native';
@@ -17,12 +19,20 @@ import type { DeliveryFormErrors } from '../types';
  * Props for CansInformationForm component.
  */
 interface CansInformationFormProps {
+  /** Number of cans loaded */
+  loadedCans: number;
   /** Number of cans delivered */
   cansDelivered: number;
   /** Number of cans returned */
   cansReturned: number;
   /** Auto-calculated outstanding cans */
   outstandingCans: number;
+  /** Auto-calculated estimated amount */
+  estAmount: number;
+  /** Rate per can for display */
+  ratePerCan: number;
+  /** Callback when loaded cans changes */
+  onLoadedCansChange: (value: string) => void;
   /** Callback when cans delivered changes */
   onCansDeliveredChange: (value: string) => void;
   /** Callback when cans returned changes */
@@ -41,9 +51,13 @@ interface CansInformationFormProps {
  * @returns JSX element
  */
 export function CansInformationForm({
+  loadedCans,
   cansDelivered,
   cansReturned,
   outstandingCans,
+  estAmount,
+  ratePerCan,
+  onLoadedCansChange,
   onCansDeliveredChange,
   onCansReturnedChange,
   errors,
@@ -57,12 +71,45 @@ export function CansInformationForm({
         <View style={styles.sectionIconBg}>
           <Feather name="package" size={24} color={colors.primaryBlue} />
         </View>
-        <View>
+        <View style={styles.sectionHeaderText}>
           <Text style={styles.sectionTitle}>Cans Information</Text>
           <Text style={styles.sectionSubtitle}>
-            Enter delivery and return details
+            Enter loading and delivery details
           </Text>
         </View>
+      </View>
+
+      {/* Loaded Cans */}
+      <View style={styles.fieldGroup}>
+        <Text style={styles.fieldLabel}>
+          Loaded Cans <Text style={styles.required}>*</Text>
+        </Text>
+        <Text style={styles.fieldHint}>Total cans loaded on vehicle</Text>
+        <View
+          style={[
+            styles.inputContainer,
+            errors.loadedCans && styles.inputError,
+            disabled && styles.inputDisabled,
+          ]}
+        >
+          <TextInput
+            value={loadedCans > 0 ? loadedCans.toString() : ''}
+            onChangeText={onLoadedCansChange}
+            placeholder="0"
+            placeholderTextColor={colors.textTertiary}
+            style={styles.input}
+            keyboardType="numeric"
+            editable={!disabled}
+            maxLength={4}
+            testID={`${testID}-loaded-input`}
+          />
+          <Text style={styles.unitLabel}>Cans</Text>
+        </View>
+        {errors.loadedCans ? (
+          <Text style={styles.errorText} testID={`${testID}-loaded-error`}>
+            {errors.loadedCans}
+          </Text>
+        ) : null}
       </View>
 
       {/* Cans Delivered */}
@@ -131,25 +178,50 @@ export function CansInformationForm({
         ) : null}
       </View>
 
-      {/* Outstanding Cans (Read-only, Auto-calculated) */}
-      <View style={styles.calculatedRow}>
-        <View style={styles.calculatedIcon}>
-          <Feather name="box" size={20} color={colors.primaryBlue} />
+      {/* Outstanding Calculations Section */}
+      <View style={styles.calculationsSection}>
+        <Text style={styles.calculationsSectionTitle}>Outstanding Calculations</Text>
+        
+        {/* Outstanding Cans (Read-only, Auto-calculated) */}
+        <View style={styles.calculatedRow}>
+          <View style={styles.calculatedIcon}>
+            <Feather name="box" size={18} color={colors.primaryBlue} />
+          </View>
+          <View style={styles.calculatedInfo}>
+            <Text style={styles.calculatedLabel}>Outstanding Cans</Text>
+            <Text style={styles.calculatedSubtitle}>(Delivered - Returned)</Text>
+          </View>
+          <Text style={styles.equalsSign}>=</Text>
+          <Text
+            style={[
+              styles.calculatedValue,
+              outstandingCans < 0 && styles.calculatedValueNegative,
+            ]}
+            testID={`${testID}-outstanding-value`}
+          >
+            {outstandingCans} <Text style={styles.calculatedUnit}>Cans</Text>
+          </Text>
         </View>
-        <View style={styles.calculatedInfo}>
-          <Text style={styles.calculatedLabel}>Outstanding Cans</Text>
-          <Text style={styles.calculatedSubtitle}>(Delivered - Returned)</Text>
+
+        {/* Est. Amount (Read-only, Auto-calculated) */}
+        <View style={styles.calculatedRow}>
+          <View style={[styles.calculatedIcon, styles.estAmountIconBg]}>
+            <Feather name="dollar-sign" size={18} color={colors.success} />
+          </View>
+          <View style={styles.calculatedInfo}>
+            <Text style={styles.calculatedLabel}>Est. Amount</Text>
+            <Text style={styles.calculatedSubtitle}>
+              (Delivered × ₹{ratePerCan.toFixed(0)}/can)
+            </Text>
+          </View>
+          <Text style={styles.equalsSign}>=</Text>
+          <Text
+            style={[styles.calculatedValue, styles.estAmountValue]}
+            testID={`${testID}-est-amount-value`}
+          >
+            ₹{estAmount.toFixed(0)}
+          </Text>
         </View>
-        <Text style={styles.equalsSign}>=</Text>
-        <Text
-          style={[
-            styles.calculatedValue,
-            outstandingCans < 0 && styles.calculatedValueNegative,
-          ]}
-          testID={`${testID}-outstanding-value`}
-        >
-          {outstandingCans} <Text style={styles.calculatedUnit}>Cans</Text>
-        </Text>
       </View>
     </View>
   );
@@ -162,6 +234,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
     marginBottom: spacing.lg,
+  },
+  sectionHeaderText: {
+    flex: 1,
   },
   sectionIconBg: {
     width: 48,
@@ -233,6 +308,19 @@ const styles = StyleSheet.create({
     color: colors.error,
     marginTop: spacing.xs,
   },
+  calculationsSection: {
+    marginTop: spacing.sm,
+    paddingTop: spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderLight,
+    borderStyle: 'dashed',
+  },
+  calculationsSectionTitle: {
+    fontSize: fontSize.base,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
+  },
   calculatedRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -241,6 +329,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderRadius: radius.md,
     gap: spacing.sm,
+    marginBottom: spacing.sm,
   },
   calculatedIcon: {
     width: 36,
@@ -249,6 +338,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primaryBlueSoft,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  estAmountIconBg: {
+    backgroundColor: colors.successSoft,
   },
   calculatedInfo: {
     flex: 1,
@@ -272,9 +364,14 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xl,
     fontWeight: '700',
     color: colors.primaryBlue,
+    minWidth: 70,
+    textAlign: 'right',
   },
   calculatedValueNegative: {
     color: colors.error,
+  },
+  estAmountValue: {
+    color: colors.success,
   },
   calculatedUnit: {
     fontSize: fontSize.sm,
