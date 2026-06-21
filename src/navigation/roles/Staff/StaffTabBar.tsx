@@ -17,6 +17,7 @@ import type { StaffTabParamList } from "../../../types/navigation";
 import { colors } from "../../../theme";
 
 import StaffHomeScreen from "../../../screens/staffScreens/Home/StaffHomeScreen";
+import AddDeliveryScreen from "../../../screens/staffScreens/AddDelivery/AddDeliveryScreen";
 
 // ─────────────────────────────────────
 // PLACEHOLDER SCREENS
@@ -53,7 +54,9 @@ export default function StaffTabBar() {
         <AppTabBar {...props} tabConfig={STAFF_TAB_CONFIG} />
       )}
     >
-      <Tab.Screen name="StaffHome" component={StaffHomeScreen} />
+    <Tab.Screen name="StaffHome" component={StaffHomeScreen} />
+    <Tab.Screen name="AddDelivery" component={AddDeliveryScreen} />
+
     </Tab.Navigator>
   );
 }
