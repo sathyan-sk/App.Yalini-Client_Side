@@ -8,10 +8,12 @@
  * - All functions return Promises for async compatibility
  * - Data shapes match backend API expectations
  * - Mock latency simulates real network behavior
+ * - Now uses central mockData store for hotels 
  */
 
 import { USE_MOCK, API_CONFIG } from './featureFlags';
-import { SEED_HOTELS, generateId } from './mockData/StaffMockDataP';
+import { getHotels, generateId } from './mockData';
+import type { MockHotel } from './mockData/types';
 import type {
   HotelOption,
   DeliveryRecord,
@@ -19,6 +21,21 @@ import type {
   DeliverySessionData,
   SessionStatus,
 } from '../screens/staffScreens/AddDelivery/types';
+/**
+ * Converts MockHotel from central store to HotelOption for delivery screens.
+ * This ensures type consistency between admin hotel management and staff delivery.
+ * @param hotel - MockHotel from central store
+ * @returns HotelOption for delivery screens
+ */
+function toHotelOption(hotel: MockHotel): HotelOption {
+  return {
+    id: hotel.id,
+    name: hotel.name,
+    ratePerCan: hotel.ratePerCan,
+    location: hotel.location,
+    status: hotel.status,
+  };
+}
 
 /** In-memory store for delivery records during a session */
 let deliveryRecords: DeliveryRecord[] = [];
@@ -38,7 +55,7 @@ async function simulateLatency(): Promise<void> {
 
 /**
  * Loads all enabled hotels from the admin master list.
- * Used to populate the hotel dropdown in AddDeliveryScreen.
+ * Uses the central mock data store for consistency with admin hotel management.
  * 
  * BACKEND INTEGRATION:
  * Replace with: GET /api/v1/hotels?status=enabled
@@ -46,9 +63,12 @@ async function simulateLatency(): Promise<void> {
  * @returns Promise resolving to array of hotel options
  */
 export async function loadHotelsForDelivery(): Promise<HotelOption[]> {
-  if (USE_MOCK) {
-    await simulateLatency();
-    return SEED_HOTELS.filter(h => h.status === 'enabled');
+  if (USE_MOCK) {    // Get hotels from central store (already has latency simulation)
+    const allHotels = await getHotels();
+    // Filter for enabled hotels and convert to HotelOption type
+    return allHotels
+      .filter(h => h.status === 'enabled')
+      .map(toHotelOption);
   }
   
   // Real backend call (when USE_MOCK is false)
