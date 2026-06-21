@@ -1,10 +1,21 @@
 /**
  * StaffStartDayScreen - Main screen for Staff (Water Delivery) module
  * Shows hotel assignment status and allows staff to start their day
+* 
+ * Flow:
+ *   - Staff enters total loaded cans and rate per can
+ *   - Taps Start Day which creates the session with status OPEN
+ *   - Navigates to StaffMain using navigation.replace (prevents back to StartDayScreen)
  */
 import React, { useState } from 'react';
 import { StyleSheet, View, ScrollView, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { StaffStackParamList } from '../../../types/navigation';
+
+
+type NavigationProp = NativeStackScreenProps<StaffStackParamList, 'StaffStartDay'>['navigation'];
 
 import {
   StartDayHeader,
@@ -27,6 +38,7 @@ interface StaffStartDayScreenProps {
 
 export default function StaffStartDayScreen({ showNoAssignment = false }: StaffStartDayScreenProps) {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<NavigationProp>();
   
   // Use mock data based on prop (for demo purposes)
   const [data] = useState<StaffStartDayData>(
@@ -39,13 +51,16 @@ export default function StaffStartDayScreen({ showNoAssignment = false }: StaffS
     // Navigation drawer will be connected later
     console.log('Menu pressed');
   };
-
+  /**
+   * Handles Start Day button press.
+   * Creates session with OPEN status and navigates to StaffMain (bottom tabs).
+   * Uses replace() so back button cannot return to StartDayScreen.
+   */
   const handleStartDay = () => {
-    Alert.alert(
-      'Start Day',
-      'Your day has started! Safe deliveries.',
-      [{ text: 'OK' }]
-    );
+
+    // Navigate to StaffMain (bottom tabs) after starting day
+    // Using replace prevents going back to StartDayScreen
+    navigation.replace('StaffMain');
   };
 
   const handleContactAdmin = () => {
