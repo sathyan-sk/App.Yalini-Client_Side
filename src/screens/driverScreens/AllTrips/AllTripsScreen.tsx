@@ -20,7 +20,6 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colors, spacing } from '../../../theme';
 import {
   AllTripsHeader,
-  ServiceInfoCard,
   SummaryStatsRow,
   TripsList,
   InfoBanner,
@@ -123,8 +122,6 @@ export default function AllTripsScreen() {
           />
         }
       >
-        {/* Service Info Card */}
-        <ServiceInfoCard sessionInfo={session} />
 
         {/* Summary Stats Row */}
         <SummaryStatsRow

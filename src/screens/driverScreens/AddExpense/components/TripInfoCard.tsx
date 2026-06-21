@@ -39,8 +39,6 @@ export function TripInfoCard({ tripData }: TripInfoCardProps) {
 
       {/* Middle Section - Trip Info */}
       <View style={styles.infoSection}>
-        {/* Trip ID */}
-        <Text style={styles.tripId}>Trip #{tripData.tripId}</Text>
         
         {/* Route */}
         <View style={styles.routeRow}>
@@ -158,7 +156,7 @@ const styles = StyleSheet.create({
   infoSection: {
     flex: 1,
   },
-  tripId: {
+  routeText: {
     fontSize: fontSize.base,
     fontWeight: '700',
     color: colors.textPrimary,
@@ -168,10 +166,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: spacing.xs,
-  },
-  routeText: {
-    fontSize: fontSize.sm,
-    color: colors.textSecondary,
   },
   arrowIcon: {
     marginHorizontal: spacing.xs,
