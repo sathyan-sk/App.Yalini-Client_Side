@@ -3,6 +3,7 @@
  *
  * Shows service name, staff name, date, and session status.
  * Visual design matches the reference image header section.
+ * Fixed alignment issues for consistent layout.
  */
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
@@ -37,13 +38,14 @@ export function SessionInfoCard({
 
   return (
     <View style={styles.container} testID={testID}>
-      {/* Info Row: Hotel, Staff, Date */}
+      {/* Info Row: Service, Staff, Date */}
       <View style={styles.infoRow}>
+        {/* Service Info */}
         <View style={styles.infoItem}>
           <View style={styles.iconBg}>
-            <Ionicons name="business" size={18} color={colors.primaryBlue} />
+            <Ionicons name="business" size={16} color={colors.primaryBlue} />
           </View>
-          <View>
+          <View style={styles.infoTextContainer}>
             <Text style={styles.infoLabel}>Service</Text>
             <Text style={styles.infoValue} numberOfLines={1}>
               {session.serviceName}
@@ -53,11 +55,12 @@ export function SessionInfoCard({
 
         <View style={styles.divider} />
 
+        {/* Staff Info */}
         <View style={styles.infoItem}>
           <View style={styles.iconBg}>
-            <Ionicons name="person" size={18} color={colors.primaryBlue} />
+            <Ionicons name="person" size={16} color={colors.primaryBlue} />
           </View>
-          <View>
+          <View style={styles.infoTextContainer}>
             <Text style={styles.infoLabel}>Staff</Text>
             <Text style={styles.infoValue} numberOfLines={1}>
               {session.staffName}
@@ -67,13 +70,16 @@ export function SessionInfoCard({
 
         <View style={styles.divider} />
 
+        {/* Date Info */}
         <View style={styles.infoItem}>
           <View style={styles.iconBg}>
-            <Feather name="calendar" size={18} color={colors.primaryBlue} />
+            <Feather name="calendar" size={16} color={colors.primaryBlue} />
           </View>
-          <View>
+          <View style={styles.infoTextContainer}>
             <Text style={styles.infoLabel}>Date</Text>
-            <Text style={styles.infoValue}>{session.sessionDate}</Text>
+            <Text style={styles.infoValue} numberOfLines={1}>
+              {session.sessionDate}
+            </Text>
             <Text style={styles.todayLabel}>Today</Text>
           </View>
         </View>
@@ -83,9 +89,9 @@ export function SessionInfoCard({
       {ratePerCan !== undefined && ratePerCan > 0 && (
         <View style={styles.rateSection}>
           <View style={styles.rateIconBg}>
-            <Feather name="tag" size={20} color={colors.primaryBlue} />
+            <Feather name="tag" size={18} color={colors.primaryBlue} />
           </View>
-          <View>
+          <View style={styles.rateTextContainer}>
             <Text style={styles.rateLabel}>Rate per Can (₹)</Text>
             <Text style={styles.rateValue}>₹{ratePerCan.toFixed(2)}</Text>
             <Text style={styles.rateNote}>Default rate set by admin</Text>
@@ -116,27 +122,31 @@ const styles = StyleSheet.create({
   },
   infoRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
+    alignItems: 'stretch',
   },
   infoItem: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: spacing.sm,
+    gap: spacing.xs,
   },
   iconBg: {
-    width: 32,
-    height: 32,
-    borderRadius: radius.md,
+    width: 28,
+    height: 28,
+    borderRadius: radius.sm,
     backgroundColor: colors.primaryBlueSoft,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
+  },
+  infoTextContainer: {
+    flex: 1,
+    minWidth: 0,
   },
   infoLabel: {
     fontSize: fontSize.xs,
     color: colors.textTertiary,
-    marginBottom: 2,
+    marginBottom: 1,
   },
   infoValue: {
     fontSize: fontSize.sm,
@@ -146,13 +156,13 @@ const styles = StyleSheet.create({
   todayLabel: {
     fontSize: fontSize.xs,
     color: colors.primaryBlue,
-    marginTop: 2,
+    marginTop: 1,
   },
   divider: {
     width: 1,
-    height: '100%',
     backgroundColor: colors.border,
-    marginHorizontal: spacing.xs,
+    marginHorizontal: spacing.sm,
+    alignSelf: 'stretch',
   },
   rateSection: {
     flexDirection: 'row',
@@ -165,12 +175,16 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   rateIconBg: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.lg,
+    width: 40,
+    height: 40,
+    borderRadius: radius.md,
     backgroundColor: colors.primaryBlueSoft,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
+  },
+  rateTextContainer: {
+    flex: 1,
   },
   rateLabel: {
     fontSize: fontSize.sm,

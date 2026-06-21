@@ -11,3 +11,4 @@ export { IncomeInput } from './IncomeInput';
 export { PaymentModeToggle } from './PaymentModeToggle';
 export { SaveButton } from './SaveButton';
 export { FormToast } from './FormToast';
+export { ExpenseSection } from './ExpenseSection';

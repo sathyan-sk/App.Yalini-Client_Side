@@ -104,6 +104,7 @@ export async function updateSessionStatus(status: SessionStatus): Promise<void> 
 
 /**
  * Saves a new delivery record.
+ * Includes all new fields: loadedCans, estAmount, receivedIncome, expense fields.
  * @param formValues - The delivery form data
  * @returns Promise resolving to the created delivery record
  */
@@ -117,11 +118,15 @@ export async function saveDeliveryRecord(
     hotelId: formValues.hotelId,
     hotelName: formValues.hotelName,
     ratePerCan: formValues.ratePerCan,
+    loadedCans: formValues.loadedCans,
     cansDelivered: formValues.cansDelivered,
     cansReturned: formValues.cansReturned,
     outstandingCans: formValues.outstandingCans,
-    income: formValues.income,
+    estAmount: formValues.estAmount,
+    receivedIncome: formValues.receivedIncome,
     paymentMode: formValues.paymentMode,
+    expenseCategory: formValues.expenseCategory,
+    expenseAmount: formValues.expenseAmount,
     createdAt: new Date().toISOString(),
   };
   

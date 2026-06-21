@@ -2,7 +2,7 @@
  * IncomeInput - Input component for income/money collected.
  *
  * Displays a numeric input with rupee symbol for entering
- * the income collected from the hotel.
+ * the income received from the hotel.
  */
 import React from 'react';
 import { StyleSheet, View, Text, TextInput } from 'react-native';
@@ -27,7 +27,7 @@ interface IncomeInputProps {
 }
 
 /**
- * Income input component with rupee symbol.
+ * Income Received input component with rupee symbol.
  * @param props - Component props
  * @returns JSX element
  */
@@ -46,9 +46,9 @@ export function IncomeInput({
         </View>
         <View>
           <Text style={styles.title}>
-            Income <Text style={styles.required}>*</Text>
+            Income Received <Text style={styles.required}>*</Text>
           </Text>
-          <Text style={styles.subtitle}>Money collected from hotel</Text>
+          <Text style={styles.subtitle}>Amount received from hotel</Text>
         </View>
       </View>
 

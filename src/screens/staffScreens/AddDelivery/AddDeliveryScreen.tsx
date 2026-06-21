@@ -4,11 +4,14 @@
  * This screen allows staff members to record a single water can delivery to a hotel.
  * Features:
  * - Searchable hotel dropdown from admin hotel master list
- * - Cans Delivered and Cans Returned numeric inputs
+ * - Loaded Cans, Cans Delivered and Cans Returned numeric inputs
  * - Outstanding Cans auto-calculated (delivered - returned)
- * - Income input for money collected
+ * - Est. Amount auto-calculated (deliveredCans * ratePerCan)
+ * - Income Received input for money collected
  * - Payment Mode toggle (CASH or ONLINE only)
+ * - Optional Expense section (Fuel/Others category + amount)
  * - Save button disabled when session status is SUBMITTED
+ * - Prevents duplicate deliveries (saved hotels are unclickable)
  * - Full validation before save
  * - Navigation to AllDeliveriesScreen on success
  *
@@ -19,7 +22,7 @@
  * - StyleSheet.create() (no inline styles)
  * - JSDoc on all functions and components
  */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   StyleSheet,
   View,
@@ -45,6 +48,7 @@ import type {
   DeliveryFormErrors,
   HotelOption,
   PaymentMode,
+  ExpenseCategory,
 } from './types';
 
 import {
@@ -56,6 +60,7 @@ import {
   PaymentModeToggle,
   SaveButton,
   FormToast,
+  ExpenseSection,
 } from './components';
 
 /** Navigation prop type for AddDelivery screen */
@@ -66,11 +71,15 @@ const INITIAL_FORM_VALUES: DeliveryFormValues = {
   hotelId: '',
   hotelName: '',
   ratePerCan: 0,
+  loadedCans: 0,
   cansDelivered: 0,
   cansReturned: 0,
   outstandingCans: 0,
-  income: 0,
+  estAmount: 0,
+  receivedIncome: 0,
   paymentMode: 'CASH',
+  expenseCategory: undefined,
+  expenseAmount: undefined,
 };
 
 /**
@@ -83,7 +92,7 @@ export default function AddDeliveryScreen(): React.JSX.Element {
   const navigation = useNavigation<NavigationProp>();
 
   // Store state
-  const { session, hotels, setSession, setHotels, addDelivery } =
+  const { session, hotels, deliveries, setSession, setHotels, addDelivery } =
     useDeliveryStore();
 
   // Local state
@@ -98,6 +107,16 @@ export default function AddDeliveryScreen(): React.JSX.Element {
 
   // Computed values
   const isSessionSubmitted = session.sessionStatus === 'SUBMITTED';
+  const isHotelSelected = formValues.hotelId !== '';
+
+  /**
+   * Filters out hotels that already have saved deliveries.
+   * This prevents duplicate deliveries to the same hotel.
+   */
+  const availableHotels = useMemo(() => {
+    const savedHotelIds = new Set(deliveries.map((d) => d.hotelId));
+    return hotels.filter((h) => !savedHotelIds.has(h.id));
+  }, [hotels, deliveries]);
 
   /**
    * Loads session and hotels data on mount.
@@ -134,6 +153,16 @@ export default function AddDeliveryScreen(): React.JSX.Element {
   }, [formValues.cansDelivered, formValues.cansReturned, formValues.outstandingCans]);
 
   /**
+   * Updates estimated amount when delivered cans or rate changes.
+   */
+  useEffect(() => {
+    const estAmount = formValues.cansDelivered * formValues.ratePerCan;
+    if (estAmount !== formValues.estAmount) {
+      setFormValues((prev) => ({ ...prev, estAmount }));
+    }
+  }, [formValues.cansDelivered, formValues.ratePerCan, formValues.estAmount]);
+
+  /**
    * Shows a toast notification.
    * @param message - Toast message
    * @param type - Toast type
@@ -157,11 +186,25 @@ export default function AddDeliveryScreen(): React.JSX.Element {
       hotelId: hotel.id,
       hotelName: hotel.name,
       ratePerCan: hotel.ratePerCan,
+      // Recalculate estAmount with new rate
+      estAmount: prev.cansDelivered * hotel.ratePerCan,
     }));
     if (errors.hotelId) {
       setErrors((prev) => ({ ...prev, hotelId: undefined }));
     }
   }, [errors.hotelId]);
+
+  /**
+   * Handles loaded cans change.
+   * @param value - String value from input
+   */
+  const handleLoadedCansChange = useCallback((value: string) => {
+    const numValue = parseInt(value.replace(/[^0-9]/g, ''), 10) || 0;
+    setFormValues((prev) => ({ ...prev, loadedCans: numValue }));
+    if (errors.loadedCans) {
+      setErrors((prev) => ({ ...prev, loadedCans: undefined }));
+    }
+  }, [errors.loadedCans]);
 
   /**
    * Handles cans delivered change.
@@ -188,16 +231,16 @@ export default function AddDeliveryScreen(): React.JSX.Element {
   }, [errors.cansReturned]);
 
   /**
-   * Handles income change.
+   * Handles income received change.
    * @param value - String value from input
    */
-  const handleIncomeChange = useCallback((value: string) => {
+  const handleReceivedIncomeChange = useCallback((value: string) => {
     const numValue = parseInt(value.replace(/[^0-9]/g, ''), 10) || 0;
-    setFormValues((prev) => ({ ...prev, income: numValue }));
-    if (errors.income) {
-      setErrors((prev) => ({ ...prev, income: undefined }));
+    setFormValues((prev) => ({ ...prev, receivedIncome: numValue }));
+    if (errors.receivedIncome) {
+      setErrors((prev) => ({ ...prev, receivedIncome: undefined }));
     }
-  }, [errors.income]);
+  }, [errors.receivedIncome]);
 
   /**
    * Handles payment mode change.
@@ -206,6 +249,31 @@ export default function AddDeliveryScreen(): React.JSX.Element {
   const handlePaymentModeChange = useCallback((mode: PaymentMode) => {
     setFormValues((prev) => ({ ...prev, paymentMode: mode }));
   }, []);
+
+  /**
+   * Handles expense category change.
+   * @param category - Selected expense category or undefined
+   */
+  const handleExpenseCategoryChange = useCallback((category: ExpenseCategory | undefined) => {
+    setFormValues((prev) => ({
+      ...prev,
+      expenseCategory: category,
+      // Reset amount if category is cleared
+      expenseAmount: category ? prev.expenseAmount : undefined,
+    }));
+  }, []);
+
+  /**
+   * Handles expense amount change.
+   * @param value - String value from input
+   */
+  const handleExpenseAmountChange = useCallback((value: string) => {
+    const numValue = parseInt(value.replace(/[^0-9]/g, ''), 10) || 0;
+    setFormValues((prev) => ({ ...prev, expenseAmount: numValue }));
+    if (errors.expenseAmount) {
+      setErrors((prev) => ({ ...prev, expenseAmount: undefined }));
+    }
+  }, [errors.expenseAmount]);
 
   /**
    * Navigates back to previous screen.
@@ -225,8 +293,16 @@ export default function AddDeliveryScreen(): React.JSX.Element {
       newErrors.hotelId = 'Please select a hotel';
     }
 
+    if (formValues.loadedCans <= 0) {
+      newErrors.loadedCans = 'Loaded cans must be greater than 0';
+    }
+
     if (formValues.cansDelivered <= 0) {
       newErrors.cansDelivered = 'Cans delivered must be greater than 0';
+    }
+
+    if (formValues.cansDelivered > formValues.loadedCans) {
+      newErrors.cansDelivered = 'Cans delivered cannot exceed loaded cans';
     }
 
     if (formValues.cansReturned < 0) {
@@ -237,8 +313,13 @@ export default function AddDeliveryScreen(): React.JSX.Element {
       newErrors.cansReturned = 'Cans returned cannot exceed cans delivered';
     }
 
-    if (formValues.income < 0) {
-      newErrors.income = 'Income cannot be negative';
+    if (formValues.receivedIncome < 0) {
+      newErrors.receivedIncome = 'Income received cannot be negative';
+    }
+
+    // Validate expense amount if category is selected
+    if (formValues.expenseCategory && (formValues.expenseAmount === undefined || formValues.expenseAmount <= 0)) {
+      newErrors.expenseAmount = 'Please enter expense amount';
     }
 
     setErrors(newErrors);
@@ -339,7 +420,7 @@ export default function AddDeliveryScreen(): React.JSX.Element {
           {/* Hotel Selector */}
           <View style={styles.formCard}>
             <HotelSelector
-              hotels={hotels}
+              hotels={availableHotels}
               selectedHotelId={formValues.hotelId}
               onSelectHotel={handleHotelSelect}
               error={errors.hotelId}
@@ -351,9 +432,13 @@ export default function AddDeliveryScreen(): React.JSX.Element {
           {/* Cans Information Section */}
           <View style={styles.formCard}>
             <CansInformationForm
+              loadedCans={formValues.loadedCans}
               cansDelivered={formValues.cansDelivered}
               cansReturned={formValues.cansReturned}
               outstandingCans={formValues.outstandingCans}
+              estAmount={formValues.estAmount}
+              ratePerCan={formValues.ratePerCan}
+              onLoadedCansChange={handleLoadedCansChange}
               onCansDeliveredChange={handleCansDeliveredChange}
               onCansReturnedChange={handleCansReturnedChange}
               errors={errors}
@@ -362,12 +447,12 @@ export default function AddDeliveryScreen(): React.JSX.Element {
             />
           </View>
 
-          {/* Income Section */}
+          {/* Income Received Section */}
           <View style={styles.formCard}>
             <IncomeInput
-              value={formValues.income}
-              onChange={handleIncomeChange}
-              error={errors.income}
+              value={formValues.receivedIncome}
+              onChange={handleReceivedIncomeChange}
+              error={errors.receivedIncome}
               disabled={isSessionSubmitted}
               testID="income-input"
             />
@@ -382,6 +467,21 @@ export default function AddDeliveryScreen(): React.JSX.Element {
               testID="payment-mode"
             />
           </View>
+
+          {/* Expense Section - Only visible when hotel is selected */}
+          {isHotelSelected && (
+            <View style={styles.formCard}>
+              <ExpenseSection
+                category={formValues.expenseCategory}
+                amount={formValues.expenseAmount || 0}
+                onCategoryChange={handleExpenseCategoryChange}
+                onAmountChange={handleExpenseAmountChange}
+                amountError={errors.expenseAmount}
+                disabled={isSessionSubmitted}
+                testID="expense-section"
+              />
+            </View>
+          )}
 
           {/* Save Button */}
           <View style={styles.submitContainer}>
