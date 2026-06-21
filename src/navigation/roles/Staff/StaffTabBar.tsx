@@ -4,34 +4,22 @@
  *
  * Tabs:
  * Home → StaffHomeScreen (session overview)
- * Deliveries → DeliveriesScreen (manage water deliveries)
+ * AddDelivery → AddDeliveryScreen (record water deliveries)
  * AllDeliveries → AllDeliveriesStackNavigator (view/edit deliveries)
- * Checkout → CheckoutScreen (submit session) - Placeholder
+ * Checkout → StaffCheckoutScreen (submit session)
  */
 
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { AppTabBar, TabBarConfig } from "../../AppTabBar";
 import type { StaffTabParamList } from "../../../types/navigation";
+import { StyleSheet } from "react-native";
 import { colors } from "../../../theme";
 
 import StaffHomeScreen from "../../../screens/staffScreens/Home/StaffHomeScreen";
 import AddDeliveryScreen from "../../../screens/staffScreens/AddDelivery/AddDeliveryScreen";
-
-// ─────────────────────────────────────
-// PLACEHOLDER SCREENS
-// These will be replaced with actual screens as they are developed
-// ─────────────────────────────────────
-
-function PlaceholderScreen({ title }: { title: string }) {
-  return (
-    <View style={styles.placeholder}>
-      <Text style={styles.placeholderText}>{title}</Text>
-      <Text style={styles.placeholderSubtext}>Coming Soon</Text>
-    </View>
-  );
-}
+import AllDeliveriesStackNavigator from "./AllDeliveriesStackNavigator";
+import StaffCheckoutScreen from "../../../screens/staffScreens/Checkout/StaffCheckoutScreen";
 
 
 // ─────────────────────────────────────
@@ -56,7 +44,8 @@ export default function StaffTabBar() {
     >
     <Tab.Screen name="StaffHome" component={StaffHomeScreen} />
     <Tab.Screen name="AddDelivery" component={AddDeliveryScreen} />
-
+    <Tab.Screen name="AllDeliveries" component={AllDeliveriesStackNavigator} />
+    <Tab.Screen name="StaffCheckout" component={StaffCheckoutScreen} />
     </Tab.Navigator>
   );
 }

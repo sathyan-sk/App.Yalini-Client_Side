@@ -55,7 +55,13 @@ export type AllTripsStackParamList = {
     mode: 'add' | 'edit';
   };
 };
-
+// AllDeliveries Stack Navigation (stack within AllDeliveries tab for Staff)
+export type AllDeliveriesStackParamList = {
+  AllDeliveriesList: undefined;
+  EditPreview: {
+    deliveryId: string;
+  };
+};
 /**
  * Native-stack screens for the Records tab (DailyRecords).
  * RecordsHome is the entry point showing both Taxi and Water business records.
