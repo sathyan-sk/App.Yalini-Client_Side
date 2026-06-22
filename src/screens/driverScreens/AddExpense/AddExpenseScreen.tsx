@@ -14,7 +14,7 @@ import {
   Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp, CommonActions } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, spacing } from '../../../theme';
@@ -96,6 +96,25 @@ export default function AddExpenseScreen() {
       'Enter your expense details for this trip. You can add fuel, toll, food, and other expenses. The total will be calculated automatically.'
     );
   }, []);
+  /**
+   * Navigate to AllTripsScreen (AllTripsList) after saving expense
+   * This ensures proper navigation flow: AddTrip -> AddExpense -> AllTrips
+   * Uses reset to clear the navigation stack and go directly to AllTripsList
+   */
+  const navigateToAllTrips = useCallback(() => {
+    // Get the parent navigator (tab navigator) and navigate to AllTripsStack
+    // Then reset the AllTripsStack to show AllTripsList
+    const parent = navigation.getParent();
+    if (parent) {
+      // Navigate to the AllTripsStack tab and reset to AllTripsList
+      parent.navigate('AllTripsStack', {
+        screen: 'AllTripsList',
+      });
+    } else {
+      // Fallback: Navigate within the current stack
+      navigation.navigate('AllTripsList');
+    }
+  }, [navigation]);
 
   const handleSaveExpense = useCallback(async () => {
     setIsSubmitting(true);
@@ -120,7 +139,7 @@ export default function AddExpenseScreen() {
       Alert.alert('Success', 'Expense saved successfully!', [
         {
           text: 'OK',
-          onPress: () => navigation.goBack(),
+          onPress: () => navigateToAllTrips(),
         },
       ]);
     } catch (error) {
@@ -128,7 +147,7 @@ export default function AddExpenseScreen() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, navigation, tripId, mode, trip?.hasExpense, addExpense, updateExpense]);
+  }, [formData, navigation, tripId, mode, trip?.hasExpense, addExpense, updateExpense, navigateToAllTrips]);
 
   const handleSkipExpense = useCallback(() => {
     Alert.alert(
@@ -138,11 +157,11 @@ export default function AddExpenseScreen() {
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Skip',
-          onPress: () => navigation.goBack(),
+          onPress: () => navigateToAllTrips(),
         },
       ]
     );
-  }, [navigation]);
+  }, [navigateToAllTrips]);
 
   // If trip not found, show error
   if (!trip) {
