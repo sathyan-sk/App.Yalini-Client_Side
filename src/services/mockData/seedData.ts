@@ -1,14 +1,14 @@
 /**
  * Seed data for the Mock Service Layer.
- * 
+ *
  * This file defines all the initial data with proper relationships:
  * - Businesses → Employees → Vehicles/Hotels → Records
- * 
+ *
  * All IDs are stable and use a consistent naming convention:
- * - Businesses: biz_seed_<name>
- * - Employees: emp_seed_<name>
- * - Vehicles: veh_seed_<name>
- * - Hotels: hotel_seed_<name>
+ * - Businesses: biz_seed_
+ * - Employees: emp_seed_
+ * - Vehicles: veh_seed_
+ * - Hotels: hotel_seed_
  */
 
 import { colors } from '../../theme';
@@ -298,7 +298,7 @@ function createTrips(count: number): TripDetail[] {
 
 function createHotelDeliveries(hotels: MockHotel[], employeeId: string): HotelDelivery[] {
   const assignedHotels = hotels.filter(h => h.assignedEmployeeId === employeeId && h.status === 'enabled');
-  
+
   return assignedHotels.map((hotel, index) => {
     const totalCans = Math.floor(Math.random() * 30) + 10;
     const deliveredCans = Math.floor(totalCans * (0.7 + Math.random() * 0.3));
@@ -330,14 +330,14 @@ export function generateSeedDriverRecords(): MockDriverRecord[] {
   const taxiEmployees = SEED_EMPLOYEES.filter(
     e => e.businessType === 'taxi' && e.status === 'enabled'
   );
-  
+
   const records: MockDriverRecord[] = [];
   const currentDate = '2026-06-10';
 
   taxiEmployees.forEach((employee, index) => {
     // Find assigned vehicle for this employee
     const vehicle = SEED_VEHICLES.find(v => v.assignedEmployeeId === employee.id);
-    
+
     if (!vehicle) return; // Skip if no vehicle assigned
 
     const tripCount = Math.floor(Math.random() * 6) + 7; // 7-12 trips
@@ -381,13 +381,13 @@ export function generateSeedWaterDeliveryRecords(): MockWaterDeliveryRecord[] {
   const waterEmployees = SEED_EMPLOYEES.filter(
     e => e.businessType === 'water_delivery' && e.status === 'enabled'
   );
-  
+
   const records: MockWaterDeliveryRecord[] = [];
   const currentDate = '2026-06-10';
 
   waterEmployees.forEach((employee, index) => {
     const hotelDeliveries = createHotelDeliveries(SEED_HOTELS, employee.id);
-    
+
     if (hotelDeliveries.length === 0) return; // Skip if no hotels assigned
 
     const totals = hotelDeliveries.reduce(

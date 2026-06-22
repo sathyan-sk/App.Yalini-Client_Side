@@ -1,15 +1,14 @@
 /**
  * Driver Service Layer
  * Handles data fetching for driver module
- * 
+ *
  * Uses central mock store for data consistency with admin module.
  * When driver submits their day, it creates a record visible to admin.
- * 
+ *
  * To migrate to real backend:
  * - Set USE_MOCK to false
  * - Replace mock operations with fetch() calls to EXPO_PUBLIC_BACKEND_URL
- */
-
+**/
 import { USE_MOCK, API_CONFIG } from "./featureFlags";
 import { DRIVER_CONFIG } from "./mockData/driverConfig";
 import {
@@ -30,7 +29,7 @@ import type {
   SessionSubmissionResponse,
   Trip,
   StartDayData,
-} from "../types/driver"
+} from "../types/driver";
 
 /** Simulates network latency for realistic async behavior */
 const MOCK_LATENCY_MS = 150;
@@ -63,20 +62,20 @@ function getRandomAvatarColor(): string {
 export async function getDriverInfo(employeeId: string): Promise<DriverHomeData | null> {
   if (USE_MOCK) {
     await simulateLatency();
-    
+
     const employee = await getEmployeeById(employeeId);
     if (!employee || employee.businessType !== 'taxi') {
       return null;
     }
-    
+
     // Find assigned vehicle for this driver
     const vehicles = await getVehicles();
     const assignedVehicle = vehicles.find(v => v.assignedEmployeeId === employeeId);
-    
+
     // Check for existing record today
     const today = todayISODate();
     const todayRecord = await getDriverRecordByEmployeeAndDate(employeeId, today);
-    
+
     return {
       driver: {
         id: employee.id,
@@ -116,15 +115,15 @@ export async function getDriverInfo(employeeId: string): Promise<DriverHomeData 
 export async function getDriverHomeData(): Promise<DriverHomeData> {
   if (USE_MOCK) {
     await simulateLatency();
-    
+
     // Default demo driver from centralized config
     const demoDriverId = DRIVER_CONFIG.driverId;
     const driverInfo = await getDriverInfo(demoDriverId);
-    
+
     if (driverInfo) {
       return driverInfo;
     }
-    
+
     // Fallback using centralized config
     return {
       driver: {
@@ -164,7 +163,7 @@ export async function getDriverHomeData(): Promise<DriverHomeData> {
 export async function getDriverHomeDataWithTrips(): Promise<DriverHomeData> {
   if (USE_MOCK) {
     await simulateLatency();
-    
+
     return {
       driver: {
         id: DRIVER_CONFIG.driverId,
@@ -219,7 +218,7 @@ export async function submitDriverSession(
 ): Promise<SessionSubmissionResponse> {
   if (USE_MOCK) {
     await simulateLatency();
-    
+
     // Convert session data to driver record format
     const tripDetails: TripDetail[] = data.trips.map((trip: Trip, index: number) => ({
       id: trip.id || generateId('trip'),
@@ -229,12 +228,12 @@ export async function submitDriverSession(
       income: trip.amount,
       expense: trip.totalExpense || 0,
     }));
-    
+
     // Get vehicle info if available
     let vehicleName = 'Unknown Vehicle';
     let vehicleNumber = 'Unknown';
     let vehicleId = data.vehicleId;
-    
+
     if (data.vehicleId) {
       const vehicle = await getVehicleById(data.vehicleId);
       if (vehicle) {
@@ -242,7 +241,7 @@ export async function submitDriverSession(
         vehicleNumber = vehicle.number;
       }
     }
-    
+
     // Get employee/driver name
     let driverName = 'Unknown Driver';
     if (data.driverId) {
@@ -251,7 +250,7 @@ export async function submitDriverSession(
         driverName = employee.fullName;
       }
     }
-    
+
     // Create the driver record
     const recordData: Omit<MockDriverRecord, 'id'> = {
       driverName,
@@ -272,10 +271,10 @@ export async function submitDriverSession(
       tripDetails,
       fuelExpense: Math.floor(data.totalExpenses * 0.6),
     };
-    
+
     // Save to central store - admin will see this immediately
     const createdRecord = await createDriverRecord(recordData);
-    
+
     return {
       success: true,
       message: 'Session submitted successfully',
@@ -290,7 +289,7 @@ export async function submitDriverSession(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  
+
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: 'Submission failed' }));
     return {
@@ -298,7 +297,7 @@ export async function submitDriverSession(
       message: error.message || 'Failed to submit session',
     };
   }
-  
+
   return response.json();
 }
 
@@ -306,7 +305,7 @@ export async function submitDriverSession(
  * Start a new driver session
  */
 export async function startDriverSession(
-  driverId: string, 
+  driverId: string,
   vehicleId: string
 ): Promise<{ success: boolean; sessionId: string }> {
   if (USE_MOCK) {
@@ -322,7 +321,7 @@ export async function startDriverSession(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ driverId, vehicleId }),
   });
-  
+
   if (!response.ok) throw new Error('Failed to start session');
   return response.json();
 }
@@ -341,7 +340,7 @@ export async function endDriverSession(
   const response = await fetch(`${API_CONFIG.BASE_URL}/api/driver/session/${sessionId}/end`, {
     method: 'POST',
   });
-  
+
   if (!response.ok) throw new Error('Failed to end session');
   return response.json();
 }
@@ -381,7 +380,7 @@ export function validateSessionForSubmission(
 }
 
 /**
- * Format date for display (e.g., \"19 Jun 2026\")
+ * Format date for display (e.g., "19 Jun 2026")
  */
 function formatDisplayDate(isoDate: string): string {
   const date = new Date(isoDate);
@@ -408,6 +407,7 @@ export async function getDriverSubmissionHistory(
   if (!response.ok) throw new Error('Failed to fetch submission history');
   return response.json();
 }
+
 /**
  * Get start day screen data.
  * Returns driver info + vehicle assignment status.
@@ -415,56 +415,56 @@ export async function getDriverSubmissionHistory(
  */
 export async function getStartDayData(): Promise<StartDayData> {
   if (USE_MOCK) {
-    await simulateLatency()
+    await simulateLatency();
 
-    const demoDriverId    = DRIVER_CONFIG.driverId
-    const employee        = await getEmployeeById(demoDriverId)
-    const vehicles        = await getVehicles()
+    const demoDriverId = DRIVER_CONFIG.driverId;
+    const employee = await getEmployeeById(demoDriverId);
+    const vehicles = await getVehicles();
     const assignedVehicle = vehicles.find(
       (v) => v.assignedEmployeeId === demoDriverId
-    ) ?? null
+    ) ?? null;
 
     if (employee) {
       return {
         driver: {
-          id:           employee.id,
-          name:         employee.fullName,
+          id: employee.id,
+          name: employee.fullName,
           businessName: employee.businessName,
           businessType: "taxi" as const,
-          role:         "Driver",
+          role: "Driver",
         },
         assignment: assignedVehicle
           ? {
-              vehicleId:     assignedVehicle.id,
-              vehicleName:   assignedVehicle.name,
+              vehicleId: assignedVehicle.id,
+              vehicleName: assignedVehicle.name,
               vehicleNumber: assignedVehicle.number,
-              isAssigned:    true,
+              isAssigned: true,
             }
           : null,
-      }
+      };
     }
 
     // fallback using centralized config
     return {
       driver: {
-        id:           DRIVER_CONFIG.driverId,
-        name:         DRIVER_CONFIG.driverName,
+        id: DRIVER_CONFIG.driverId,
+        name: DRIVER_CONFIG.driverName,
         businessName: DRIVER_CONFIG.businessName,
         businessType: DRIVER_CONFIG.businessType,
-        role:         "Driver",
+        role: "Driver",
       },
       assignment: {
-        vehicleId:     DRIVER_CONFIG.vehicleId,
-        vehicleName:   DRIVER_CONFIG.vehicleName,
+        vehicleId: DRIVER_CONFIG.vehicleId,
+        vehicleName: DRIVER_CONFIG.vehicleName,
         vehicleNumber: DRIVER_CONFIG.vehicleNumber,
-        isAssigned:    true,
+        isAssigned: true,
       },
-    }
+    };
   }
 
   const response = await fetch(
     `${API_CONFIG.BASE_URL}/api/driver/start-day`
-  )
-  if (!response.ok) throw new Error("Failed to fetch start day data")
-  return response.json()
+  );
+  if (!response.ok) throw new Error("Failed to fetch start day data");
+  return response.json();
 }

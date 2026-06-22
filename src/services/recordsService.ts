@@ -3,6 +3,9 @@
  *
  * This service provides access to daily records (taxi and water delivery)
  * from the central mock data store.
+ * 
+ * Both driver records AND water delivery records are now fetched from
+ * the central store, ensuring admin can see all employee submissions.
  */
 
 import {
@@ -56,6 +59,7 @@ export async function getDriverRecordsForDate(date: string): Promise<DriverRecor
 
 /**
  * Get all water delivery records.
+ * FIX: This now returns records from central store including staff submissions.
  */
 export async function getAllWaterDeliveryRecords(): Promise<WaterDeliveryRecord[]> {
   const records = await getWaterDeliveryRecords();

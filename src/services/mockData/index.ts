@@ -1,16 +1,20 @@
 /**
  * Central Mock Data Store
- * 
+ *
  * This is the single source of truth for all mock data in the application.
  * It replaces AsyncStorage with an in-memory store that:
- * 
+ *
  * 1. Maintains coherent data relationships
  * 2. Simulates async behavior (for easy backend migration)
  * 3. Provides CRUD operations through service interfaces
- * 
+ *
  * To migrate to a real backend:
  * - Replace the store read/write operations with API calls
  * - Keep the same function signatures
+ * 
+ * FIX APPLIED: Added createWaterDeliveryRecord(), updateWaterDeliveryRecord(),
+ * deleteWaterDeliveryRecord(), and getWaterDeliveryRecordByEmployeeAndDate()
+ * so that Staff module submissions flow to Admin Records.
  */
 
 import {
@@ -29,7 +33,7 @@ import type {
   MockHotel,
   MockDriverRecord,
   MockWaterDeliveryRecord,
-} from './types.ts';
+} from './types';
 
 // Re-export types
 export * from './types';
@@ -91,7 +95,7 @@ export async function getBusinessById(id: string): Promise<MockBusiness | undefi
   return store.businesses.find(b => b.id === id);
 }
 
-export async function createBusiness(business: Omit<MockBusiness, 'id' | 'createdAt' | 'employees'>): Promise<MockBusiness> {
+export async function createBusiness(business: Omit<MockBusiness, 'id' | 'createdAt'>): Promise<MockBusiness> {
   await simulateLatency();
   const newBusiness: MockBusiness = {
     ...business,
@@ -107,7 +111,7 @@ export async function updateBusiness(id: string, updates: Partial<MockBusiness>)
   await simulateLatency();
   const index = store.businesses.findIndex(b => b.id === id);
   if (index === -1) return null;
-  
+
   const updated = { ...store.businesses[index], ...updates };
   store.businesses = store.businesses.map(b => b.id === id ? updated : b);
   return updated;
@@ -150,7 +154,7 @@ export async function createEmployee(employee: Omit<MockEmployee, 'id' | 'create
     createdAt: todayISODate(),
   };
   store.employees = [newEmployee, ...store.employees];
-  
+
   // Update business employee count
   const business = store.businesses.find(b => b.id === employee.businessId);
   if (business) {
@@ -158,7 +162,7 @@ export async function createEmployee(employee: Omit<MockEmployee, 'id' | 'create
       b.id === employee.businessId ? { ...b, employees: b.employees + 1 } : b
     );
   }
-  
+
   return newEmployee;
 }
 
@@ -166,7 +170,7 @@ export async function updateEmployee(id: string, updates: Partial<MockEmployee>)
   await simulateLatency();
   const index = store.employees.findIndex(e => e.id === id);
   if (index === -1) return null;
-  
+
   const updated = { ...store.employees[index], ...updates };
   store.employees = store.employees.map(e => e.id === id ? updated : e);
   return updated;
@@ -176,7 +180,7 @@ export async function deleteEmployee(id: string): Promise<void> {
   await simulateLatency();
   const employee = store.employees.find(e => e.id === id);
   store.employees = store.employees.filter(e => e.id !== id);
-  
+
   // Update business employee count
   if (employee) {
     store.businesses = store.businesses.map(b =>
@@ -216,7 +220,7 @@ export async function updateVehicle(id: string, updates: Partial<MockVehicle>): 
   await simulateLatency();
   const index = store.vehicles.findIndex(v => v.id === id);
   if (index === -1) return null;
-  
+
   const updated = { ...store.vehicles[index], ...updates, updatedAt: todayISODate() };
   store.vehicles = store.vehicles.map(v => v.id === id ? updated : v);
   return updated;
@@ -274,7 +278,7 @@ export async function updateHotel(id: string, updates: Partial<MockHotel>): Prom
   await simulateLatency();
   const index = store.hotels.findIndex(h => h.id === id);
   if (index === -1) return null;
-  
+
   const updated = { ...store.hotels[index], ...updates };
   store.hotels = store.hotels.map(h => h.id === id ? updated : h);
   return updated;
@@ -335,21 +339,21 @@ export async function createDriverRecord(
   record: Omit<MockDriverRecord, 'id'>
 ): Promise<MockDriverRecord> {
   await simulateLatency();
-  
+
   // Check if a record already exists for this employee on this date
   const existingIndex = store.driverRecords.findIndex(
     r => r.employeeId === record.employeeId && r.date === record.date
   );
-  
+
   if (existingIndex !== -1) {
     // Update existing record instead of creating new one
     const updated = { ...store.driverRecords[existingIndex], ...record };
-    store.driverRecords = store.driverRecords.map((r, i) => 
+    store.driverRecords = store.driverRecords.map((r, i) =>
       i === existingIndex ? updated : r
     );
     return updated;
   }
-  
+
   const newRecord: MockDriverRecord = {
     ...record,
     id: generateId('rec_taxi'),
@@ -368,7 +372,7 @@ export async function updateDriverRecord(
   await simulateLatency();
   const index = store.driverRecords.findIndex(r => r.id === id);
   if (index === -1) return null;
-  
+
   const updated = { ...store.driverRecords[index], ...updates };
   store.driverRecords = store.driverRecords.map(r => r.id === id ? updated : r);
   return updated;
@@ -394,8 +398,9 @@ export async function getDriverRecordByEmployeeAndDate(
     r => r.employeeId === employeeId && r.date === date
   );
 }
+
 // ============================================================================
-// WATER DELIVERY RECORDS OPERATIONS
+// WATER DELIVERY RECORDS OPERATIONS (FIX: Added full CRUD for staff submissions)
 // ============================================================================
 
 export async function getWaterDeliveryRecords(): Promise<MockWaterDeliveryRecord[]> {
@@ -411,6 +416,87 @@ export async function getWaterDeliveryRecordById(id: string): Promise<MockWaterD
 export async function getWaterDeliveryRecordsByDate(date: string): Promise<MockWaterDeliveryRecord[]> {
   await simulateLatency();
   return store.waterDeliveryRecords.filter(r => r.date === date);
+}
+
+/**
+ * FIX: Get water delivery records by employee ID
+ * This allows fetching submission history for a specific staff member
+ */
+export async function getWaterDeliveryRecordsByEmployeeId(employeeId: string): Promise<MockWaterDeliveryRecord[]> {
+  await simulateLatency();
+  return store.waterDeliveryRecords.filter(r => r.employeeId === employeeId);
+}
+
+/**
+ * FIX: Get water delivery record by employee ID and date
+ * This checks if a submission already exists for today
+ */
+export async function getWaterDeliveryRecordByEmployeeAndDate(
+  employeeId: string,
+  date: string
+): Promise<MockWaterDeliveryRecord | undefined> {
+  await simulateLatency();
+  return store.waterDeliveryRecords.find(
+    r => r.employeeId === employeeId && r.date === date
+  );
+}
+
+/**
+ * FIX: Create a new water delivery record (called when staff submits their day)
+ * This makes the submission visible to admin immediately
+ * 
+ * This is the KEY FIX - staff submissions now go to the central store
+ * so admin Records screen can see them.
+ */
+export async function createWaterDeliveryRecord(
+  record: Omit<MockWaterDeliveryRecord, 'id'>
+): Promise<MockWaterDeliveryRecord> {
+  await simulateLatency();
+
+  // Check if a record already exists for this employee on this date
+  const existingIndex = store.waterDeliveryRecords.findIndex(
+    r => r.employeeId === record.employeeId && r.date === record.date
+  );
+
+  if (existingIndex !== -1) {
+    // Update existing record instead of creating new one
+    const updated = { ...store.waterDeliveryRecords[existingIndex], ...record };
+    store.waterDeliveryRecords = store.waterDeliveryRecords.map((r, i) =>
+      i === existingIndex ? updated : r
+    );
+    return updated;
+  }
+
+  const newRecord: MockWaterDeliveryRecord = {
+    ...record,
+    id: generateId('rec_water'),
+  };
+  store.waterDeliveryRecords = [newRecord, ...store.waterDeliveryRecords];
+  return newRecord;
+}
+
+/**
+ * FIX: Update an existing water delivery record
+ */
+export async function updateWaterDeliveryRecord(
+  id: string,
+  updates: Partial<MockWaterDeliveryRecord>
+): Promise<MockWaterDeliveryRecord | null> {
+  await simulateLatency();
+  const index = store.waterDeliveryRecords.findIndex(r => r.id === id);
+  if (index === -1) return null;
+
+  const updated = { ...store.waterDeliveryRecords[index], ...updates };
+  store.waterDeliveryRecords = store.waterDeliveryRecords.map(r => r.id === id ? updated : r);
+  return updated;
+}
+
+/**
+ * FIX: Delete a water delivery record
+ */
+export async function deleteWaterDeliveryRecord(id: string): Promise<void> {
+  await simulateLatency();
+  store.waterDeliveryRecords = store.waterDeliveryRecords.filter(r => r.id !== id);
 }
 
 // ============================================================================

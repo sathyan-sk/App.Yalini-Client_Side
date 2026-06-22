@@ -49,8 +49,6 @@ export const FEATURES = {
   // Enable analytics tracking
   ANALYTICS: false,
   
-  // Enable debug logging
-  DEBUG_LOGGING: __DEV__ || false,
 };
 
 /**
