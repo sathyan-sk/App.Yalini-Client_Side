@@ -19,6 +19,9 @@ interface TripCardProps {
 export function TripCard({ trip, onPress, onAddExpense }: TripCardProps) {
   const paymentIcon = trip.paymentMode === 'cash' ? 'local-atm' : 'smartphone';
   const paymentLabel = trip.paymentMode === 'cash' ? 'Cash' : 'Online';
+  const tripTypeLabel = trip.tripType === 'vendor' ? 'Vendor' : 'Private';
+  const tripTypeBgColor = trip.tripType === 'vendor' ? '#FFF3E0' : '#E8F5E9';
+  const tripTypeTextColor = trip.tripType === 'vendor' ? '#E65100' : '#2E7D32';
 
   return (
     <TouchableOpacity

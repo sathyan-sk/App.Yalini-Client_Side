@@ -14,6 +14,8 @@ interface TripSummaryCardProps {
 }
 
 export function TripSummaryCard({ trip }: TripSummaryCardProps) {
+    const isVendor = trip.tripType === 'vendor';
+
   return (
     <View style={styles.container}>
       {/* Trip Number Badge */}
@@ -27,6 +29,26 @@ export function TripSummaryCard({ trip }: TripSummaryCardProps) {
           <Text style={styles.routeText}>{trip.from}</Text>
           <Feather name="arrow-right" size={16} color={colors.textSecondary} style={styles.arrowIcon} />
           <Text style={styles.routeText}>{trip.to}</Text>
+        </View>
+        
+        {/* Trip Type Badge */}
+        <View style={styles.tripTypeRow}>
+          <View style={[
+            styles.tripTypeBadge,
+            isVendor ? styles.tripTypeBadgeVendor : styles.tripTypeBadgePrivate
+          ]}>
+            <MaterialIcons 
+              name={isVendor ? "business" : "person"} 
+              size={12} 
+              color={isVendor ? '#1565C0' : '#6A1B9A'} 
+            />
+            <Text style={[
+              styles.tripTypeText,
+              isVendor ? styles.tripTypeTextVendor : styles.tripTypeTextPrivate
+            ]}>
+              {isVendor ? 'Vendor' : 'Private'}
+            </Text>
+          </View>
         </View>
 
         {/* Payment Mode & Amount */}

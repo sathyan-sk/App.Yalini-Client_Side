@@ -59,6 +59,7 @@ export default function EditPreviewScreen() {
 
   // Form state initialized from trip data
   const [formData, setFormData] = useState<EditTripFormData>({
+    tripType: 'vendor',
     from: '',
     to: '',
     amount: '',
@@ -81,6 +82,7 @@ export default function EditPreviewScreen() {
   useEffect(() => {
     if (trip) {
       setFormData({
+        tripType: trip.tripType || 'vendor',
         from: trip.from,
         to: trip.to,
         amount: trip.amount.toString(),
@@ -108,6 +110,10 @@ export default function EditPreviewScreen() {
 
   const handlePaymentModeChange = useCallback((mode: PaymentMode) => {
     setFormData((prev) => ({ ...prev, paymentMode: mode }));
+  }, []);
+
+  const handleTripTypeChange = useCallback((type: 'vendor' | 'private') => {
+    setFormData((prev) => ({ ...prev, tripType: type }));
   }, []);
 
   const handleClearFrom = useCallback(() => {
@@ -153,6 +159,7 @@ export default function EditPreviewScreen() {
     try {
       // Update trip in store
       updateTrip(tripId, {
+        tripType: formData.tripType,
         from: formData.from.trim(),
         to: formData.to.trim(),
         amount: parseFloat(formData.amount),
@@ -211,6 +218,7 @@ export default function EditPreviewScreen() {
   // Create a display trip object with current form data
   const displayTrip: TripWithExpense = {
     ...trip,
+    tripType: formData.tripType || trip.tripType,
     from: formData.from || trip.from,
     to: formData.to || trip.to,
     amount: parseFloat(formData.amount) || trip.amount,
@@ -241,6 +249,7 @@ export default function EditPreviewScreen() {
           {/* Edit Trip Form */}
           <EditTripForm
             formData={formData}
+            onTripTypeChange={handleTripTypeChange}
             onFromChange={handleFromChange}
             onToChange={handleToChange}
             onAmountChange={handleAmountChange}

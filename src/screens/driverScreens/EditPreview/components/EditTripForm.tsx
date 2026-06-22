@@ -7,7 +7,7 @@ import { StyleSheet, View, Text, TextInput, TouchableOpacity } from 'react-nativ
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 
 import { colors, spacing, fontSize, radius, cardShadow } from '../../../../theme';
-import type { EditTripFormData, PaymentMode } from '../../../../types/driver';
+import type { EditTripFormData, PaymentMode, TripType } from '../../../../types/driver';
 
 interface EditTripFormProps {
   formData: EditTripFormData;
@@ -15,6 +15,7 @@ interface EditTripFormProps {
   onToChange: (value: string) => void;
   onAmountChange: (value: string) => void;
   onPaymentModeChange: (mode: PaymentMode) => void;
+  onTripTypeChange: (type: TripType) => void;
   onClearFrom: () => void;
   onClearTo: () => void;
   onClearAmount: () => void;
@@ -26,6 +27,7 @@ export function EditTripForm({
   onToChange,
   onAmountChange,
   onPaymentModeChange,
+  onTripTypeChange,
   onClearFrom,
   onClearTo,
   onClearAmount,
@@ -33,6 +35,70 @@ export function EditTripForm({
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>Edit Trip</Text>
+
+      {/* Trip Type Selector */}
+      <View style={styles.inputGroup}>
+        <Text style={styles.inputLabel}>Trip Type</Text>
+        <View style={styles.tripTypeContainer}>
+          {/* Vendor Option */}
+          <TouchableOpacity
+            style={[
+              styles.tripTypeOption,
+              formData.tripType === 'vendor' && styles.tripTypeOptionActive,
+            ]}
+            onPress={() => onTripTypeChange('vendor')}
+            activeOpacity={0.7}
+          >
+            <MaterialIcons
+              name="business"
+              size={20}
+              color={formData.tripType === 'vendor' ? '#1565C0' : colors.textSecondary}
+            />
+            <Text
+              style={[
+                styles.tripTypeOptionText,
+                formData.tripType === 'vendor' && styles.tripTypeOptionTextActive,
+              ]}
+            >
+              Vendor
+            </Text>
+            {formData.tripType === 'vendor' && (
+              <View style={styles.tripTypeCheckmarkWrapper}>
+                <Feather name="check" size={14} color={colors.surface} />
+              </View>
+            )}
+          </TouchableOpacity>
+
+          {/* Private Option */}
+          <TouchableOpacity
+            style={[
+              styles.tripTypeOption,
+              formData.tripType === 'private' && styles.tripTypeOptionActivePrivate,
+            ]}
+            onPress={() => onTripTypeChange('private')}
+            activeOpacity={0.7}
+          >
+            <MaterialIcons
+              name="person"
+              size={20}
+              color={formData.tripType === 'private' ? '#6A1B9A' : colors.textSecondary}
+            />
+            <Text
+              style={[
+                styles.tripTypeOptionText,
+                formData.tripType === 'private' && styles.tripTypeOptionTextActivePrivate,
+              ]}
+            >
+              Private
+            </Text>
+            {formData.tripType === 'private' && (
+              <View style={styles.tripTypeCheckmarkWrapperPrivate}>
+                <Feather name="check" size={14} color={colors.surface} />
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
 
       {/* From Input */}
       <View style={styles.inputGroup}>
@@ -245,6 +311,62 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: radius.pill,
     backgroundColor: '#4CAF50',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: spacing.sm,
+  },
+    // Trip Type Styles
+  tripTypeContainer: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+    tripTypeOption: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+  },
+  tripTypeOptionActive: {
+    backgroundColor: '#BBDEFB',
+    borderColor: '#1976D2',
+  },
+  tripTypeOptionActivePrivate: {
+    backgroundColor: '#E1BEE7',
+    borderColor: '#7B1FA2',
+  },
+  tripTypeOptionText: {
+    fontSize: fontSize.lg,
+    color: colors.textSecondary,
+    marginLeft: spacing.sm,
+  },
+  tripTypeOptionTextActive: {
+    color: '#1565C0',
+    fontWeight: '600',
+  },
+  tripTypeOptionTextActivePrivate: {
+    color: '#6A1B9A',
+    fontWeight: '600',
+  },
+  tripTypeCheckmarkWrapper: {
+    width: 20,
+    height: 20,
+    borderRadius: radius.pill,
+    backgroundColor: '#1976D2',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: spacing.sm,
+  },
+  tripTypeCheckmarkWrapperPrivate: {
+    width: 20,
+    height: 20,
+    borderRadius: radius.pill,
+    backgroundColor: '#7B1FA2',
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: spacing.sm,

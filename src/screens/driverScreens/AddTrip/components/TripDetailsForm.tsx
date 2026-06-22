@@ -30,6 +30,7 @@ interface TripDetailsFormProps {
 
 export function TripDetailsForm({
   formData,
+  onTripTypeChange,
   onFromChange,
   onToChange,
   onAmountChange,
@@ -41,6 +42,65 @@ export function TripDetailsForm({
     <View style={styles.container}>
       {/* Section Title */}
       <Text style={styles.sectionTitle}>Trip Details</Text>
+      
+      {/* Trip Type Radio Buttons */}
+      <View style={styles.inputGroup}>
+        <View style={styles.labelRow}>
+          <Text style={styles.label}>Trip Type</Text>
+          <Text style={styles.required}>*</Text>
+        </View>
+        <View style={styles.tripTypeContainer}>
+          {/* Vendor Button */}
+          <TouchableOpacity
+            style={[
+              styles.tripTypeButton,
+              formData.tripType === "vendor" && styles.tripTypeButtonActive,
+            ]}
+            onPress={() => onTripTypeChange("vendor")}
+            activeOpacity={0.7}
+          >
+            <View style={[
+              styles.radioOuter,
+              formData.tripType === "vendor" && styles.radioOuterActive,
+            ]}>
+              {formData.tripType === "vendor" && <View style={styles.radioInner} />}
+            </View>
+            <Text
+              style={[
+                styles.tripTypeButtonText,
+                formData.tripType === "vendor" && styles.tripTypeButtonTextActive,
+              ]}
+            >
+              Vendor
+            </Text>
+          </TouchableOpacity>
+
+          {/* Private Button */}
+          <TouchableOpacity
+            style={[
+              styles.tripTypeButton,
+              formData.tripType === "private" && styles.tripTypeButtonActive,
+            ]}
+            onPress={() => onTripTypeChange("private")}
+            activeOpacity={0.7}
+          >
+            <View style={[
+              styles.radioOuter,
+              formData.tripType === "private" && styles.radioOuterActive,
+            ]}>
+              {formData.tripType === "private" && <View style={styles.radioInner} />}
+            </View>
+            <Text
+              style={[
+                styles.tripTypeButtonText,
+                formData.tripType === "private" && styles.tripTypeButtonTextActive,
+              ]}
+            >
+              Private
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
       {/* From Input */}
       <View style={styles.inputGroup}>
@@ -306,5 +366,51 @@ const styles = StyleSheet.create({
     fontSize: fontSize.lg,
     fontWeight: "700",
     color: colors.surface,
+  },
+   tripTypeContainer: {
+    flexDirection: "row",
+    gap: spacing.md,
+  },
+  tripTypeButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    height: 52,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    gap: spacing.sm,
+  },
+  tripTypeButtonActive: {
+    borderColor: "#FF9800",
+    backgroundColor: "#FFF3E0",
+  },
+  tripTypeButtonText: {
+    fontSize: fontSize.base,
+    fontWeight: "600",
+    color: colors.textSecondary,
+  },
+  tripTypeButtonTextActive: {
+    color: "#E65100",
+  },
+  radioOuter: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: colors.border,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  radioOuterActive: {
+    borderColor: "#FF9800",
+  },
+    radioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#FF9800",
   },
 });

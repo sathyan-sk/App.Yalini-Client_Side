@@ -27,7 +27,7 @@ import {
   InfoNote,
 } from "../AddTrip/components";
 import { useTripStore } from "../../../store/tripStore";
-import type { TripFormData, PaymentMode } from "../../../types/driver";
+import type { TripFormData, PaymentMode, TripType } from "../../../types/driver";
 import type { DriverTabParamList, AllTripsStackParamList } from "../../../types/navigation";
 
 const BACKGROUND_COLOR = colors.surfaceSecondary;
@@ -47,6 +47,7 @@ export default function AddTripScreen() {
 
   // Form state
   const [formData, setFormData] = useState<TripFormData>({
+    tripType: "vendor",
     from: "",
     to: "",
     amount: "",
@@ -55,6 +56,10 @@ export default function AddTripScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form handlers
+    const handleTripTypeChange = useCallback((type: TripType) => {
+    setFormData((prev) => ({ ...prev, tripType: type }));
+  }, []);
+
   const handleFromChange = useCallback((value: string) => {
     setFormData((prev) => ({ ...prev, from: value }));
   }, []);
@@ -86,6 +91,7 @@ export default function AddTripScreen() {
 
   const resetForm = useCallback(() => {
     setFormData({
+      tripType: "vendor",
       from: "",
       to: "",
       amount: "",
@@ -113,6 +119,7 @@ export default function AddTripScreen() {
     try {
       // Save trip to store and get the new trip ID
       const newTripId = addTrip({
+        tripType: formData.tripType,
         from: formData.from.trim(),
         to: formData.to.trim(),
         amount: parseFloat(formData.amount),
@@ -190,6 +197,7 @@ export default function AddTripScreen() {
           {/* Trip Details Form */}
           <TripDetailsForm
             formData={formData}
+            onTripTypeChange={handleTripTypeChange}
             onFromChange={handleFromChange}
             onToChange={handleToChange}
             onAmountChange={handleAmountChange}
