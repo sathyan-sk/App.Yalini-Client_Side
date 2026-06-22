@@ -49,7 +49,7 @@ export interface WaterDeliveryRecord {
 export interface Business {
   id: string;
   name: string;
-  type: "taxi" | "water";
+  type: "taxi" | "water_delivery";
 }
 
 /**

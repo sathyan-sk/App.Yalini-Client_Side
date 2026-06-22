@@ -23,7 +23,7 @@ export interface DriverInfo {
   id: string;
   name: string;
   businessName: string;
-  businessType: "taxi" | "water";
+  businessType: "taxi" | "water_delivery";
   role: "Driver";
 }
 

@@ -25,7 +25,7 @@ export type BusinessIcon =
 export interface BusinessOverview {
   id: string;
   name: string;
-  /** Short category tag, e.g. "Taxi" / "Water". */
+  /** Short category tag, e.g. "Taxi" / "Water Delivery". */
   category: string;
   tone: ToneKey;
   icon: BusinessIcon;
