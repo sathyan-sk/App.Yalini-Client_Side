@@ -129,4 +129,32 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1B5E20',
   },
+    tripTypeRow: {
+    marginBottom: spacing.sm,
+  },
+    tripTypeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: radius.xs,
+    alignSelf: 'flex-start',
+  },
+  tripTypeBadgeVendor: {
+    backgroundColor: '#E3F2FD',
+  },
+  tripTypeBadgePrivate: {
+    backgroundColor: '#F3E5F5',
+  },
+  tripTypeText: {
+    fontSize: fontSize.xs,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  tripTypeTextVendor: {
+    color: '#1565C0',
+  },
+  tripTypeTextPrivate: {
+    color: '#6A1B9A',
+  },
 });

@@ -47,7 +47,19 @@ export function TripCard({ trip, onPress, onAddExpense }: TripCardProps) {
           <Feather name="arrow-right" size={14} color={colors.textSecondary} style={styles.arrowIcon} />
           <Text style={styles.routeText}>{trip.to}</Text>
         </View>
-
+        {/* Trip Type Badge */}
+        <View style={styles.tripTypeRow}>
+          <View style={[styles.tripTypeBadge, { backgroundColor: tripTypeBgColor }]}>
+            <MaterialIcons 
+              name={trip.tripType === 'vendor' ? 'business' : 'person'} 
+              size={12} 
+              color={tripTypeTextColor} 
+            />
+            <Text style={[styles.tripTypeText, { color: tripTypeTextColor }]}>
+              {tripTypeLabel}
+            </Text>
+          </View>
+        </View>
         {/* Payment Mode & Date */}
         <View style={styles.detailsRow}>
           <View style={styles.paymentBadge}>
@@ -174,6 +186,22 @@ const styles = StyleSheet.create({
   dateText: {
     fontSize: fontSize.xs,
     color: colors.textSecondary,
+  },
+    tripTypeRow: {
+    marginBottom: 6,
+  },
+  tripTypeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: radius.xs,
+    alignSelf: 'flex-start',
+  },
+  tripTypeText: {
+    fontSize: fontSize.xs,
+    fontWeight: '600',
+    marginLeft: 4,
   },
   rightSection: {
     alignItems: 'flex-end',

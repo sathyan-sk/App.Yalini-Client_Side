@@ -12,7 +12,7 @@ interface ServiceInfoCardProps {
   serviceName: string;
   driverName: string;
   vehicleNumber: string;
-  sessionStatus: "Day Started" | "Day Ended";
+  sessionStatus: "Day Started" | "Day Ended" | "Submitted";
   sessionDate: string;
   sessionTime: string;
 }
