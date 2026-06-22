@@ -23,7 +23,7 @@ export function StaffHomeHeader({ staffName, greeting, onLogout }: StaffHomeHead
 
   return (
     <LinearGradient
-      colors={[colors.headerDark, '#303F9F']}
+      colors={[colors.avatarCyan, colors.avatarCyan]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={[styles.container, { paddingTop: insets.top + spacing.md }]}
