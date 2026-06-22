@@ -17,7 +17,21 @@ export interface DriverInfo {
   role: 'Driver';
 }
 
+// screens/driverScreens/StartDay/types.ts
+// Add this if not already exists
+
 export interface StartDayData {
-  driver: DriverInfo;
-  assignment: DriverAssignment | null;
+  driver: {
+    id:           string
+    name:         string
+    businessName: string
+    businessType: string
+    role:         string
+  }
+  assignment: {
+    vehicleId:     string
+    vehicleName:   string
+    vehicleNumber: string
+    isAssigned:    boolean
+  } | null
 }

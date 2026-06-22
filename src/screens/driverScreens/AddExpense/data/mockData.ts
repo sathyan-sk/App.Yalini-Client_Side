@@ -1,22 +1,17 @@
 /**
  * Mock data for AddExpense screen
- * Contains trip data and expense categories
+ * Contains expense categories configuration
+ * 
+ * Note: Trip data is passed from the tripStore, not hardcoded here.
+ * The expense categories are static configuration that can be moved to backend later.
  */
 
-import type { TripData, ExpenseCategory, ExpenseFormData } from '../../../../types/driver';
+import type { ExpenseCategory, ExpenseFormData } from '../../../../types/driver';
 
-// Mock trip data that comes from AddTrip screen
-export const MOCK_TRIP_DATA: TripData = {
-  tripId: 'T-2024-05-10-001',
-  from: 'Coimbatore',
-  to: 'Airport',
-  date: '10 May 2024',
-  time: '08:30 AM',
-  paymentMode: 'Cash',
-  amount: 650,
-};
-
-// Expense categories with default values
+/**
+ * Expense categories with default values
+ * This is static configuration and can remain as is.
+ */
 export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
   {
     id: 'fuel',
@@ -60,7 +55,9 @@ export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
   },
 ];
 
-// Initial form data - starts with zeros for new expenses
+/**
+ * Initial form data - starts with zeros for new expenses
+ */
 export const INITIAL_EXPENSE_FORM: ExpenseFormData = {
   fuel: '0',
   toll: '0',

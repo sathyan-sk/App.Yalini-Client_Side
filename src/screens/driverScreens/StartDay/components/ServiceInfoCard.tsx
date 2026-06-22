@@ -4,10 +4,11 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { BusinessType } from '../../../../types/driver';
 
 interface ServiceInfoCardProps {
   businessName: string;
-  businessType: 'taxi' | 'water_delivery';
+  businessType: BusinessType;
   userName: string;
   role: string;
 }

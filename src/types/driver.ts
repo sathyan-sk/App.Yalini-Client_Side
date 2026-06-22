@@ -9,6 +9,9 @@ export type PaymentMode = "cash" | "online";
 
 export type TripType = "vendor" | "private";
 
+export type BusinessType = "taxi" | "water_delivery"
+
+
 export interface DriverAssignment {
   vehicleId: string;
   vehicleName: string;
@@ -20,7 +23,7 @@ export interface DriverInfo {
   id: string;
   name: string;
   businessName: string;
-  businessType: "taxi";
+  businessType: "taxi" | "water";
   role: "Driver";
 }
 
@@ -55,6 +58,23 @@ export interface DriverHomeData {
   todayOverview: TodayOverview;
   recentActivity: RecentActivity[];
   notificationCount: number;
+}
+// types/driver.ts
+
+export interface StartDayData {
+  driver: {
+    id:           string
+    name:         string
+    businessName: string
+    businessType: BusinessType        // ← use shared type
+    role:         string
+  }
+  assignment: {
+    vehicleId:     string
+    vehicleName:   string
+    vehicleNumber: string
+    isAssigned:    boolean
+  } | null
 }
 
 /**

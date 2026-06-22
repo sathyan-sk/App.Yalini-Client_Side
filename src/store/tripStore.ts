@@ -110,7 +110,7 @@ const initialSession: SessionInfo = {
   vehicleId: 'veh_seed_swift_dzire', 
 };
 
-// Sample initial trips (matching the mockData)
+// Sample initial trips - uses dynamic dates for consistency
 const initialTrips: TripWithExpense[] = [
   {
     id: 'trip_001',
@@ -120,7 +120,7 @@ const initialTrips: TripWithExpense[] = [
     to: 'Airport',
     amount: 650,
     paymentMode: 'cash',
-    date: '10 May 2024',
+    date: getCurrentDate(),
     time: '08:30 AM',
     hasExpense: true,
     totalExpense: 200,
@@ -141,7 +141,7 @@ const initialTrips: TripWithExpense[] = [
     to: 'Peelamedu',
     amount: 900,
     paymentMode: 'cash',
-    date: '10 May 2024',
+    date: getCurrentDate(),
     time: '10:45 AM',
     hasExpense: false,
     totalExpense: 0,
@@ -154,7 +154,7 @@ const initialTrips: TripWithExpense[] = [
     to: 'RS Puram',
     amount: 900,
     paymentMode: 'online',
-    date: '10 May 2024',
+    date: getCurrentDate(),
     time: '01:15 PM',
     hasExpense: true,
     totalExpense: 120,

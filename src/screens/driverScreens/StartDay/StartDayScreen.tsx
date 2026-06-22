@@ -1,9 +1,12 @@
 /**
  * StartDayScreen - Main screen for Driver module
  * Shows vehicle assignment status and allows driver to start their day
+ * 
+ * Uses centralized driverService for data fetching to ensure
+ * consistency with admin module and seed data.
  */
-import React, { useState } from 'react';
-import { StyleSheet, View, ScrollView, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, ScrollView, Alert, ActivityIndicator, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -15,10 +18,10 @@ import { NoAssignmentCard } from './components/NoAssignmentCard';
 import { InfoBanner } from './components/InfoBanner';
 import { StartDayButton } from './components/StartDayButton';
 import { ContactAdminButton } from './components/ContactAdminButton';
-import { DRIVER_WITH_VEHICLE, DRIVER_WITHOUT_VEHICLE } from './data/mockData';
-import type { StartDayData } from './types';
+import { getStartDayData } from '../../../services/driverService';
+import type { StartDayData } from '@/types/driver';
 import type { DriverStackParamList } from '../../../types/navigation';
-
+import { colors } from '../../../theme';
 
 type NavigationProp = NativeStackNavigationProp<DriverStackParamList>;
 
@@ -33,13 +36,39 @@ export default function DriverStartDayScreen({ showNoAssignment = false }: Drive
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
 
-  
-  // Use mock data based on prop (for demo purposes)
-  const [data] = useState<StartDayData>(
-    showNoAssignment ? DRIVER_WITHOUT_VEHICLE : DRIVER_WITH_VEHICLE
-  );
+  const [data, setData] = useState<StartDayData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const hasAssignment = data.assignment !== null;
+  // Fetch data from centralized driverService
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const startDayData = await getStartDayData();
+        
+        // If showNoAssignment is true, override the assignment for demo
+        if (showNoAssignment) {
+          setData({
+            ...startDayData,
+            assignment: null,
+          });
+        } else {
+          setData(startDayData);
+        }
+      } catch (err) {
+        console.error('Error fetching start day data:', err);
+        setError('Failed to load driver data');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchData();
+  }, [showNoAssignment]);
+
+  const hasAssignment = data?.assignment !== null;
 
   const handleMenuPress = () => {
     // Navigation drawer will be connected later
@@ -47,9 +76,8 @@ export default function DriverStartDayScreen({ showNoAssignment = false }: Drive
   };
 
   const handleStartDay = () => {
-
-          // Navigate to DriverMain (bottom tabs) after starting day
-          navigation.replace('DriverMain');
+    // Navigate to DriverMain (bottom tabs) after starting day
+    navigation.replace('DriverMain');
   };
 
   const handleContactAdmin = () => {
@@ -59,6 +87,25 @@ export default function DriverStartDayScreen({ showNoAssignment = false }: Drive
       [{ text: 'OK' }]
     );
   };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color={colors.primaryBlue} />
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    );
+  }
+
+  // Show error state
+  if (error || !data) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <Text style={styles.errorText}>{error || 'Failed to load data'}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -108,10 +155,25 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: BACKGROUND_COLOR,
   },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: colors.textSecondary,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#EF4444',
+    textAlign: 'center',
+    paddingHorizontal: 24,
   },
 });

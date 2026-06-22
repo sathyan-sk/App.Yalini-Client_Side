@@ -23,12 +23,13 @@ import {
   type MockDriverRecord,
   type TripDetail,
 } from "./mockData";
-import type { 
-  DriverHomeData, 
-  SessionSubmissionData, 
+import type {
+  DriverHomeData,
+  SessionSubmissionData,
   SessionSubmissionResponse,
   Trip,
-} from "../types/driver";
+  StartDayData,
+} from "../types/driver"
 
 /** Simulates network latency for realistic async behavior */
 const MOCK_LATENCY_MS = 150;
@@ -126,16 +127,16 @@ export async function getDriverHomeData(): Promise<DriverHomeData> {
     // Fallback if demo driver not found
     return {
       driver: {
-        id: 'DRIVER_001',
+        id: 'emp_seed_ramesh',
         name: 'Ramesh Kumar',
-        businessName: 'City Taxi Service',
+        businessName: 'City Taxi',
         businessType: 'taxi',
         role: 'Driver',
       },
       assignment: {
-        vehicleId: 'VEHICLE_001',
-        vehicleName: 'Innova Crysta',
-        vehicleNumber: 'TN 01 AB 1234',
+        vehicleId: 'veh_seed_swift_dzire',
+        vehicleName: 'Swift Dzire',
+        vehicleNumber: 'TN01AB1234',
         isAssigned: true,
       },
       sessionStatus: 'OPEN',
@@ -165,16 +166,16 @@ export async function getDriverHomeDataWithTrips(): Promise<DriverHomeData> {
     
     return {
       driver: {
-        id: 'DRIVER_001',
+        id: 'emp_seed_ramesh',
         name: 'Ramesh Kumar',
-        businessName: 'City Taxi Service',
+        businessName: 'City Taxi',
         businessType: 'taxi',
         role: 'Driver',
       },
       assignment: {
-        vehicleId: 'VEHICLE_001',
-        vehicleName: 'Innova Crysta',
-        vehicleNumber: 'TN 01 AB 1234',
+        vehicleId: 'veh_seed_swift_dzire',
+        vehicleName: 'Swift Dzire',
+        vehicleNumber: 'TNN01AB1234',
         isAssigned: true,
       },
       sessionStatus: 'OPEN',
@@ -405,4 +406,64 @@ export async function getDriverSubmissionHistory(
   const response = await fetch(`${API_CONFIG.BASE_URL}/api/driver/${driverId}/history`);
   if (!response.ok) throw new Error('Failed to fetch submission history');
   return response.json();
+}
+/**
+ * Get start day screen data.
+ * Returns driver info + vehicle assignment status.
+ * Called by DriverStartDayScreen on mount.
+ */
+export async function getStartDayData(): Promise<StartDayData> {
+  if (USE_MOCK) {
+    await simulateLatency()
+
+    const demoDriverId    = "emp_seed_ramesh"
+    const employee        = await getEmployeeById(demoDriverId)
+    const vehicles        = await getVehicles()
+    const assignedVehicle = vehicles.find(
+      (v) => v.assignedEmployeeId === demoDriverId
+    ) ?? null
+
+    if (employee) {
+      return {
+        driver: {
+          id:           employee.id,
+          name:         employee.fullName,
+          businessName: employee.businessName,
+          businessType: "taxi" as const,
+          role:         "Driver",
+        },
+        assignment: assignedVehicle
+          ? {
+              vehicleId:     assignedVehicle.id,
+              vehicleName:   assignedVehicle.name,
+              vehicleNumber: assignedVehicle.number,
+              isAssigned:    true,
+            }
+          : null,
+      }
+    }
+
+    // fallback
+    return {
+      driver: {
+        id:           "emp_seed_ramesh",
+        name:         "Ramesh Kumar",
+        businessName: "City Taxi",
+        businessType: "taxi" as const,
+        role:         "Driver",
+      },
+      assignment: {
+        vehicleId:     "veh_seed_swift_dzire",
+        vehicleName:   "Swift Dzire",
+        vehicleNumber: "TN01AB1234",
+        isAssigned:    true,
+      },
+    }
+  }
+
+  const response = await fetch(
+    `${API_CONFIG.BASE_URL}/api/driver/start-day`
+  )
+  if (!response.ok) throw new Error("Failed to fetch start day data")
+  return response.json()
 }
