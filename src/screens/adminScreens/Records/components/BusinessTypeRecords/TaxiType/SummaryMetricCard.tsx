@@ -5,7 +5,7 @@ import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { colors, fontSize, radius, spacing, lightShadow } from "../../../../../../theme";
 import { formatCurrency } from "../../../../../../utils/format";
 
-type SummaryMetricType = "trips" | "income" | "expense" | "settled" | "balance";
+type SummaryMetricType = "trips" | "income" | "expense" | "settled" | "balance" | "profit";
 
 interface SummaryMetricCardProps {
   type: SummaryMetricType;
@@ -40,6 +40,11 @@ const getIconAndColor = (type: SummaryMetricType) => {
       return {
         icon: <MaterialCommunityIcons name="wallet-outline" size={20} color={colors.error} />,
         valueColor: colors.error,
+      };
+    case "profit":
+      return {
+        icon: <MaterialCommunityIcons name="chart-line" size={20} color={colors.brand} />,
+        valueColor: colors.brand,
       };
     default:
       return {

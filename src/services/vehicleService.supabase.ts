@@ -4,6 +4,7 @@
 
 import { supabase } from '../config/supabase';
 import { getTodayDate } from '../config/supabaseHelpers';
+import { generateId } from '../services/mockData';
 import type { Database } from '../config/database.types';
 import type {
   Vehicle,
@@ -51,6 +52,7 @@ export async function loadVehicles(): Promise<Vehicle[]> {
  */
 export async function createVehicle(values: VehicleFormValues): Promise<Vehicle> {
   const insertData: VehicleInsert = {
+    id: generateId('veh'),
     name: values.name.trim(),
     number: values.number.trim().toUpperCase(),
     status: values.status,

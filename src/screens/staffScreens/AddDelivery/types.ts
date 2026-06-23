@@ -96,6 +96,8 @@ export interface DeliverySessionData {
   staffName: string;
   /** Business/service name */
   serviceName: string;
+  /** Staff employee ID for database operations */
+  staffId: string;
   /** Current session date */
   sessionDate: string;
   /** Session start time */

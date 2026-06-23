@@ -4,6 +4,7 @@
 
 import { supabase } from '../config/supabase';
 import { getTodayDate } from '../config/supabaseHelpers';
+import { generateId } from '../services/mockData';
 import type { Database } from '../config/database.types';
 import type {
   Hotel,
@@ -50,6 +51,7 @@ export async function loadHotels(): Promise<Hotel[]> {
  */
 export async function createHotel(values: HotelFormValues): Promise<Hotel> {
   const insertData: HotelInsert = {
+    id: generateId('hotel'),
     name: values.name.trim(),
     rate_per_can: values.ratePerCan,
     status: values.status,

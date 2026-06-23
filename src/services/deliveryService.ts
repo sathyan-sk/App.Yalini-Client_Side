@@ -24,10 +24,10 @@ import type {
   SessionStatus,
 } from '../screens/staffScreens/AddDelivery/types';
 
-/** Staff configuration - defaults to emp_seed_mani for demo */
+// Staff configuration - populated from Supabase on login
 const STAFF_CONFIG = {
-  staffId: 'emp_seed_mani',
-  staffName: 'Mani Kumar',
+  staffId: '',
+  staffName: '',
   businessName: 'Yalini Minerals',
 };
 
@@ -74,10 +74,10 @@ export async function loadHotelsForDelivery(): Promise<HotelOption[]> {
 /**
  * Gets the current delivery session data.
  */
-export async function getDeliverySession(): Promise<DeliverySessionData> {
+export async function getDeliverySession(employeeId?: string): Promise<DeliverySessionData> {
   if (!USE_MOCK) {
     const { getDeliverySession: getFromSupabase } = await import('./deliveryService.supabase');
-    return getFromSupabase();
+    return getFromSupabase(employeeId);
   }
 
   await simulateLatency();
@@ -86,8 +86,9 @@ export async function getDeliverySession(): Promise<DeliverySessionData> {
     const now = new Date();
     currentSession = {
       id: generateId('session'),
-      staffName: 'Mani Kumar',
-      serviceName: 'Yalini Minerals',
+      staffName: STAFF_CONFIG.staffName || 'Staff',
+      serviceName: STAFF_CONFIG.businessName,
+      staffId: employeeId || STAFF_CONFIG.staffId,
       sessionDate: now.toLocaleDateString('en-IN', {
         day: '2-digit',
         month: 'short',
@@ -264,7 +265,7 @@ export async function submitStaffSession(
   await simulateLatency();
 
   // Get staff/employee information
-  let staffName = data.staffName || STAFF_CONFIG.staffName;
+  let staffName = data.staffName || STAFF_CONFIG.staffName || 'Staff';
   const staffId = data.staffId || STAFF_CONFIG.staffId;
 
   // Try to get actual employee name from store
@@ -358,41 +359,44 @@ export async function submitStaffSession(
  * Get staff session for a specific employee ID (used by StartDay screen).
  * Uses centralized staff config.
  */
-export async function getStaffHomeData() {
+export async function getStaffHomeData(employeeId?: string) {
   if (!USE_MOCK) {
     const { getStaffHomeData: getFromSupabase } = await import('./deliveryService.supabase');
-    return getFromSupabase();
+    return getFromSupabase(employeeId);
   }
 
   await simulateLatency();
 
-  const employee = await getEmployeeById(STAFF_CONFIG.staffId);
-  
-  if (employee) {
-    return {
-      staff: {
-        id: employee.id,
-        name: employee.fullName,
-        businessName: employee.businessName,
-        businessType: employee.businessType,
-        role: 'Staff',
-      },
-      sessionStatus: 'OPEN',
-      sessionDate: formatDisplayDate(todayISODate()),
-    };
+  const staffId = employeeId || STAFF_CONFIG.staffId;
+  if (staffId) {
+    const employee = await getEmployeeById(staffId);
+    if (employee) {
+      // Get assigned hotels for this employee
+      const hotels = await getHotels();
+      const assignedHotels = hotels
+        .filter(h => h.assignedEmployeeId === staffId && h.status === 'enabled')
+        .map(h => ({
+          hotelId: h.id,
+          hotelName: h.name,
+          location: h.location || '',
+        }));
+
+      return {
+        staff: {
+          id: employee.id,
+          name: employee.fullName,
+          businessName: employee.businessName,
+          businessType: employee.businessType,
+          role: 'Staff',
+        },
+        assignedHotels,
+        sessionStatus: 'OPEN',
+        sessionDate: formatDisplayDate(todayISODate()),
+      };
+    }
   }
 
-  return {
-    staff: {
-      id: STAFF_CONFIG.staffId,
-      name: STAFF_CONFIG.staffName,
-      businessName: STAFF_CONFIG.businessName,
-      businessType: 'water_delivery',
-      role: 'Staff',
-    },
-    sessionStatus: 'OPEN',
-    sessionDate: formatDisplayDate(todayISODate()),
-  };
+  throw new Error('No staff employee configured. Please login first.');
 }
 
 /**

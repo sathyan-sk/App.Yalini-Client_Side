@@ -64,6 +64,7 @@ const DEFAULT_SESSION: DeliverySessionData = {
   id: '',
   staffName: 'Staff Member',
   serviceName: 'Yalini Minerals',
+  staffId: '',
   sessionDate: new Date().toLocaleDateString('en-IN', {
     day: '2-digit',
     month: 'short',

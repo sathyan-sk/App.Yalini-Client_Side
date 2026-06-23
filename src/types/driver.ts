@@ -170,6 +170,13 @@ export interface TripExpense {
 }
 
 /**
+ * Extended Trip type with expense details
+ */
+export interface TripWithExpense extends Trip {
+  expense?: TripExpense;
+}
+
+/**
  * Extended Trip type with expense details for EditTrip screen
  */
 export interface AllTripsTrip extends Trip {
@@ -210,7 +217,7 @@ export interface SessionSubmissionData {
   totalIncome: number;
   totalExpenses: number;
   netAmount: number;
-  trips: Trip[];
+  trips: TripWithExpense[];
 }
 
 export interface SessionSubmissionResponse {

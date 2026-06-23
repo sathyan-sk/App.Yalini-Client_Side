@@ -51,9 +51,25 @@ const fromDriverRecordRow = (
       id: td.id,
       tripNumber: td.trip_number,
       destination: td.destination,
+      tripType: td.trip_type as 'vendor' | 'private',
+      paymentMode: td.payment_mode as 'cash' | 'online',
       distance: td.distance,
       income: td.income,
       expense: td.expense,
+      profit: td.income - td.expense,
+      expenseCategories: (td.expense_categories as {
+        fuel: number;
+        toll: number;
+        food: number;
+        other: number;
+        notes?: string;
+      }) || {
+        fuel: 0,
+        toll: 0,
+        food: 0,
+        other: 0,
+        notes: '',
+      },
     })),
   };
 };

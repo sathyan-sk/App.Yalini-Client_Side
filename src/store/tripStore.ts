@@ -9,7 +9,6 @@
 import { create } from 'zustand';
 import type { Trip, SessionSubmissionData } from '../types/driver';
 import { submitDriverSession } from '../services/driverService';
-import { DEMO_TRIP_TEMPLATES, DRIVER_CONFIG } from '../services/mockData/driverConfig';
 
 export interface TripExpense {
   fuel: number;
@@ -98,40 +97,22 @@ const getCurrentTime = () => {
   return `${hours}:${minutes} ${ampm}`;
 };
 
-//  Initial session state - Uses seed data IDs for proper data linking
-// When driver submits, this creates a record that admin can see
+//  Initial session state - starts empty, populated from Supabase on login
 const initialSession: SessionInfo = {
-  serviceName: DRIVER_CONFIG.businessName,
-  driverName: DRIVER_CONFIG.driverName,
-  vehicleNumber: DRIVER_CONFIG.vehicleNumber,
+  serviceName: 'Yalini Taxi',
+  driverName: 'Driver',
+  vehicleNumber: '',
   sessionStatus: 'Day Started',
   sessionDate: getCurrentDate(),
-  sessionTime: DRIVER_CONFIG.defaultSessionTime,
+  sessionTime: getCurrentTime(),
   isActive: true,
   sessionId: `SESSION_${Date.now()}`,
-  driverId: DRIVER_CONFIG.driverId,
-  vehicleId: DRIVER_CONFIG.vehicleId,
+  driverId: '',
+  vehicleId: '',
 };
 
-// Sample initial trips - uses centralized DEMO_TRIP_TEMPLATES with dynamic dates
-const initialTrips: TripWithExpense[] = DEMO_TRIP_TEMPLATES.map((template, index) => {
-  const expenseData = 'expense' in template ? { expense: { ...template.expense } } : {};
-
-  return {
-    id: `trip_00${index + 1}`,
-    tripNumber: index + 1,
-    tripType: template.tripType,
-    from: template.from,
-    to: template.to,
-    amount: template.amount,
-    paymentMode: template.paymentMode,
-    date: getCurrentDate(),
-    time: template.time,
-    hasExpense: template.hasExpense,
-    totalExpense: template.totalExpense,
-    ...expenseData,
-  };
-});
+// Start with empty trips - real trips added by driver during session
+const initialTrips: TripWithExpense[] = [];
 
 // Calculate totals from trips
 const calculateTotals = (trips: TripWithExpense[]) => {
@@ -206,7 +187,17 @@ export const useTripStore = create<TripStore>((set, get) => ({
         totalIncome: state.totalIncome,
         totalExpenses: state.totalExpenses,
         netAmount: state.netAmount,
-        trips: state.trips,
+        trips: state.trips.map(t => ({
+          ...t,
+          expense: t.expense ? {
+            fuel: t.expense.fuel,
+            toll: t.expense.toll,
+            food: t.expense.food,
+            other: t.expense.other,
+            notes: t.expense.notes,
+            total: t.expense.total,
+          } : undefined,
+        })),
       };
 
       // Call service to submit

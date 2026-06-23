@@ -8,7 +8,6 @@
  * INTEGRATION: When USE_MOCK=false, delegates to Supabase implementation.
  */
 import { USE_MOCK } from "./featureFlags";
-import { DRIVER_CONFIG } from "./mockData/driverConfig";
 import {
   getEmployeeById,
   getVehicleById,
@@ -108,47 +107,48 @@ export async function getDriverInfo(employeeId: string): Promise<DriverHomeData 
 /**
  * Fetch driver home screen data using default demo driver
  */
-export async function getDriverHomeData(): Promise<DriverHomeData> {
+export async function getDriverHomeData(employeeId?: string): Promise<DriverHomeData> {
   if (!USE_MOCK) {
     const { getDriverHomeData: getFromSupabase } = await import('./driverService.supabase');
-    return getFromSupabase();
+    return getFromSupabase(employeeId);
   }
 
   await simulateLatency();
 
-  // Default demo driver from centralized config
-  const demoDriverId = DRIVER_CONFIG.driverId;
-  const driverInfo = await getDriverInfo(demoDriverId);
-
-  if (driverInfo) {
-    return driverInfo;
+  // Use provided employeeId or fall back to first available driver
+  const targetEmployeeId = employeeId || 'emp_seed_ramesh';
+  const employee = await getEmployeeById(targetEmployeeId);
+  if (!employee) {
+    throw new Error('No driver found');
   }
 
-  // Fallback using centralized config
+  const vehicles = await getVehicles();
+  const assignedVehicle = vehicles.find(v => v.assignedEmployeeId === employee.id);
+
   return {
     driver: {
-      id: DRIVER_CONFIG.driverId,
-      name: DRIVER_CONFIG.driverName,
-      businessName: DRIVER_CONFIG.businessName,
-      businessType: DRIVER_CONFIG.businessType,
+      id: employee.id,
+      name: employee.fullName,
+      businessName: employee.businessName,
+      businessType: 'taxi',
       role: 'Driver',
     },
-    assignment: {
-      vehicleId: DRIVER_CONFIG.vehicleId,
-      vehicleName: DRIVER_CONFIG.vehicleName,
-      vehicleNumber: DRIVER_CONFIG.vehicleNumber,
+    assignment: assignedVehicle ? {
+      vehicleId: assignedVehicle.id,
+      vehicleName: assignedVehicle.name,
+      vehicleNumber: assignedVehicle.number,
       isAssigned: true,
-    },
+    } : null,
     sessionStatus: 'OPEN',
     sessionDate: formatDisplayDate(todayISODate()),
-    sessionStartTime: DRIVER_CONFIG.defaultSessionTime,
+    sessionStartTime: '08:00 AM',
     todayOverview: {
       totalTrips: 0,
       totalIncome: 0,
       totalExpenses: 0,
     },
     recentActivity: [],
-    notificationCount: 2,
+    notificationCount: 0,
   };
 }
 
@@ -163,45 +163,39 @@ export async function getDriverHomeDataWithTrips(): Promise<DriverHomeData> {
 
   await simulateLatency();
 
+  // Get first available driver from mock data
+  const employee = await getEmployeeById('emp_seed_ramesh');
+  if (!employee) {
+    throw new Error('No driver found');
+  }
+
+  const vehicles = await getVehicles();
+  const assignedVehicle = vehicles.find(v => v.assignedEmployeeId === employee.id);
+
   return {
     driver: {
-      id: DRIVER_CONFIG.driverId,
-      name: DRIVER_CONFIG.driverName,
-      businessName: DRIVER_CONFIG.businessName,
-      businessType: DRIVER_CONFIG.businessType,
+      id: employee.id,
+      name: employee.fullName,
+      businessName: employee.businessName,
+      businessType: 'taxi',
       role: 'Driver',
     },
-    assignment: {
-      vehicleId: DRIVER_CONFIG.vehicleId,
-      vehicleName: DRIVER_CONFIG.vehicleName,
-      vehicleNumber: DRIVER_CONFIG.vehicleNumber,
+    assignment: assignedVehicle ? {
+      vehicleId: assignedVehicle.id,
+      vehicleName: assignedVehicle.name,
+      vehicleNumber: assignedVehicle.number,
       isAssigned: true,
-    },
+    } : null,
     sessionStatus: 'OPEN',
     sessionDate: formatDisplayDate(todayISODate()),
-    sessionStartTime: DRIVER_CONFIG.defaultSessionTime,
+    sessionStartTime: '08:00 AM',
     todayOverview: {
-      totalTrips: 5,
-      totalIncome: 3250,
-      totalExpenses: 520,
+      totalTrips: 0,
+      totalIncome: 0,
+      totalExpenses: 0,
     },
-    recentActivity: [
-      {
-        id: 'activity_1',
-        type: 'trip',
-        description: 'Trip to RS Puram',
-        amount: 900,
-        time: '01:15 PM',
-      },
-      {
-        id: 'activity_2',
-        type: 'expense',
-        description: 'Fuel expense added',
-        amount: 120,
-        time: '01:20 PM',
-      },
-    ],
-    notificationCount: 3,
+    recentActivity: [],
+    notificationCount: 0,
   };
 }
 
@@ -384,19 +378,20 @@ export async function getDriverSubmissionHistory(
  * Returns driver info + vehicle assignment status.
  * Called by DriverStartDayScreen on mount.
  */
-export async function getStartDayData(): Promise<StartDayData> {
+export async function getStartDayData(employeeId?: string): Promise<StartDayData> {
   if (!USE_MOCK) {
     const { getStartDayData: getFromSupabase } = await import('./driverService.supabase');
-    return getFromSupabase();
+    return getFromSupabase(employeeId);
   }
 
   await simulateLatency();
 
-  const demoDriverId = DRIVER_CONFIG.driverId;
-  const employee = await getEmployeeById(demoDriverId);
+  // Use provided employeeId or fall back to first available taxi driver
+  const targetEmployeeId = employeeId || 'emp_seed_ramesh';
+  const employee = await getEmployeeById(targetEmployeeId);
   const vehicles = await getVehicles();
   const assignedVehicle = vehicles.find(
-    (v) => v.assignedEmployeeId === demoDriverId
+    (v) => v.assignedEmployeeId === employee?.id
   ) ?? null;
 
   if (employee) {
@@ -419,20 +414,5 @@ export async function getStartDayData(): Promise<StartDayData> {
     };
   }
 
-  // fallback using centralized config
-  return {
-    driver: {
-      id: DRIVER_CONFIG.driverId,
-      name: DRIVER_CONFIG.driverName,
-      businessName: DRIVER_CONFIG.businessName,
-      businessType: DRIVER_CONFIG.businessType,
-      role: "Driver",
-    },
-    assignment: {
-      vehicleId: DRIVER_CONFIG.vehicleId,
-      vehicleName: DRIVER_CONFIG.vehicleName,
-      vehicleNumber: DRIVER_CONFIG.vehicleNumber,
-      isAssigned: true,
-    },
-  };
+  throw new Error('No driver found');
 }

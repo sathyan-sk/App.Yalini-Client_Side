@@ -7,6 +7,7 @@
 
 import { supabase } from '../config/supabase';
 import { getTodayDate } from '../config/supabaseHelpers';
+import { generateId } from '../services/mockData';
 import type { Database } from '../config/database.types';
 import type {
   Business,
@@ -60,6 +61,7 @@ export async function saveBusinesses(_businesses: Business[]): Promise<void> {
  */
 export async function createBusiness(values: BusinessFormValues): Promise<Business> {
   const insertData: BusinessInsert = {
+    id: generateId('biz'),
     name: values.name.trim(),
     type: values.type,
     mode: values.mode,

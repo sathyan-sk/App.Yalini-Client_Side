@@ -29,9 +29,19 @@ export interface TripDetail {
   id: string;
   tripNumber: number;
   destination: string;
+  tripType: "vendor" | "private";
+  paymentMode: "cash" | "online";
   distance: number; // in km
   income: number;
   expense: number;
+  profit: number; // income - expense
+  expenseCategories: {
+    fuel: number;
+    toll: number;
+    food: number;
+    other: number;
+    notes?: string;
+  };
 }
 
 export interface Business {

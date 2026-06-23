@@ -22,49 +22,6 @@
 import { USE_MOCK } from './featureFlags';
 import type { LoginPayload, LoginResult, Role } from "../types/auth";
 
-interface MockAccount {
-  mobile: string;
-  pin: string;
-  role: Role;
-  name: string;
-  userId: string;
-}
-
-/**
- * Mock accounts for development.
- * 
- * PRODUCTION FLOW:
- *   - Admin (mobile: 7598326133, pin: 0000) is pre-defined in the database
- *   - Admin creates employees via "Add Employee" screen
- *   - Employee role is auto-derived from business type:
- *       taxi business → DRIVER
- *       water_delivery business → STAFF
- *   - Only employees with status = 'enabled' can log in
- */
-const MOCK_ACCOUNTS: MockAccount[] = [
-  {
-    mobile: "7598326133",
-    pin: "0000",
-    role: "ADMIN",
-    name: "Yalini Admin",
-    userId: "emp_seed_admin",
-  },
-  {
-    mobile: "9988776655",
-    pin: "1111",
-    role: "DRIVER",
-    name: "Driver Demo",
-    userId: "driver-001",
-  },
-  {
-    mobile: "8877665544",
-    pin: "2222",
-    role: "STAFF",
-    name: "Staff Demo",
-    userId: "staff-001",
-  },
-];
-
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export async function login({ mobile, pin }: LoginPayload): Promise<LoginResult> {
@@ -74,28 +31,14 @@ export async function login({ mobile, pin }: LoginPayload): Promise<LoginResult>
     return loginFromSupabase({ mobile, pin });
   }
 
-  // Match real network latency so the UI loading state is exercised.
+  // Mock mode disabled in production
   await wait(600);
-
-  const account = MOCK_ACCOUNTS.find(
-    (a) => a.mobile === mobile && a.pin === pin,
-  );
-  if (!account) {
-    return { ok: false, error: "Invalid mobile number or passcode" };
-  }
-
+  
+  // In production (USE_MOCK=false), this code path is never reached
+  // Authentication is handled by authService.supabase.ts
   return {
-    ok: true,
-    session: {
-      // Mock JWT-shaped token. Real token comes from backend in prod.
-      token: `mock.${account.userId}.${Date.now()}`,
-      user: {
-        userId: account.userId,
-        name: account.name,
-        mobile: account.mobile,
-        role: account.role,
-      },
-    },
+    ok: false,
+    error: "Mock authentication is disabled. Please configure Supabase.",
   };
 }
 

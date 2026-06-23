@@ -75,17 +75,19 @@ export async function loadHotelsForDelivery(): Promise<HotelOption[]> {
  * Gets the current delivery session data.
  * Creates a new session if none exists.
  */
-export async function getDeliverySession(): Promise<DeliverySessionData> {
+export async function getDeliverySession(employeeId?: string): Promise<DeliverySessionData> {
   if (currentSession) {
     return currentSession;
   }
 
-  // Create session data
+  // In production, the employee ID comes from the authenticated user session
+  // Return empty state or use provided employeeId - admin must assign hotels before staff can start delivery
   const now = new Date();
   currentSession = {
     id: `session_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
-    staffName: 'Staff Member',
+    staffName: 'Staff',
     serviceName: 'Yalini Minerals',
+    staffId: employeeId || '',
     sessionDate: now.toLocaleDateString('en-IN', {
       day: '2-digit',
       month: 'short',
@@ -404,7 +406,7 @@ export async function submitStaffSession(
 /**
  * Get staff session for a specific employee ID (used by StartDay screen).
  */
-export async function getStaffHomeData(): Promise<{
+export async function getStaffHomeData(employeeId?: string): Promise<{
   staff: {
     id: string;
     name: string;
@@ -412,6 +414,11 @@ export async function getStaffHomeData(): Promise<{
     businessType: string;
     role: string;
   };
+  assignedHotels: Array<{
+    hotelId: string;
+    hotelName: string;
+    location: string;
+  }>;
   sessionStatus: string;
   sessionDate: string;
 }> {
@@ -419,31 +426,69 @@ export async function getStaffHomeData(): Promise<{
     throw new Error('Supabase is not configured');
   }
 
-  // Get the first enabled water delivery employee
-  const { data: employees } = await supabase
-    .from('employees')
-    .select('*')
-    .eq('business_type', 'water_delivery')
-    .eq('status', 'enabled')
-    .limit(1);
-
-  const employee = employees?.[0];
-
-  if (employee) {
+  // Use provided employeeId or return empty state
+  if (!employeeId) {
     return {
       staff: {
-        id: employee.id,
-        name: employee.full_name,
-        businessName: employee.business_name,
-        businessType: employee.business_type,
+        id: '',
+        name: 'Staff',
+        businessName: 'Yalini Minerals',
+        businessType: 'water_delivery',
         role: 'Staff',
       },
+      assignedHotels: [],
       sessionStatus: 'OPEN',
       sessionDate: formatDisplayDate(getTodayDate()),
     };
   }
 
-  throw new Error('No water delivery employee found');
+  // Fetch staff data from Supabase using the provided employee ID
+  const { data: employee } = await supabase
+    .from('employees')
+    .select('*')
+    .eq('id', employeeId)
+    .single();
+  
+  if (!employee || employee.business_type !== 'water_delivery') {
+    return {
+      staff: {
+        id: '',
+        name: 'Staff',
+        businessName: 'Yalini Minerals',
+        businessType: 'water_delivery',
+        role: 'Staff',
+      },
+      assignedHotels: [],
+      sessionStatus: 'OPEN',
+      sessionDate: formatDisplayDate(getTodayDate()),
+    };
+  }
+
+  // Get assigned hotels for this employee
+  const { data: hotels } = await supabase
+    .from('hotels')
+    .select('*')
+    .eq('assigned_employee_id', employeeId)
+    .eq('status', 'enabled');
+
+  const assignedHotels = (hotels || []).map(hotel => ({
+    hotelId: hotel.id,
+    hotelName: hotel.name,
+    location: hotel.location || '',
+  }));
+
+  return {
+    staff: {
+      id: employee.id,
+      name: employee.full_name,
+      businessName: employee.business_name,
+      businessType: employee.business_type,
+      role: 'Staff',
+    },
+    assignedHotels,
+    sessionStatus: 'OPEN',
+    sessionDate: formatDisplayDate(getTodayDate()),
+  };
 }
 
 /**

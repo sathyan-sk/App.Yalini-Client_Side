@@ -16,6 +16,7 @@ import type {
   SessionSubmissionData,
   SessionSubmissionResponse,
   Trip,
+  TripWithExpense,
   StartDayData,
 } from '../types/driver';
 
@@ -122,26 +123,60 @@ export async function getDriverInfo(employeeId: string): Promise<DriverHomeData 
  * Fetch driver home screen data using default demo driver.
  * In production, the employee ID would come from the auth store.
  */
-export async function getDriverHomeData(): Promise<DriverHomeData> {
+export async function getDriverHomeData(employeeId?: string): Promise<DriverHomeData> {
   if (!isSupabaseConfigured()) {
     throw new Error('Supabase is not configured');
   }
 
-  // In production, get the employee ID from the authenticated user
-  // For now, we query the first taxi employee as a fallback
-  const { data: employees } = await supabase
-    .from('employees')
-    .select('id')
-    .eq('business_type', 'taxi')
-    .eq('status', 'enabled')
-    .limit(1);
-
-  const employeeId = employees?.[0]?.id;
+  // Use provided employeeId or return empty state
   if (!employeeId) {
-    throw new Error('No taxi employee found');
+    return {
+      driver: {
+        id: '',
+        name: 'Driver',
+        businessName: '',
+        businessType: 'taxi',
+        role: 'Driver',
+      },
+      assignment: null,
+      sessionStatus: 'OPEN',
+      sessionDate: formatDisplayDate(getTodayDate()),
+      sessionStartTime: '--',
+      todayOverview: {
+        totalTrips: 0,
+        totalIncome: 0,
+        totalExpenses: 0,
+      },
+      recentActivity: [],
+      notificationCount: 0,
+    };
   }
 
-  return getDriverInfo(employeeId) as Promise<DriverHomeData>;
+  // Fetch driver data from Supabase using the provided employee ID
+  const driverData = await getDriverInfo(employeeId);
+  if (!driverData) {
+    return {
+      driver: {
+        id: '',
+        name: 'Driver',
+        businessName: '',
+        businessType: 'taxi',
+        role: 'Driver',
+      },
+      assignment: null,
+      sessionStatus: 'OPEN',
+      sessionDate: formatDisplayDate(getTodayDate()),
+      sessionStartTime: '--',
+      todayOverview: {
+        totalTrips: 0,
+        totalIncome: 0,
+        totalExpenses: 0,
+      },
+      recentActivity: [],
+      notificationCount: 0,
+    };
+  }
+  return driverData;
 }
 
 /**
@@ -194,6 +229,11 @@ export async function submitDriverSession(
 
     const today = getTodayDate();
 
+    // Calculate totals from trips
+    const totalIncome = data.trips.reduce((sum, trip) => sum + trip.amount, 0);
+    const totalExpense = data.trips.reduce((sum, trip) => sum + (trip.totalExpense || 0), 0);
+    const totalProfit = totalIncome - totalExpense;
+
     // Check if a record already exists for this employee on this date
     const { data: existingRecord } = await supabase
       .from('driver_records')
@@ -216,13 +256,13 @@ export async function submitDriverSession(
           status: 'submitted',
           avatar_color: getRandomAvatarColor(),
           trips: data.totalTrips,
-          total_income: data.totalIncome,
-          total_expense: data.totalExpenses,
-          settled_to_admin: Math.floor(data.totalIncome * 0.7),
-          balance_shortage: Math.floor(data.totalIncome * 0.3) - data.totalExpenses,
-          total_profit: data.netAmount,
+          total_income: totalIncome,
+          total_expense: totalExpense,
+          total_profit: totalProfit,
+          settled_to_admin: Math.floor(totalIncome * 0.7),
+          balance_shortage: Math.floor(totalIncome * 0.3) - totalExpense,
           per_km_rate: 16,
-          fuel_expense: Math.floor(data.totalExpenses * 0.6),
+          fuel_expense: Math.floor(totalExpense * 0.6),
         })
         .eq('id', driverRecordId);
 
@@ -246,13 +286,13 @@ export async function submitDriverSession(
         status: 'submitted',
         avatar_color: getRandomAvatarColor(),
         trips: data.totalTrips,
-        total_income: data.totalIncome,
-        total_expense: data.totalExpenses,
-        settled_to_admin: Math.floor(data.totalIncome * 0.7),
-        balance_shortage: Math.floor(data.totalIncome * 0.3) - data.totalExpenses,
-        total_profit: data.netAmount,
+        total_income: totalIncome,
+        total_expense: totalExpense,
+        total_profit: totalProfit,
+        settled_to_admin: Math.floor(totalIncome * 0.7),
+        balance_shortage: Math.floor(totalIncome * 0.3) - totalExpense,
         per_km_rate: 16,
-        fuel_expense: Math.floor(data.totalExpenses * 0.6),
+        fuel_expense: Math.floor(totalExpense * 0.6),
       };
 
       const { data: newRecord, error: insertError } = await supabase
@@ -265,15 +305,39 @@ export async function submitDriverSession(
       driverRecordId = newRecord.id;
     }
 
-    // Insert trip details
-    const tripDetails: TripDetailInsert[] = data.trips.map((trip: Trip, index: number) => ({
-      driver_record_id: driverRecordId,
-      trip_number: index + 1,
-      destination: `${trip.from} to ${trip.to}`,
-      distance: 10 + Math.random() * 20, // Simulated distance
-      income: trip.amount,
-      expense: trip.totalExpense || 0,
-    }));
+    // Insert trip details with per-trip profit and expense categories
+    const tripDetails: TripDetailInsert[] = data.trips.map((trip: TripWithExpense, index: number) => {
+      const tripIncome = trip.amount;
+      const tripExpense = trip.totalExpense || 0;
+      const tripProfit = tripIncome - tripExpense;
+      
+      // Use actual expense categories from trip data if available
+      const expenseCategories = trip.expense ? {
+        fuel: trip.expense.fuel,
+        toll: trip.expense.toll,
+        food: trip.expense.food,
+        other: trip.expense.other,
+        notes: trip.expense.notes || '',
+      } : {
+        fuel: 0,
+        toll: 0,
+        food: 0,
+        other: 0,
+        notes: '',
+      };
+      
+      return {
+        driver_record_id: driverRecordId,
+        trip_number: index + 1,
+        destination: `${trip.from} to ${trip.to}`,
+        trip_type: trip.tripType || 'private',
+        payment_mode: trip.paymentMode || 'cash',
+        distance: 10 + Math.random() * 20, // Simulated distance
+        income: tripIncome,
+        expense: tripExpense,
+        expense_categories: expenseCategories,
+      };
+    });
 
     if (tripDetails.length > 0) {
       const { error: tripError } = await supabase
@@ -384,29 +448,50 @@ export async function getDriverSubmissionHistory(
  * Get start day screen data.
  * Returns driver info + vehicle assignment status from Supabase.
  */
-export async function getStartDayData(): Promise<StartDayData> {
+export async function getStartDayData(employeeId?: string): Promise<StartDayData> {
   if (!isSupabaseConfigured()) {
     throw new Error('Supabase is not configured');
   }
 
-  // Get the first enabled taxi employee (in production, use the authenticated user)
-  const { data: employees } = await supabase
+  // Use provided employeeId or return empty state
+  if (!employeeId) {
+    return {
+      driver: {
+        id: '',
+        name: 'Driver',
+        businessName: '',
+        businessType: 'taxi',
+        role: 'Driver',
+      },
+      assignment: null,
+    };
+  }
+
+  // Fetch driver data from Supabase using the provided employee ID
+  const { data: employee } = await supabase
     .from('employees')
     .select('*')
-    .eq('business_type', 'taxi')
-    .eq('status', 'enabled')
-    .limit(1);
-
-  const employee = employees?.[0];
-  if (!employee) {
-    throw new Error('No taxi employee found');
+    .eq('id', employeeId)
+    .single();
+  
+  if (!employee || employee.business_type !== 'taxi') {
+    return {
+      driver: {
+        id: '',
+        name: 'Driver',
+        businessName: '',
+        businessType: 'taxi',
+        role: 'Driver',
+      },
+      assignment: null,
+    };
   }
 
   // Find assigned vehicle
   const { data: vehicles } = await supabase
     .from('vehicles')
     .select('*')
-    .eq('assigned_employee_id', employee.id)
+    .eq('assigned_employee_id', employeeId)
     .limit(1);
 
   const assignedVehicle = vehicles?.[0] || null;
@@ -419,13 +504,11 @@ export async function getStartDayData(): Promise<StartDayData> {
       businessType: 'taxi',
       role: 'Driver',
     },
-    assignment: assignedVehicle
-      ? {
-          vehicleId: assignedVehicle.id,
-          vehicleName: assignedVehicle.name,
-          vehicleNumber: assignedVehicle.number,
-          isAssigned: true,
-        }
-      : null,
+    assignment: assignedVehicle ? {
+      vehicleId: assignedVehicle.id,
+      vehicleName: assignedVehicle.name,
+      vehicleNumber: assignedVehicle.number,
+      isAssigned: true,
+    } : null,
   };
 }

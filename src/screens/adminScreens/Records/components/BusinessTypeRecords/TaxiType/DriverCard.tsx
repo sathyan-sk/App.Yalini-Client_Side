@@ -71,15 +71,9 @@ export function DriverCard({ record, onPress, testID, showDate }: DriverCardProp
       {/* Metrics Row 2 */}
       <View style={styles.metricsRow}>
         <View style={styles.metricItem}>
-          <Text style={styles.metricLabel}>Settled to Admin</Text>
-          <Text style={[styles.metricValue, styles.settledValue]}>
-            {formatCurrency(record.settledToAdmin)}
-          </Text>
-        </View>
-        <View style={styles.metricItem}>
-          <Text style={styles.metricLabel}>Balance (Shortage)</Text>
-          <Text style={[styles.metricValue, styles.shortageValue]}>
-            {formatCurrency(record.balanceShortage)}
+          <Text style={styles.metricLabel}>Total Profit</Text>
+          <Text style={[styles.metricValue, styles.profitValue]}>
+            {formatCurrency(record.totalProfit)}
           </Text>
         </View>
       </View>
@@ -159,10 +153,7 @@ const styles = StyleSheet.create({
   expenseValue: {
     color: colors.error,
   },
-  settledValue: {
-    color: colors.primaryBlue,
-  },
-  shortageValue: {
-    color: colors.error,
+  profitValue: {
+    color: colors.brand,
   },
 });

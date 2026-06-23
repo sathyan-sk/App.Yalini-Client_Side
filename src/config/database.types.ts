@@ -218,27 +218,39 @@ export interface Database {
           driver_record_id: string
           trip_number: number
           destination: string
+          trip_type: string
+          payment_mode: string
           distance: number
           income: number
           expense: number
+          profit: number
+          expense_categories: Json
         }
         Insert: {
           id?: string
           driver_record_id: string
           trip_number: number
           destination: string
+          trip_type?: string
+          payment_mode?: string
           distance: number
           income: number
           expense: number
+          profit?: number
+          expense_categories?: Json
         }
         Update: {
           id?: string
           driver_record_id?: string
           trip_number?: number
           destination?: string
+          trip_type?: string
+          payment_mode?: string
           distance?: number
           income?: number
           expense?: number
+          profit?: number
+          expense_categories?: Json
         }
       }
       water_delivery_records: {

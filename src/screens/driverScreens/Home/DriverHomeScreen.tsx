@@ -19,8 +19,8 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import { colors, spacing, fontSize } from "../../../theme";
 import { useAuthStore } from "../../../store/authStore";
-import { getGreeting } from "../../../services/driverService";
-import { useTripStore } from "../../../store/tripStore";
+import { getGreeting, getDriverHomeData } from "../../../services/driverService";
+import type { DriverHomeData } from "../../../types/driver";
 import type { DriverTabParamList, AllTripsStackParamList } from "../../../types/navigation";
 
 import {
@@ -44,19 +44,21 @@ export default function DriverHomeScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
   const signOut = useAuthStore((state) => state.signOut);
-
-  // Get data from tripStore
-  const {
-    session,
-    trips,
-    totalTrips,
-    totalIncome,
-    totalExpenses,
-  } = useTripStore();
+  const authUser = useAuthStore((state) => state.user);
+  const userRole = useAuthStore((state) => state.user?.role);
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [greeting, setGreeting] = useState(getGreeting());
   const [sessionLoading, setSessionLoading] = useState(true);
+  const [driverData, setDriverData] = useState<DriverHomeData | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  // Redirect if not a driver (security check beyond navigation)
+  useEffect(() => {
+    if (userRole && userRole !== 'DRIVER') {
+      signOut();
+    }
+  }, [userRole, signOut]);
 
   // Update greeting periodically
   useEffect(() => {
@@ -67,12 +69,37 @@ export default function DriverHomeScreen() {
     return () => clearInterval(interval);
   }, []);
 
+  // Load driver data from Supabase on mount
+  useEffect(() => {
+    const loadDriverData = async () => {
+      setSessionLoading(true);
+      setLoadError(null);
+      try {
+        const employeeId = authUser?.userId;
+        const data = await getDriverHomeData(employeeId);
+        setDriverData(data);
+      } catch (error) {
+        console.error('Failed to load driver data:', error);
+        setLoadError('Failed to load driver data');
+      } finally {
+        setSessionLoading(false);
+      }
+    };
+    loadDriverData();
+  }, [authUser]);
+
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    // Simulate refresh - in real app would refetch from API
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    // Refetch driver data from Supabase
+    try {
+      const employeeId = authUser?.userId;
+      const data = await getDriverHomeData(employeeId);
+      setDriverData(data);
+    } catch (error) {
+      console.error('Failed to refresh driver data:', error);
+    }
     setIsRefreshing(false);
-  }, []);
+  }, [authUser]);
 
 const handleLogout = () => {
     signOut();
@@ -103,30 +130,40 @@ const handleLogout = () => {
     navigation.navigate("AllTripsStack");
   };
 
-  // Build recent activity from trips
-  const recentActivity = trips.slice(-3).reverse().map((trip, index) => ({
-    id: trip.id,
-    type: 'trip' as const,
-    description: `Trip to ${trip.to}`,
-    amount: trip.amount,
-    time: trip.time,
-  }));
+  // Use ONLY Supabase data - no fallback to mock/tripStore
+  // This ensures the driver sees their REAL assigned data from admin
+  const displayData = driverData;
+  const hasAssignment = displayData?.assignment?.isAssigned || false;
 
-  // Build today's overview from tripStore
-  const todayOverview = {
-    totalTrips,
-    totalIncome,
-    totalExpenses,
-  };
+  if (sessionLoading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color={colors.primaryBlue} />
+          <Text style={styles.loadingText}>Loading driver information...</Text>
+        </View>
+      </View>
+    );
+  }
 
-  // Vehicle assignment from session
-  const hasAssignment = session.vehicleNumber && session.vehicleNumber !== 'Not Assigned';
+  if (loadError || !displayData) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.centerContainer}>
+          <Text style={styles.errorText}>No Driver Data Available</Text>
+          <Text style={styles.errorSubtext}>
+            {loadError || 'No employee found for your account'}
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <HomeHeader
-        driverName={session.driverName}
+        driverName={displayData.driver.name}
         greeting={greeting}
         onLogout={handleLogout}
       />
@@ -150,18 +187,18 @@ const handleLogout = () => {
       >
         {/* Service Info Card */}
         <ServiceInfoCard
-          businessName={session.serviceName}
-          driverName={session.driverName}
-          vehicleNumber={session.vehicleNumber}
-          sessionDate={session.sessionDate}
-          sessionStartTime={session.sessionTime}
-          sessionStatus={session.sessionStatus === 'Day Started' ? 'OPEN' : 'SUBMITTED'}
+          businessName={displayData.driver.businessName}
+          driverName={displayData.driver.name}
+          vehicleNumber={displayData.assignment?.vehicleNumber || ''}
+          sessionDate={displayData.sessionDate}
+          sessionStartTime={displayData.sessionStartTime}
+          sessionStatus={displayData.sessionStatus}
         />
 
         {/* Vehicle Assignment Card (only if assigned) */}
-        {hasAssignment && (
+        {hasAssignment && displayData.assignment && (
           <VehicleAssignmentCard
-            vehicleNumber={session.vehicleNumber}
+            vehicleNumber={displayData.assignment.vehicleNumber}
             isAssigned={true}
           />
         )}
@@ -175,12 +212,16 @@ const handleLogout = () => {
           onStartDayInfo={handleStartDayInfo}
         />
 
-        {/* Today's Overview - Now using tripStore data */}
-        <TodayOverview data={todayOverview} />
+        {/* Today's Overview - Only from Supabase data */}
+        <TodayOverview data={{
+          totalTrips: displayData.todayOverview.totalTrips,
+          totalIncome: displayData.todayOverview.totalIncome,
+          totalExpenses: displayData.todayOverview.totalExpenses,
+        }} />
 
         {/* Recent Activity */}
         <RecentActivity
-          activities={recentActivity}
+          activities={displayData.recentActivity}
           onViewAll={handleViewAllActivity}
         />
       </ScrollView>
@@ -198,5 +239,28 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+  },
+  centerContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.md,
+    padding: spacing.lg,
+  },
+  loadingText: {
+    fontSize: fontSize.base,
+    color: colors.textSecondary,
+  },
+  errorText: {
+    fontSize: fontSize.lg,
+    fontWeight: '600',
+    color: colors.error,
+    textAlign: 'center',
+  },
+  errorSubtext: {
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+    textAlign: 'center',
   },
 });

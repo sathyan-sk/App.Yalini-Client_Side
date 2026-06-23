@@ -25,6 +25,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { colors, spacing, fontSize, radius, cardShadow } from '../../../theme';
 import { useDeliveryStore } from '../../../store/deliveryStore';
+import { useAuthStore } from '../../../store/authStore';
 import { submitStaffSession } from '../../../services/deliveryService';
 import type { StaffStackParamList } from '../../../types/navigation';
 
@@ -45,6 +46,7 @@ export default function StaffCheckoutScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<CheckoutNavigationProp>();
   const { session, deliveries, updateSessionStatus, reset } = useDeliveryStore();
+  const authUser = useAuthStore((state) => state.user);
   const [isSubmitting, setIsSubmitting] = useState(false);
   // Group deliveries by hotel and calculate summary
   const hotelSummaries = useMemo(() => {
@@ -117,7 +119,7 @@ export default function StaffCheckoutScreen() {
             try {
               // FIX: Submit to central store so Admin can see the record
               const result = await submitStaffSession({
-                staffId: session.id || 'emp_seed_mani',
+                staffId: session.staffId || authUser?.userId || '',
                 staffName: session.staffName,
                 deliveries: deliveries,
                 totalIncome: grandTotal.totalIncome,

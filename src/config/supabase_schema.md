@@ -179,11 +179,17 @@ CREATE TABLE IF NOT EXISTS trip_details (
     driver_record_id VARCHAR(255) NOT NULL REFERENCES driver_records(id) ON DELETE CASCADE,
     trip_number INTEGER NOT NULL,
     destination VARCHAR(255) NOT NULL,
+    trip_type VARCHAR(20) NOT NULL DEFAULT 'private',
+    payment_mode VARCHAR(20) NOT NULL DEFAULT 'cash',
     distance NUMERIC(10, 2) NOT NULL,
     income NUMERIC(10, 2) NOT NULL,
     expense NUMERIC(10, 2) NOT NULL,
+    profit NUMERIC(10, 2) NOT NULL DEFAULT 0,
+    expense_categories JSONB DEFAULT '{"fuel":0,"toll":0,"food":0,"other":0,"notes":""}'::jsonb,
     CONSTRAINT trip_details_trip_number_check CHECK (trip_number > 0),
     CONSTRAINT trip_details_distance_check CHECK (distance >= 0),
+    CONSTRAINT trip_details_trip_type_check CHECK (trip_type IN ('vendor', 'private')),
+    CONSTRAINT trip_details_payment_mode_check CHECK (payment_mode IN ('cash', 'online')),
     CONSTRAINT trip_details_unique_per_record UNIQUE (driver_record_id, trip_number)
 );
 

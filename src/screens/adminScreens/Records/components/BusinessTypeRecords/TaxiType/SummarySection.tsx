@@ -53,9 +53,9 @@ export function SummarySection({ record, testID }: SummarySectionProps) {
         <View style={styles.row}>
           <View style={styles.gridItemFull}>
             <SummaryMetricCard
-              type="balance"
-              value={record.balanceShortage}
-              label="Balance (Shortage)"
+              type="profit"
+              value={record.totalProfit}
+              label="Total Profit"
             />
           </View>
         </View>
