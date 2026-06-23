@@ -8,6 +8,7 @@
 
 import { create } from 'zustand';
 import type { Trip, SessionSubmissionData } from '../types/driver';
+import { useAuthStore } from './authStore';
 import { submitDriverSession } from '../services/driverService';
 
 export interface TripExpense {
@@ -175,11 +176,15 @@ export const useTripStore = create<TripStore>((set, get) => ({
     set({ isSubmitting: true, submissionError: null });
 
     try {
+      // Get auth user ID - this ensures FK constraint is satisfied
+      const authUser = useAuthStore.getState().user;
+      const employeeId = authUser?.userId || '';
+
       // Prepare submission data
       const submissionData: SessionSubmissionData = {
         sessionId: state.session.sessionId || `SESSION_${Date.now()}`,
-        driverId: state.session.driverId || 'DRIVER_001',
-        vehicleId: state.session.vehicleId || 'VEHICLE_001',
+        driverId: state.session.driverId || employeeId,
+        vehicleId: state.session.vehicleId || '',
         sessionDate: state.session.sessionDate,
         startTime: state.session.sessionTime,
         endTime: getCurrentTime(),

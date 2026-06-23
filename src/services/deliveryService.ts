@@ -59,16 +59,17 @@ async function simulateLatency(): Promise<void> {
 /**
  * Loads all enabled hotels from the admin master list.
  */
-export async function loadHotelsForDelivery(): Promise<HotelOption[]> {
+export async function loadHotelsForDelivery(employeeId?: string): Promise<HotelOption[]> {
   if (!USE_MOCK) {
     const { loadHotelsForDelivery: loadFromSupabase } = await import('./deliveryService.supabase');
-    return loadFromSupabase();
+    return loadFromSupabase(employeeId);
   }
 
   const allHotels = await getHotels();
-  return allHotels
-    .filter(h => h.status === 'enabled')
-    .map(toHotelOption);
+  const filtered = employeeId
+    ? allHotels.filter(h => h.status === 'enabled' && h.assignedEmployeeId === employeeId)
+    : allHotels.filter(h => h.status === 'enabled');
+  return filtered.map(toHotelOption);
 }
 
 /**

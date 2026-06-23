@@ -1,19 +1,21 @@
 /**
- * StaffStartDayScreen - Main screen for Staff (Water Delivery) module
- * Shows hotel assignment status and allows staff to start their day
-* 
+ * StaffStartDayScreen - Start Day screen for Staff (Water Delivery) module
+ * Fetches real data from Supabase - NO mock data fallback
+ *
  * Flow:
- *   - Staff enters total loaded cans and rate per can
- *   - Taps Start Day which creates the session with status OPEN
- *   - Navigates to StaffMain using navigation.replace (prevents back to StartDayScreen)
+ *   - Fetches staff data + assigned hotels from Supabase via employeeId
+ *   - Shows hotel assignment status
+ *   - Taps Start Day to begin session and navigate to StaffMain
  */
-import React, { useState } from 'react';
-import { StyleSheet, View, ScrollView, Alert } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View, ScrollView, Alert, ActivityIndicator, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { StaffStackParamList } from '../../../types/navigation';
-
+import { colors, spacing, fontSize } from '../../../theme';
+import { useAuthStore } from '../../../store/authStore';
+import { getStaffHomeData } from '../../../services/deliveryService';
 
 type NavigationProp = NativeStackScreenProps<StaffStackParamList, 'StaffStartDay'>['navigation'];
 
@@ -26,40 +28,44 @@ import {
   ContactAdminButton,
   HotelAssignmentCard,
 } from '../StartDay/components';
-import { STAFF_WITH_HOTELS, STAFF_WITHOUT_HOTELS } from './data/mockData';
-import type { StaffStartDayData } from './types';
 
 const BACKGROUND_COLOR = '#F7F8FA';
 
-interface StaffStartDayScreenProps {
-  /** Set to true to show the "no assignment" scenario */
-  showNoAssignment?: boolean;
-}
-
-export default function StaffStartDayScreen({ showNoAssignment = false }: StaffStartDayScreenProps) {
+export default function StaffStartDayScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
-  
-  // Use mock data based on prop (for demo purposes)
-  const [data] = useState<StaffStartDayData>(
-    showNoAssignment ? STAFF_WITHOUT_HOTELS : STAFF_WITH_HOTELS
-  );
+  const authUser = useAuthStore((state) => state.user);
 
-  const hasAssignment = data.assignment !== null;
+  const [staffData, setStaffData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  // Fetch real staff data from Supabase on mount
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      setLoadError(null);
+      try {
+        const employeeId = authUser?.userId;
+        const data = await getStaffHomeData(employeeId);
+        setStaffData(data);
+      } catch (error) {
+        console.error('[StaffStartDay] Failed to load staff data:', error);
+        setLoadError('Failed to load staff data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
+  }, [authUser]);
+
+  const hasAssignment = staffData?.assignedHotels && staffData.assignedHotels.length > 0;
 
   const handleMenuPress = () => {
-    // Navigation drawer will be connected later
     console.log('Menu pressed');
   };
-  /**
-   * Handles Start Day button press.
-   * Creates session with OPEN status and navigates to StaffMain (bottom tabs).
-   * Uses replace() so back button cannot return to StartDayScreen.
-   */
-  const handleStartDay = () => {
 
-    // Navigate to StaffMain (bottom tabs) after starting day
-    // Using replace prevents going back to StartDayScreen
+  const handleStartDay = () => {
     navigation.replace('StaffMain');
   };
 
@@ -72,9 +78,9 @@ export default function StaffStartDayScreen({ showNoAssignment = false }: StaffS
   };
 
   const handleViewHotels = () => {
-    if (data.assignment) {
-      const hotelNames = data.assignment.hotels
-        .map((h, i) => `${i + 1}. ${h.hotelName}`)
+    if (staffData?.assignedHotels && staffData.assignedHotels.length > 0) {
+      const hotelNames = staffData.assignedHotels
+        .map((h: any, i: number) => `${i + 1}. ${h.hotelName}`)
         .join('\n');
       Alert.alert(
         'Assigned Hotels',
@@ -83,6 +89,32 @@ export default function StaffStartDayScreen({ showNoAssignment = false }: StaffS
       );
     }
   };
+
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <StartDayHeader onMenuPress={handleMenuPress} />
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color={colors.primaryBlue} />
+          <Text style={styles.loadingText}>Loading staff information...</Text>
+        </View>
+      </View>
+    );
+  }
+
+  if (loadError || !staffData) {
+    return (
+      <View style={styles.container}>
+        <StartDayHeader onMenuPress={handleMenuPress} />
+        <View style={styles.centerContainer}>
+          <Text style={styles.errorText}>No Staff Data Available</Text>
+          <Text style={styles.errorSubtext}>
+            {loadError || 'No employee found for your account'}
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -96,24 +128,23 @@ export default function StaffStartDayScreen({ showNoAssignment = false }: StaffS
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Service & User Info */}
+        {/* Service & User Info - from Supabase */}
         <ServiceInfoCard
-          businessName={data.staff.businessName}
-          businessType={data.staff.businessType}
-          userName={data.staff.name}
-          role={data.staff.role}
+          businessName={staffData.staff.businessName}
+          businessType={staffData.staff.businessType}
+          userName={staffData.staff.name}
+          role={staffData.staff.role}
         />
 
         {/* Assignment Status */}
-        {hasAssignment && data.assignment ? (
+        {hasAssignment ? (
           <>
             <HotelAssignmentCard
-              hotelCount={data.assignment.hotelCount}
+              hotelCount={staffData.assignedHotels.length}
               onViewHotels={handleViewHotels}
             />
             <InfoBanner
-              message="You have hotels assigned for today. so,
-Tap Start Day to begin your work."
+              message="You have hotels assigned for today. Tap Start Day to begin your work."
             />
             <StartDayButton onPress={handleStartDay} />
           </>
@@ -138,5 +169,28 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+  },
+  centerContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.md,
+    padding: spacing.lg,
+  },
+  loadingText: {
+    fontSize: fontSize.base,
+    color: colors.textSecondary,
+  },
+  errorText: {
+    fontSize: fontSize.lg,
+    fontWeight: '600',
+    color: colors.error,
+    textAlign: 'center',
+  },
+  errorSubtext: {
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+    textAlign: 'center',
   },
 });

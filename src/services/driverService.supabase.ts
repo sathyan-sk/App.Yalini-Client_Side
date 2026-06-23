@@ -274,12 +274,33 @@ export async function submitDriverSession(
         .delete()
         .eq('driver_record_id', driverRecordId);
     } else {
-      // Create new driver record
+      // If no vehicle assigned, use employee ID as vehicle ID placeholder
+      // Admin should assign a vehicle before driver submits
+      let actualVehicleId = data.vehicleId || data.driverId;
+      
+      // Get vehicle info (or use defaults if no vehicle)
+      if (!data.vehicleId) {
+        vehicleName = 'No Vehicle Assigned';
+        vehicleNumber = 'N/A';
+        // Try to find any vehicle assigned to this driver as fallback
+        const { data: fallbackVehicle } = await supabase
+          .from('vehicles')
+          .select('id, name, number')
+          .eq('assigned_employee_id', data.driverId)
+          .limit(1)
+          .single();
+        if (fallbackVehicle) {
+          actualVehicleId = fallbackVehicle.id;
+          vehicleName = fallbackVehicle.name;
+          vehicleNumber = fallbackVehicle.number;
+        }
+      }
+
       const insertData: DriverRecordInsert = {
         id: generateId('dr'),
         driver_name: driverName,
         employee_id: data.driverId,
-        vehicle_id: data.vehicleId,
+        vehicle_id: actualVehicleId,
         vehicle_name: vehicleName,
         vehicle_number: vehicleNumber,
         date: today,

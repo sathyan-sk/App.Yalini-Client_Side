@@ -51,17 +51,24 @@ let currentSession: DeliverySessionData | null = null;
 
 /**
  * Loads all enabled hotels from Supabase.
+ * If employeeId provided, filters by assigned employee.
  */
-export async function loadHotelsForDelivery(): Promise<HotelOption[]> {
+export async function loadHotelsForDelivery(employeeId?: string): Promise<HotelOption[]> {
   if (!isSupabaseConfigured()) {
     throw new Error('Supabase is not configured');
   }
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('hotels')
     .select('*')
-    .eq('status', 'enabled')
-    .order('name', { ascending: true });
+    .eq('status', 'enabled');
+
+  // Filter by assigned employee if provided
+  if (employeeId) {
+    query = query.eq('assigned_employee_id', employeeId);
+  }
+
+  const { data, error } = await query.order('name', { ascending: true });
 
   if (error) {
     console.error('[Supabase] Error loading hotels:', error);
@@ -74,19 +81,40 @@ export async function loadHotelsForDelivery(): Promise<HotelOption[]> {
 /**
  * Gets the current delivery session data.
  * Creates a new session if none exists.
+ * Uses employeeId to fetch real staff name from Supabase.
  */
 export async function getDeliverySession(employeeId?: string): Promise<DeliverySessionData> {
   if (currentSession) {
     return currentSession;
   }
 
-  // In production, the employee ID comes from the authenticated user session
-  // Return empty state or use provided employeeId - admin must assign hotels before staff can start delivery
   const now = new Date();
+
+  // Try to fetch real staff name from Supabase
+  let staffName = 'Staff';
+  let businessName = 'Yalini Minerals';
+
+  if (employeeId) {
+    try {
+      const { data: employee } = await supabase
+        .from('employees')
+        .select('full_name, business_name')
+        .eq('id', employeeId)
+        .single();
+
+      if (employee) {
+        staffName = employee.full_name;
+        businessName = employee.business_name;
+      }
+    } catch (err) {
+      console.log('[Delivery] Could not fetch employee name, using default');
+    }
+  }
+
   currentSession = {
     id: `session_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
-    staffName: 'Staff',
-    serviceName: 'Yalini Minerals',
+    staffName,
+    serviceName: businessName,
     staffId: employeeId || '',
     sessionDate: now.toLocaleDateString('en-IN', {
       day: '2-digit',
@@ -404,7 +432,7 @@ export async function submitStaffSession(
 }
 
 /**
- * Get staff session for a specific employee ID (used by StartDay screen).
+ * Get staff session for a specific employee ID (used by staff home and start day screens).
  */
 export async function getStaffHomeData(employeeId?: string): Promise<{
   staff: {

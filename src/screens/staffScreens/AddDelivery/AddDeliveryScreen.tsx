@@ -36,6 +36,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 
 import { colors, spacing, cardShadow, radius } from '../../../theme';
+import { useAuthStore } from '../../../store/authStore';
 import { useDeliveryStore } from '../../../store/deliveryStore';
 import {
   loadHotelsForDelivery,
@@ -90,6 +91,7 @@ const INITIAL_FORM_VALUES: DeliveryFormValues = {
 export default function AddDeliveryScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
+  const authUser = useAuthStore((state) => state.user);
 
   // Store state
   const { session, hotels, deliveries, setSession, setHotels, addDelivery } =
@@ -126,8 +128,8 @@ export default function AddDeliveryScreen(): React.JSX.Element {
       try {
         setIsLoading(true);
         const [sessionData, hotelsData] = await Promise.all([
-          getDeliverySession(),
-          loadHotelsForDelivery(),
+          getDeliverySession(authUser?.userId),
+          loadHotelsForDelivery(authUser?.userId),
         ]);
         setSession(sessionData);
         setHotels(hotelsData);

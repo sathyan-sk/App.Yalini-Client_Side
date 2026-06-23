@@ -18,10 +18,11 @@ import { NoAssignmentCard } from './components/NoAssignmentCard';
 import { InfoBanner } from './components/InfoBanner';
 import { StartDayButton } from './components/StartDayButton';
 import { ContactAdminButton } from './components/ContactAdminButton';
+import { useAuthStore } from '../../../store/authStore';
 import { getStartDayData } from '../../../services/driverService';
 import type { StartDayData } from '@/types/driver';
 import type { DriverStackParamList } from '../../../types/navigation';
-import { colors } from '../../../theme';
+import { colors, spacing, fontSize } from '../../../theme';
 
 type NavigationProp = NativeStackNavigationProp<DriverStackParamList>;
 
@@ -32,31 +33,24 @@ interface DriverStartDayScreenProps {
   showNoAssignment?: boolean;
 }
 
-export default function DriverStartDayScreen({ showNoAssignment = false }: DriverStartDayScreenProps) {
+export default function DriverStartDayScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
+  const authUser = useAuthStore((state) => state.user);
 
   const [data, setData] = useState<StartDayData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch data from centralized driverService
+  // Fetch data from Supabase using auth user ID
   useEffect(() => {
     async function fetchData() {
       try {
         setIsLoading(true);
         setError(null);
-        const startDayData = await getStartDayData();
-        
-        // If showNoAssignment is true, override the assignment for demo
-        if (showNoAssignment) {
-          setData({
-            ...startDayData,
-            assignment: null,
-          });
-        } else {
-          setData(startDayData);
-        }
+        const employeeId = authUser?.userId;
+        const startDayData = await getStartDayData(employeeId);
+        setData(startDayData);
       } catch (err) {
         console.error('Error fetching start day data:', err);
         setError('Failed to load driver data');
@@ -66,7 +60,7 @@ export default function DriverStartDayScreen({ showNoAssignment = false }: Drive
     }
 
     fetchData();
-  }, [showNoAssignment]);
+  }, [authUser]);
 
   const hasAssignment = data?.assignment !== null;
 
@@ -93,7 +87,7 @@ export default function DriverStartDayScreen({ showNoAssignment = false }: Drive
     return (
       <View style={[styles.container, styles.centerContent]}>
         <ActivityIndicator size="large" color={colors.primaryBlue} />
-        <Text style={styles.loadingText}>Loading...</Text>
+        <Text style={styles.loadingText}>Loading driver information...</Text>
       </View>
     );
   }
@@ -102,7 +96,10 @@ export default function DriverStartDayScreen({ showNoAssignment = false }: Drive
   if (error || !data) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <Text style={styles.errorText}>{error || 'Failed to load data'}</Text>
+        <Text style={styles.errorText}>No Driver Data Available</Text>
+        <Text style={styles.errorSubtext}>
+          {error || 'No employee found for your account'}
+        </Text>
       </View>
     );
   }
@@ -166,13 +163,21 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   loadingText: {
-    marginTop: 12,
-    fontSize: 16,
+    marginTop: spacing.md,
+    fontSize: fontSize.base,
     color: colors.textSecondary,
   },
   errorText: {
-    fontSize: 16,
-    color: '#EF4444',
+    fontSize: fontSize.lg,
+    fontWeight: '600',
+    color: colors.error,
+    textAlign: 'center',
+    paddingHorizontal: 24,
+  },
+  errorSubtext: {
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
     textAlign: 'center',
     paddingHorizontal: 24,
   },
