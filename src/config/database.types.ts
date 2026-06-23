@@ -57,6 +57,7 @@ export interface Database {
           business_name: string
           business_type: 'taxi' | 'water_delivery'
           pin: string
+          role: 'admin' | 'driver' | 'staff'
           status: 'enabled' | 'disabled'
           created_at: string
         }
@@ -68,6 +69,7 @@ export interface Database {
           business_name: string
           business_type: 'taxi' | 'water_delivery'
           pin: string
+          role?: 'admin' | 'driver' | 'staff'
           status: 'enabled' | 'disabled'
           created_at?: string
         }
@@ -79,6 +81,7 @@ export interface Database {
           business_name?: string
           business_type?: 'taxi' | 'water_delivery'
           pin?: string
+          role?: 'admin' | 'driver' | 'staff'
           status?: 'enabled' | 'disabled'
           created_at?: string
         }

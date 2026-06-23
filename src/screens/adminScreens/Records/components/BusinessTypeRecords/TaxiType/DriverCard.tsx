@@ -13,9 +13,10 @@ interface DriverCardProps {
   record: DriverRecord;
   onPress: () => void;
   testID?: string;
+  showDate?: boolean;
 }
 
-export function DriverCard({ record, onPress, testID }: DriverCardProps) {
+export function DriverCard({ record, onPress, testID, showDate }: DriverCardProps) {
   return (
     <Pressable
       onPress={onPress}
@@ -31,6 +32,9 @@ export function DriverCard({ record, onPress, testID }: DriverCardProps) {
         <View style={styles.headerContent}>
           <Text style={styles.driverName}>{record.driverName}</Text>
           <Text style={styles.vehicleName}>{record.vehicleName}</Text>
+          {showDate && (
+            <Text style={styles.date}>{record.date}</Text>
+          )}
         </View>
         <StatusBadge status={record.status} />
         <Feather

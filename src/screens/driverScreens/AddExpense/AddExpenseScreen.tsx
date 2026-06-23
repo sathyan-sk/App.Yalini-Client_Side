@@ -208,7 +208,7 @@ export default function AddExpenseScreen() {
 
           {/* Expense Details Card */}
           <ExpenseDetailsCard
-            categories={EXPENSE_CATEGORIES}
+            categories={EXPENSE_CATEGORIES as any}
             formData={formData}
             onFieldChange={handleFieldChange}
             totalExpense={totalExpense}

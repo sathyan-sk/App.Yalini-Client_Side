@@ -152,7 +152,7 @@ export default function WaterRecords() {
         {/* Selectors Row */}
         <View style={styles.selectorsRow}>
           <BusinessSelector
-            businesses={waterBusinesses}
+            businesses={waterBusinesses as any}
             selectedBusiness={selectedBusiness}
             onSelect={setSelectedBusiness}
           />

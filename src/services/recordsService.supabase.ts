@@ -3,6 +3,10 @@
  *
  * This service provides access to daily records (taxi and water delivery)
  * from Supabase database.
+ *
+ * FIX: N+1 query optimization — we now batch-fetch related sub-records
+ * (trip_details and hotel_deliveries) in a single query per type instead of
+ * one query per parent record.
  */
 
 import { supabase } from '../config/supabase';
@@ -16,15 +20,14 @@ type TripDetailRow = Database['public']['Tables']['trip_details']['Row'];
 type HotelDeliveryRow = Database['public']['Tables']['hotel_deliveries']['Row'];
 
 /**
- * Convert driver record from database format to frontend format
+ * Convert driver record database row to frontend type (synchronous — no sub-query).
+ * Sub-records (trip_details, hotel_deliveries) are passed in from batch queries.
  */
-const fromDriverRecordRow = async (row: DriverRecordRow): Promise<DriverRecord> => {
-  // Fetch trip details for this record
-  const { data: tripDetails } = await supabase
-    .from('trip_details')
-    .select('*')
-    .eq('driver_record_id', row.id)
-    .order('trip_number', { ascending: true });
+const fromDriverRecordRow = (
+  row: DriverRecordRow,
+  tripDetailsMap: Map<string, TripDetailRow[]>
+): DriverRecord => {
+  const tripDetails = tripDetailsMap.get(row.id) || [];
 
   return {
     id: row.id,
@@ -44,7 +47,7 @@ const fromDriverRecordRow = async (row: DriverRecordRow): Promise<DriverRecord> 
     totalProfit: row.total_profit,
     perKmRate: row.per_km_rate,
     fuelExpense: row.fuel_expense,
-    tripDetails: (tripDetails || []).map(td => ({
+    tripDetails: tripDetails.map(td => ({
       id: td.id,
       tripNumber: td.trip_number,
       destination: td.destination,
@@ -56,14 +59,13 @@ const fromDriverRecordRow = async (row: DriverRecordRow): Promise<DriverRecord> 
 };
 
 /**
- * Convert water record from database format to frontend format
+ * Convert water record database row to frontend type (synchronous — no sub-query).
  */
-const fromWaterRecordRow = async (row: WaterRecordRow): Promise<WaterDeliveryRecord> => {
-  // Fetch hotel deliveries for this record
-  const { data: hotelDeliveries } = await supabase
-    .from('hotel_deliveries')
-    .select('*')
-    .eq('water_delivery_record_id', row.id);
+const fromWaterRecordRow = (
+  row: WaterRecordRow,
+  hotelDeliveriesMap: Map<string, HotelDeliveryRow[]>
+): WaterDeliveryRecord => {
+  const hotelDeliveries = hotelDeliveriesMap.get(row.id) || [];
 
   return {
     id: row.id,
@@ -80,7 +82,7 @@ const fromWaterRecordRow = async (row: WaterRecordRow): Promise<WaterDeliveryRec
     totalIncome: row.total_income,
     totalExpense: row.total_expense,
     totalProfit: row.total_profit,
-    hotelDeliveries: (hotelDeliveries || []).map(hd => ({
+    hotelDeliveries: hotelDeliveries.map(hd => ({
       id: hd.id,
       hotelName: hd.hotel_name,
       location: hd.location,
@@ -94,6 +96,61 @@ const fromWaterRecordRow = async (row: WaterRecordRow): Promise<WaterDeliveryRec
     })),
   };
 };
+
+/**
+ * Batch-fetch trip details for a set of driver record IDs.
+ * Returns a Map<driverRecordId, TripDetailRow[]>.
+ */
+async function batchFetchTripDetails(driverRecordIds: string[]): Promise<Map<string, TripDetailRow[]>> {
+  const map = new Map<string, TripDetailRow[]>();
+  if (driverRecordIds.length === 0) return map;
+
+  const { data, error } = await supabase
+    .from('trip_details')
+    .select('*')
+    .in('driver_record_id', driverRecordIds)
+    .order('trip_number', { ascending: true });
+
+  if (error) {
+    console.error('[Supabase] Error batch-fetching trip details:', error);
+    return map;
+  }
+
+  (data || []).forEach(td => {
+    const existing = map.get(td.driver_record_id) || [];
+    existing.push(td);
+    map.set(td.driver_record_id, existing);
+  });
+
+  return map;
+}
+
+/**
+ * Batch-fetch hotel deliveries for a set of water record IDs.
+ * Returns a Map<waterDeliveryRecordId, HotelDeliveryRow[]>.
+ */
+async function batchFetchHotelDeliveries(waterRecordIds: string[]): Promise<Map<string, HotelDeliveryRow[]>> {
+  const map = new Map<string, HotelDeliveryRow[]>();
+  if (waterRecordIds.length === 0) return map;
+
+  const { data, error } = await supabase
+    .from('hotel_deliveries')
+    .select('*')
+    .in('water_delivery_record_id', waterRecordIds);
+
+  if (error) {
+    console.error('[Supabase] Error batch-fetching hotel deliveries:', error);
+    return map;
+  }
+
+  (data || []).forEach(hd => {
+    const existing = map.get(hd.water_delivery_record_id) || [];
+    existing.push(hd);
+    map.set(hd.water_delivery_record_id, existing);
+  });
+
+  return map;
+}
 
 /**
  * Get all businesses formatted for the selector component.
@@ -114,7 +171,7 @@ export async function getBusinessesForRecords(): Promise<Business[]> {
 }
 
 /**
- * Get all driver (taxi) records.
+ * Get all driver (taxi) records with trip details batch-fetched.
  */
 export async function getAllDriverRecords(): Promise<DriverRecord[]> {
   const { data, error } = await supabase
@@ -127,8 +184,9 @@ export async function getAllDriverRecords(): Promise<DriverRecord[]> {
     return [];
   }
 
-  const records = await Promise.all((data || []).map(fromDriverRecordRow));
-  return records;
+  const rows = data || [];
+  const tripDetailsMap = await batchFetchTripDetails(rows.map(r => r.id));
+  return rows.map(row => fromDriverRecordRow(row, tripDetailsMap));
 }
 
 /**
@@ -145,7 +203,8 @@ export async function getDriverRecordByIdService(id: string): Promise<DriverReco
     return undefined;
   }
 
-  return fromDriverRecordRow(data);
+  const tripDetailsMap = await batchFetchTripDetails([data.id]);
+  return fromDriverRecordRow(data, tripDetailsMap);
 }
 
 /**
@@ -163,12 +222,13 @@ export async function getDriverRecordsForDate(date: string): Promise<DriverRecor
     return [];
   }
 
-  const records = await Promise.all((data || []).map(fromDriverRecordRow));
-  return records;
+  const rows = data || [];
+  const tripDetailsMap = await batchFetchTripDetails(rows.map(r => r.id));
+  return rows.map(row => fromDriverRecordRow(row, tripDetailsMap));
 }
 
 /**
- * Get all water delivery records.
+ * Get all water delivery records with hotel deliveries batch-fetched.
  */
 export async function getAllWaterDeliveryRecords(): Promise<WaterDeliveryRecord[]> {
   const { data, error } = await supabase
@@ -181,8 +241,9 @@ export async function getAllWaterDeliveryRecords(): Promise<WaterDeliveryRecord[
     return [];
   }
 
-  const records = await Promise.all((data || []).map(fromWaterRecordRow));
-  return records;
+  const rows = data || [];
+  const hotelDeliveriesMap = await batchFetchHotelDeliveries(rows.map(r => r.id));
+  return rows.map(row => fromWaterRecordRow(row, hotelDeliveriesMap));
 }
 
 /**
@@ -199,7 +260,8 @@ export async function getWaterRecordByIdService(id: string): Promise<WaterDelive
     return undefined;
   }
 
-  return fromWaterRecordRow(data);
+  const hotelDeliveriesMap = await batchFetchHotelDeliveries([data.id]);
+  return fromWaterRecordRow(data, hotelDeliveriesMap);
 }
 
 /**
@@ -217,8 +279,9 @@ export async function getWaterRecordsForDate(date: string): Promise<WaterDeliver
     return [];
   }
 
-  const records = await Promise.all((data || []).map(fromWaterRecordRow));
-  return records;
+  const rows = data || [];
+  const hotelDeliveriesMap = await batchFetchHotelDeliveries(rows.map(r => r.id));
+  return rows.map(row => fromWaterRecordRow(row, hotelDeliveriesMap));
 }
 
 /**
@@ -235,3 +298,29 @@ export async function getAllRecordsForDate(date: string): Promise<{
 
   return { driverRecords, waterRecords };
 }
+
+// ============================================================================
+// LEGACY COMPATIBILITY FUNCTIONS
+// These match the function names exported by the mock recordsService.ts
+// so consuming code doesn't need to change imports.
+// ============================================================================
+
+export const mockBusinesses = async (): Promise<(Business | WaterBusiness)[]> => {
+  return getBusinessesForRecords();
+};
+
+export const mockDriverRecords = async (): Promise<DriverRecord[]> => {
+  return getAllDriverRecords();
+};
+
+export const mockWaterDeliveryRecords = async (): Promise<WaterDeliveryRecord[]> => {
+  return getAllWaterDeliveryRecords();
+};
+
+export const getMockRecordById = async (id: string): Promise<DriverRecord | undefined> => {
+  return getDriverRecordByIdService(id);
+};
+
+export const getMockWaterRecordById = async (id: string): Promise<WaterDeliveryRecord | undefined> => {
+  return getWaterRecordByIdService(id);
+};

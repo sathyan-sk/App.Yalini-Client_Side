@@ -59,6 +59,14 @@ export async function createVehicle(values: VehicleFormValues): Promise<Vehicle>
     updated_at: getTodayDate(),
   };
 
+  // Add assignment fields if provided
+  if (values.assignedDriver) {
+    insertData.assigned_driver = values.assignedDriver;
+  }
+  if (values.assignedEmployeeId) {
+    insertData.assigned_employee_id = values.assignedEmployeeId;
+  }
+
   const { data, error } = await supabase
     .from('vehicles')
     .insert(insertData)
@@ -88,6 +96,14 @@ export async function updateVehicle(
     updated_at: getTodayDate(),
   };
 
+  // Add assignment fields if changing
+  if (values.assignedDriver !== undefined) {
+    updateData.assigned_driver = values.assignedDriver || null;
+  }
+  if (values.assignedEmployeeId !== undefined) {
+    updateData.assigned_employee_id = values.assignedEmployeeId || null;
+  }
+
   const { data, error } = await supabase
     .from('vehicles')
     .update(updateData)
@@ -101,6 +117,13 @@ export async function updateVehicle(
   }
 
   return data ? fromSupabaseRow(data) : null;
+}
+
+/**
+ * Save vehicles - no-op for Supabase (operations are done individually).
+ */
+export async function saveVehicles(_vehicles: Vehicle[]): Promise<void> {
+  console.log('[Supabase] saveVehicles called - no-op in Supabase mode');
 }
 
 /**

@@ -6,8 +6,11 @@
  * 
  * Both driver records AND water delivery records are now fetched from
  * the central store, ensuring admin can see all employee submissions.
+ *
+ * INTEGRATION: When USE_MOCK=false, delegates to Supabase implementation.
  */
 
+import { USE_MOCK } from './featureFlags';
 import {
   getDriverRecords,
   getDriverRecordById,
@@ -29,6 +32,10 @@ const toWaterRecordType = (mock: MockWaterDeliveryRecord): WaterDeliveryRecord =
  * Get all businesses formatted for the selector component.
  */
 export async function getBusinessesForRecords(): Promise<Business[]> {
+  if (!USE_MOCK) {
+    const { getBusinessesForRecords: getFromSupabase } = await import('./recordsService.supabase');
+    return getFromSupabase();
+  }
   const businesses = await getBusinessesForSelector();
   return businesses as Business[];
 }
@@ -37,6 +44,10 @@ export async function getBusinessesForRecords(): Promise<Business[]> {
  * Get all driver (taxi) records.
  */
 export async function getAllDriverRecords(): Promise<DriverRecord[]> {
+  if (!USE_MOCK) {
+    const { getAllDriverRecords: getFromSupabase } = await import('./recordsService.supabase');
+    return getFromSupabase();
+  }
   const records = await getDriverRecords();
   return records.map(toDriverRecordType);
 }
@@ -45,6 +56,10 @@ export async function getAllDriverRecords(): Promise<DriverRecord[]> {
  * Get driver record by ID.
  */
 export async function getDriverRecordByIdService(id: string): Promise<DriverRecord | undefined> {
+  if (!USE_MOCK) {
+    const { getDriverRecordByIdService: getFromSupabase } = await import('./recordsService.supabase');
+    return getFromSupabase(id);
+  }
   const record = await getDriverRecordById(id);
   return record ? toDriverRecordType(record) : undefined;
 }
@@ -53,15 +68,22 @@ export async function getDriverRecordByIdService(id: string): Promise<DriverReco
  * Get driver records for a specific date.
  */
 export async function getDriverRecordsForDate(date: string): Promise<DriverRecord[]> {
+  if (!USE_MOCK) {
+    const { getDriverRecordsForDate: getFromSupabase } = await import('./recordsService.supabase');
+    return getFromSupabase(date);
+  }
   const records = await getDriverRecordsByDate(date);
   return records.map(toDriverRecordType);
 }
 
 /**
  * Get all water delivery records.
- * FIX: This now returns records from central store including staff submissions.
  */
 export async function getAllWaterDeliveryRecords(): Promise<WaterDeliveryRecord[]> {
+  if (!USE_MOCK) {
+    const { getAllWaterDeliveryRecords: getFromSupabase } = await import('./recordsService.supabase');
+    return getFromSupabase();
+  }
   const records = await getWaterDeliveryRecords();
   return records.map(toWaterRecordType);
 }
@@ -70,6 +92,10 @@ export async function getAllWaterDeliveryRecords(): Promise<WaterDeliveryRecord[
  * Get water delivery record by ID.
  */
 export async function getWaterRecordByIdService(id: string): Promise<WaterDeliveryRecord | undefined> {
+  if (!USE_MOCK) {
+    const { getWaterRecordByIdService: getFromSupabase } = await import('./recordsService.supabase');
+    return getFromSupabase(id);
+  }
   const record = await getWaterDeliveryRecordById(id);
   return record ? toWaterRecordType(record) : undefined;
 }
@@ -78,6 +104,10 @@ export async function getWaterRecordByIdService(id: string): Promise<WaterDelive
  * Get water delivery records for a specific date.
  */
 export async function getWaterRecordsForDate(date: string): Promise<WaterDeliveryRecord[]> {
+  if (!USE_MOCK) {
+    const { getWaterRecordsForDate: getFromSupabase } = await import('./recordsService.supabase');
+    return getFromSupabase(date);
+  }
   const records = await getWaterDeliveryRecordsByDate(date);
   return records.map(toWaterRecordType);
 }

@@ -7,6 +7,7 @@
 
 import { supabase } from '../config/supabase';
 import { getTodayDate } from '../config/supabaseHelpers';
+import { generateId } from '../services/mockData';
 import type { Database } from '../config/database.types';
 import type {
   Employee,
@@ -72,13 +73,19 @@ export async function createEmployee(values: EmployeeFormValues): Promise<Employ
     throw new Error('Business not found');
   }
 
+  // Auto-derive role from business type
+  // taxi business → driver, water_delivery business → staff
+  const derivedRole = business.type === 'taxi' ? 'driver' : 'staff';
+
   const insertData: EmployeeInsert = {
+    id: generateId('emp'),
     full_name: values.fullName.trim(),
     mobile: values.mobile.replace(/\D/g, ''),
     business_id: values.businessId,
     business_name: business.name,
     business_type: business.type,
     pin: values.pin,
+    role: derivedRole,
     status: values.status,
     created_at: getTodayDate(),
   };

@@ -12,9 +12,10 @@ interface DeliveryPersonCardProps {
   record: WaterDeliveryRecord;
   onPress: () => void;
   testID?: string;
+  showDate?: boolean;
 }
 
-export function DeliveryPersonCard({ record, onPress, testID }: DeliveryPersonCardProps) {
+export function DeliveryPersonCard({ record, onPress, testID, showDate }: DeliveryPersonCardProps) {
   // Get first hotel name for subtitle
   const firstHotelName = record.hotelDeliveries[0]?.hotelName || "No deliveries";
 
@@ -36,6 +37,9 @@ export function DeliveryPersonCard({ record, onPress, testID }: DeliveryPersonCa
             <Ionicons name="location-outline" size={12} color={colors.textTertiary} />
             <Text style={styles.subtitle} numberOfLines={1}>{firstHotelName}</Text>
           </View>
+          {showDate && (
+            <Text style={styles.date}>{record.date}</Text>
+          )}
         </View>
         <StatusBadge status={record.status} />
         <Feather
@@ -134,6 +138,11 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
     color: colors.textSecondary,
     flex: 1,
+  },
+  date: {
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
   chevron: {
     marginLeft: spacing.sm,

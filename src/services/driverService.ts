@@ -5,11 +5,9 @@
  * Uses central mock store for data consistency with admin module.
  * When driver submits their day, it creates a record visible to admin.
  *
- * To migrate to real backend:
- * - Set USE_MOCK to false
- * - Replace mock operations with fetch() calls to EXPO_PUBLIC_BACKEND_URL
-**/
-import { USE_MOCK, API_CONFIG } from "./featureFlags";
+ * INTEGRATION: When USE_MOCK=false, delegates to Supabase implementation.
+ */
+import { USE_MOCK } from "./featureFlags";
 import { DRIVER_CONFIG } from "./mockData/driverConfig";
 import {
   getEmployeeById,
@@ -60,153 +58,151 @@ function getRandomAvatarColor(): string {
  * Pulls from central employee/vehicle store for consistency
  */
 export async function getDriverInfo(employeeId: string): Promise<DriverHomeData | null> {
-  if (USE_MOCK) {
-    await simulateLatency();
-
-    const employee = await getEmployeeById(employeeId);
-    if (!employee || employee.businessType !== 'taxi') {
-      return null;
-    }
-
-    // Find assigned vehicle for this driver
-    const vehicles = await getVehicles();
-    const assignedVehicle = vehicles.find(v => v.assignedEmployeeId === employeeId);
-
-    // Check for existing record today
-    const today = todayISODate();
-    const todayRecord = await getDriverRecordByEmployeeAndDate(employeeId, today);
-
-    return {
-      driver: {
-        id: employee.id,
-        name: employee.fullName,
-        businessName: employee.businessName,
-        businessType: 'taxi',
-        role: 'Driver',
-      },
-      assignment: assignedVehicle ? {
-        vehicleId: assignedVehicle.id,
-        vehicleName: assignedVehicle.name,
-        vehicleNumber: assignedVehicle.number,
-        isAssigned: true,
-      } : null,
-      sessionStatus: todayRecord?.status === 'submitted' ? 'SUBMITTED' : 'OPEN',
-      sessionDate: formatDisplayDate(today),
-      sessionStartTime: '08:00 AM',
-      todayOverview: {
-        totalTrips: todayRecord?.trips || 0,
-        totalIncome: todayRecord?.totalIncome || 0,
-        totalExpenses: todayRecord?.totalExpense || 0,
-      },
-      recentActivity: [],
-      notificationCount: 0,
-    };
+  if (!USE_MOCK) {
+    const { getDriverInfo: getFromSupabase } = await import('./driverService.supabase');
+    return getFromSupabase(employeeId);
   }
 
-  // Real API call
-  const response = await fetch(`${API_CONFIG.BASE_URL}/api/driver/${employeeId}/home`);
-  if (!response.ok) throw new Error('Failed to fetch driver info');
-  return response.json();
+  await simulateLatency();
+
+  const employee = await getEmployeeById(employeeId);
+  if (!employee || employee.businessType !== 'taxi') {
+    return null;
+  }
+
+  // Find assigned vehicle for this driver
+  const vehicles = await getVehicles();
+  const assignedVehicle = vehicles.find(v => v.assignedEmployeeId === employeeId);
+
+  // Check for existing record today
+  const today = todayISODate();
+  const todayRecord = await getDriverRecordByEmployeeAndDate(employeeId, today);
+
+  return {
+    driver: {
+      id: employee.id,
+      name: employee.fullName,
+      businessName: employee.businessName,
+      businessType: 'taxi',
+      role: 'Driver',
+    },
+    assignment: assignedVehicle ? {
+      vehicleId: assignedVehicle.id,
+      vehicleName: assignedVehicle.name,
+      vehicleNumber: assignedVehicle.number,
+      isAssigned: true,
+    } : null,
+    sessionStatus: todayRecord?.status === 'submitted' ? 'SUBMITTED' : 'OPEN',
+    sessionDate: formatDisplayDate(today),
+    sessionStartTime: '08:00 AM',
+    todayOverview: {
+      totalTrips: todayRecord?.trips || 0,
+      totalIncome: todayRecord?.totalIncome || 0,
+      totalExpenses: todayRecord?.totalExpense || 0,
+    },
+    recentActivity: [],
+    notificationCount: 0,
+  };
 }
 
 /**
  * Fetch driver home screen data using default demo driver
  */
 export async function getDriverHomeData(): Promise<DriverHomeData> {
-  if (USE_MOCK) {
-    await simulateLatency();
-
-    // Default demo driver from centralized config
-    const demoDriverId = DRIVER_CONFIG.driverId;
-    const driverInfo = await getDriverInfo(demoDriverId);
-
-    if (driverInfo) {
-      return driverInfo;
-    }
-
-    // Fallback using centralized config
-    return {
-      driver: {
-        id: DRIVER_CONFIG.driverId,
-        name: DRIVER_CONFIG.driverName,
-        businessName: DRIVER_CONFIG.businessName,
-        businessType: DRIVER_CONFIG.businessType,
-        role: 'Driver',
-      },
-      assignment: {
-        vehicleId: DRIVER_CONFIG.vehicleId,
-        vehicleName: DRIVER_CONFIG.vehicleName,
-        vehicleNumber: DRIVER_CONFIG.vehicleNumber,
-        isAssigned: true,
-      },
-      sessionStatus: 'OPEN',
-      sessionDate: formatDisplayDate(todayISODate()),
-      sessionStartTime: DRIVER_CONFIG.defaultSessionTime,
-      todayOverview: {
-        totalTrips: 0,
-        totalIncome: 0,
-        totalExpenses: 0,
-      },
-      recentActivity: [],
-      notificationCount: 2,
-    };
+  if (!USE_MOCK) {
+    const { getDriverHomeData: getFromSupabase } = await import('./driverService.supabase');
+    return getFromSupabase();
   }
 
-  const response = await fetch(`${API_CONFIG.BASE_URL}/api/driver/home`);
-  if (!response.ok) throw new Error('Failed to fetch driver home data');
-  return response.json();
+  await simulateLatency();
+
+  // Default demo driver from centralized config
+  const demoDriverId = DRIVER_CONFIG.driverId;
+  const driverInfo = await getDriverInfo(demoDriverId);
+
+  if (driverInfo) {
+    return driverInfo;
+  }
+
+  // Fallback using centralized config
+  return {
+    driver: {
+      id: DRIVER_CONFIG.driverId,
+      name: DRIVER_CONFIG.driverName,
+      businessName: DRIVER_CONFIG.businessName,
+      businessType: DRIVER_CONFIG.businessType,
+      role: 'Driver',
+    },
+    assignment: {
+      vehicleId: DRIVER_CONFIG.vehicleId,
+      vehicleName: DRIVER_CONFIG.vehicleName,
+      vehicleNumber: DRIVER_CONFIG.vehicleNumber,
+      isAssigned: true,
+    },
+    sessionStatus: 'OPEN',
+    sessionDate: formatDisplayDate(todayISODate()),
+    sessionStartTime: DRIVER_CONFIG.defaultSessionTime,
+    todayOverview: {
+      totalTrips: 0,
+      totalIncome: 0,
+      totalExpenses: 0,
+    },
+    recentActivity: [],
+    notificationCount: 2,
+  };
 }
 
 /**
  * Fetch driver home screen data with trips (for demo)
  */
 export async function getDriverHomeDataWithTrips(): Promise<DriverHomeData> {
-  if (USE_MOCK) {
-    await simulateLatency();
-
-    return {
-      driver: {
-        id: DRIVER_CONFIG.driverId,
-        name: DRIVER_CONFIG.driverName,
-        businessName: DRIVER_CONFIG.businessName,
-        businessType: DRIVER_CONFIG.businessType,
-        role: 'Driver',
-      },
-      assignment: {
-        vehicleId: DRIVER_CONFIG.vehicleId,
-        vehicleName: DRIVER_CONFIG.vehicleName,
-        vehicleNumber: DRIVER_CONFIG.vehicleNumber,
-        isAssigned: true,
-      },
-      sessionStatus: 'OPEN',
-      sessionDate: formatDisplayDate(todayISODate()),
-      sessionStartTime: DRIVER_CONFIG.defaultSessionTime,
-      todayOverview: {
-        totalTrips: 5,
-        totalIncome: 3250,
-        totalExpenses: 520,
-      },
-      recentActivity: [
-        {
-          id: 'activity_1',
-          type: 'trip',
-          description: 'Trip to RS Puram',
-          amount: 900,
-          time: '01:15 PM',
-        },
-        {
-          id: 'activity_2',
-          type: 'expense',
-          description: 'Fuel expense added',
-          amount: 120,
-          time: '01:20 PM',
-        },
-      ],
-      notificationCount: 3,
-    };
+  if (!USE_MOCK) {
+    const { getDriverHomeDataWithTrips: getFromSupabase } = await import('./driverService.supabase');
+    return getFromSupabase();
   }
 
-  throw new Error('API not implemented');
+  await simulateLatency();
+
+  return {
+    driver: {
+      id: DRIVER_CONFIG.driverId,
+      name: DRIVER_CONFIG.driverName,
+      businessName: DRIVER_CONFIG.businessName,
+      businessType: DRIVER_CONFIG.businessType,
+      role: 'Driver',
+    },
+    assignment: {
+      vehicleId: DRIVER_CONFIG.vehicleId,
+      vehicleName: DRIVER_CONFIG.vehicleName,
+      vehicleNumber: DRIVER_CONFIG.vehicleNumber,
+      isAssigned: true,
+    },
+    sessionStatus: 'OPEN',
+    sessionDate: formatDisplayDate(todayISODate()),
+    sessionStartTime: DRIVER_CONFIG.defaultSessionTime,
+    todayOverview: {
+      totalTrips: 5,
+      totalIncome: 3250,
+      totalExpenses: 520,
+    },
+    recentActivity: [
+      {
+        id: 'activity_1',
+        type: 'trip',
+        description: 'Trip to RS Puram',
+        amount: 900,
+        time: '01:15 PM',
+      },
+      {
+        id: 'activity_2',
+        type: 'expense',
+        description: 'Fuel expense added',
+        amount: 120,
+        time: '01:20 PM',
+      },
+    ],
+    notificationCount: 3,
+  };
 }
 
 /**
@@ -216,89 +212,75 @@ export async function getDriverHomeDataWithTrips(): Promise<DriverHomeData> {
 export async function submitDriverSession(
   data: SessionSubmissionData
 ): Promise<SessionSubmissionResponse> {
-  if (USE_MOCK) {
-    await simulateLatency();
-
-    // Convert session data to driver record format
-    const tripDetails: TripDetail[] = data.trips.map((trip: Trip, index: number) => ({
-      id: trip.id || generateId('trip'),
-      tripNumber: index + 1,
-      destination: `${trip.from} to ${trip.to}`,
-      distance: 10 + Math.random() * 20, // Simulated distance
-      income: trip.amount,
-      expense: trip.totalExpense || 0,
-    }));
-
-    // Get vehicle info if available
-    let vehicleName = 'Unknown Vehicle';
-    let vehicleNumber = 'Unknown';
-    let vehicleId = data.vehicleId;
-
-    if (data.vehicleId) {
-      const vehicle = await getVehicleById(data.vehicleId);
-      if (vehicle) {
-        vehicleName = vehicle.name;
-        vehicleNumber = vehicle.number;
-      }
-    }
-
-    // Get employee/driver name
-    let driverName = 'Unknown Driver';
-    if (data.driverId) {
-      const employee = await getEmployeeById(data.driverId);
-      if (employee) {
-        driverName = employee.fullName;
-      }
-    }
-
-    // Create the driver record
-    const recordData: Omit<MockDriverRecord, 'id'> = {
-      driverName,
-      employeeId: data.driverId,
-      vehicleId: vehicleId || '',
-      vehicleName,
-      vehicleNumber,
-      date: todayISODate(),
-      status: 'submitted',
-      avatarColor: getRandomAvatarColor(),
-      trips: data.totalTrips,
-      totalIncome: data.totalIncome,
-      totalExpense: data.totalExpenses,
-      settledToAdmin: Math.floor(data.totalIncome * 0.7),
-      balanceShortage: Math.floor(data.totalIncome * 0.3) - data.totalExpenses,
-      totalProfit: data.netAmount,
-      perKmRate: 16,
-      tripDetails,
-      fuelExpense: Math.floor(data.totalExpenses * 0.6),
-    };
-
-    // Save to central store - admin will see this immediately
-    const createdRecord = await createDriverRecord(recordData);
-
-    return {
-      success: true,
-      message: 'Session submitted successfully',
-      submissionId: createdRecord.id,
-      submittedAt: new Date().toISOString(),
-    };
+  if (!USE_MOCK) {
+    const { submitDriverSession: submitToSupabase } = await import('./driverService.supabase');
+    return submitToSupabase(data);
   }
 
-  // Real API call
-  const response = await fetch(`${API_CONFIG.BASE_URL}/api/driver/session/submit`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
+  await simulateLatency();
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Submission failed' }));
-    return {
-      success: false,
-      message: error.message || 'Failed to submit session',
-    };
+  // Convert session data to driver record format
+  const tripDetails: TripDetail[] = data.trips.map((trip: Trip, index: number) => ({
+    id: trip.id || generateId('trip'),
+    tripNumber: index + 1,
+    destination: `${trip.from} to ${trip.to}`,
+    distance: 10 + Math.random() * 20, // Simulated distance
+    income: trip.amount,
+    expense: trip.totalExpense || 0,
+  }));
+
+  // Get vehicle info if available
+  let vehicleName = 'Unknown Vehicle';
+  let vehicleNumber = 'Unknown';
+  let vehicleId = data.vehicleId;
+
+  if (data.vehicleId) {
+    const vehicle = await getVehicleById(data.vehicleId);
+    if (vehicle) {
+      vehicleName = vehicle.name;
+      vehicleNumber = vehicle.number;
+    }
   }
 
-  return response.json();
+  // Get employee/driver name
+  let driverName = 'Unknown Driver';
+  if (data.driverId) {
+    const employee = await getEmployeeById(data.driverId);
+    if (employee) {
+      driverName = employee.fullName;
+    }
+  }
+
+  // Create the driver record
+  const recordData: Omit<MockDriverRecord, 'id'> = {
+    driverName,
+    employeeId: data.driverId,
+    vehicleId: vehicleId || '',
+    vehicleName,
+    vehicleNumber,
+    date: todayISODate(),
+    status: 'submitted',
+    avatarColor: getRandomAvatarColor(),
+    trips: data.totalTrips,
+    totalIncome: data.totalIncome,
+    totalExpense: data.totalExpenses,
+    settledToAdmin: Math.floor(data.totalIncome * 0.7),
+    balanceShortage: Math.floor(data.totalIncome * 0.3) - data.totalExpenses,
+    totalProfit: data.netAmount,
+    perKmRate: 16,
+    tripDetails,
+    fuelExpense: Math.floor(data.totalExpenses * 0.6),
+  };
+
+  // Save to central store - admin will see this immediately
+  const createdRecord = await createDriverRecord(recordData);
+
+  return {
+    success: true,
+    message: 'Session submitted successfully',
+    submissionId: createdRecord.id,
+    submittedAt: new Date().toISOString(),
+  };
 }
 
 /**
@@ -308,22 +290,16 @@ export async function startDriverSession(
   driverId: string,
   vehicleId: string
 ): Promise<{ success: boolean; sessionId: string }> {
-  if (USE_MOCK) {
-    await simulateLatency();
-    return {
-      success: true,
-      sessionId: generateId('SESSION'),
-    };
+  if (!USE_MOCK) {
+    const { startDriverSession: startInSupabase } = await import('./driverService.supabase');
+    return startInSupabase(driverId, vehicleId);
   }
 
-  const response = await fetch(`${API_CONFIG.BASE_URL}/api/driver/session/start`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ driverId, vehicleId }),
-  });
-
-  if (!response.ok) throw new Error('Failed to start session');
-  return response.json();
+  await simulateLatency();
+  return {
+    success: true,
+    sessionId: generateId('SESSION'),
+  };
 }
 
 /**
@@ -332,17 +308,13 @@ export async function startDriverSession(
 export async function endDriverSession(
   sessionId: string
 ): Promise<{ success: boolean }> {
-  if (USE_MOCK) {
-    await simulateLatency();
-    return { success: true };
+  if (!USE_MOCK) {
+    const { endDriverSession: endInSupabase } = await import('./driverService.supabase');
+    return endInSupabase(sessionId);
   }
 
-  const response = await fetch(`${API_CONFIG.BASE_URL}/api/driver/session/${sessionId}/end`, {
-    method: 'POST',
-  });
-
-  if (!response.ok) throw new Error('Failed to end session');
-  return response.json();
+  await simulateLatency();
+  return { success: true };
 }
 
 /**
@@ -397,15 +369,14 @@ function formatDisplayDate(isoDate: string): string {
 export async function getDriverSubmissionHistory(
   driverId: string
 ): Promise<MockDriverRecord[]> {
-  if (USE_MOCK) {
-    await simulateLatency();
-    const { getDriverRecordsByEmployeeId } = await import('./mockData');
-    return getDriverRecordsByEmployeeId(driverId);
+  if (!USE_MOCK) {
+    const { getDriverSubmissionHistory: getFromSupabase } = await import('./driverService.supabase');
+    return getFromSupabase(driverId) as unknown as Promise<MockDriverRecord[]>;
   }
 
-  const response = await fetch(`${API_CONFIG.BASE_URL}/api/driver/${driverId}/history`);
-  if (!response.ok) throw new Error('Failed to fetch submission history');
-  return response.json();
+  await simulateLatency();
+  const { getDriverRecordsByEmployeeId } = await import('./mockData');
+  return getDriverRecordsByEmployeeId(driverId);
 }
 
 /**
@@ -414,57 +385,54 @@ export async function getDriverSubmissionHistory(
  * Called by DriverStartDayScreen on mount.
  */
 export async function getStartDayData(): Promise<StartDayData> {
-  if (USE_MOCK) {
-    await simulateLatency();
+  if (!USE_MOCK) {
+    const { getStartDayData: getFromSupabase } = await import('./driverService.supabase');
+    return getFromSupabase();
+  }
 
-    const demoDriverId = DRIVER_CONFIG.driverId;
-    const employee = await getEmployeeById(demoDriverId);
-    const vehicles = await getVehicles();
-    const assignedVehicle = vehicles.find(
-      (v) => v.assignedEmployeeId === demoDriverId
-    ) ?? null;
+  await simulateLatency();
 
-    if (employee) {
-      return {
-        driver: {
-          id: employee.id,
-          name: employee.fullName,
-          businessName: employee.businessName,
-          businessType: "taxi" as const,
-          role: "Driver",
-        },
-        assignment: assignedVehicle
-          ? {
-              vehicleId: assignedVehicle.id,
-              vehicleName: assignedVehicle.name,
-              vehicleNumber: assignedVehicle.number,
-              isAssigned: true,
-            }
-          : null,
-      };
-    }
+  const demoDriverId = DRIVER_CONFIG.driverId;
+  const employee = await getEmployeeById(demoDriverId);
+  const vehicles = await getVehicles();
+  const assignedVehicle = vehicles.find(
+    (v) => v.assignedEmployeeId === demoDriverId
+  ) ?? null;
 
-    // fallback using centralized config
+  if (employee) {
     return {
       driver: {
-        id: DRIVER_CONFIG.driverId,
-        name: DRIVER_CONFIG.driverName,
-        businessName: DRIVER_CONFIG.businessName,
-        businessType: DRIVER_CONFIG.businessType,
+        id: employee.id,
+        name: employee.fullName,
+        businessName: employee.businessName,
+        businessType: "taxi" as const,
         role: "Driver",
       },
-      assignment: {
-        vehicleId: DRIVER_CONFIG.vehicleId,
-        vehicleName: DRIVER_CONFIG.vehicleName,
-        vehicleNumber: DRIVER_CONFIG.vehicleNumber,
-        isAssigned: true,
-      },
+      assignment: assignedVehicle
+        ? {
+            vehicleId: assignedVehicle.id,
+            vehicleName: assignedVehicle.name,
+            vehicleNumber: assignedVehicle.number,
+            isAssigned: true,
+          }
+        : null,
     };
   }
 
-  const response = await fetch(
-    `${API_CONFIG.BASE_URL}/api/driver/start-day`
-  );
-  if (!response.ok) throw new Error("Failed to fetch start day data");
-  return response.json();
+  // fallback using centralized config
+  return {
+    driver: {
+      id: DRIVER_CONFIG.driverId,
+      name: DRIVER_CONFIG.driverName,
+      businessName: DRIVER_CONFIG.businessName,
+      businessType: DRIVER_CONFIG.businessType,
+      role: "Driver",
+    },
+    assignment: {
+      vehicleId: DRIVER_CONFIG.vehicleId,
+      vehicleName: DRIVER_CONFIG.vehicleName,
+      vehicleNumber: DRIVER_CONFIG.vehicleNumber,
+      isAssigned: true,
+    },
+  };
 }

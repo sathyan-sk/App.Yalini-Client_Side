@@ -23,7 +23,7 @@ import { useRecords } from "../../../hooks/useRecords";
 import type { RecordStatus } from "../../../types/taxiRecords";
 import type { RecordStatus as WaterRecordStatus } from "../../../types/waterRecords";
 import type { RecordsStackParamList } from "../../../types/navigation";
-import type { Business } from "../../../types/waterRecords";
+import type { Business } from "../../../types/taxiRecords";
 
 const TAB_BAR_CLEARANCE = 80;
 
@@ -37,7 +37,7 @@ export default function RecordsHomeScreen() {
   const { businesses, driverRecords, waterRecords, loading, refresh } = useRecords();
   
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
-  const [selectedDate, setSelectedDate] = useState("2026-06-10");
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [activeTab, setActiveTab] = useState<RecordStatus | WaterRecordStatus>("submitted");
   const [refreshing, setRefreshing] = useState(false);
 
@@ -49,7 +49,7 @@ export default function RecordsHomeScreen() {
   }, [businesses, selectedBusiness]);
 
   // Determine if current business is water type
-  const isWaterBusiness = selectedBusiness?.type === "water";
+  const isWaterBusiness = selectedBusiness?.type === "water_delivery";
 
   // Handle business selection change
   const handleBusinessChange = (business: Business) => {
@@ -193,8 +193,8 @@ export default function RecordsHomeScreen() {
             <View style={styles.emptyState}>
               <Text style={styles.emptyText}>No records found</Text>
               <Text style={styles.emptySubtext}>
-                {selectedDate === "2026-06-10" 
-                  ? "Records are available for this date"
+                {selectedDate === new Date().toISOString().split('T')[0]
+                  ? "No submissions for today"
                   : "Try selecting a different date"}
               </Text>
             </View>

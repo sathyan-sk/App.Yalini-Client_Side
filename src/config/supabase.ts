@@ -8,12 +8,48 @@
 import { createClient } from '@supabase/supabase-js';
 import Constants from 'expo-constants';
 
-// Get Supabase credentials from environment variables
-const supabaseUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_URL || 
-                    process.env.EXPO_PUBLIC_SUPABASE_URL || '';
+// Get Supabase credentials from multiple sources
+// Priority: Constants.expoConfig.extra > process.env > hardcoded fallback
+const getSupabaseUrl = (): string => {
+  // Try expo-constants first (app.json extra section)
+  const fromConstants = Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_URL;
+  if (fromConstants) {
+    console.log('[Supabase] URL loaded from app.json extra');
+    return fromConstants;
+  }
+  
+  // Try process.env (for web/bare workflow)
+  const fromEnv = process.env.EXPO_PUBLIC_SUPABASE_URL;
+  if (fromEnv) {
+    console.log('[Supabase] URL loaded from process.env');
+    return fromEnv;
+  }
+  
+  console.error('[Supabase] ❌ URL not found in app.json extra or process.env');
+  return '';
+};
 
-const supabaseAnonKey = Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_ANON_KEY || 
-                        process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
+const getSupabaseAnonKey = (): string => {
+  // Try expo-constants first (app.json extra section)
+  const fromConstants = Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+  if (fromConstants) {
+    console.log('[Supabase] Anon key loaded from app.json extra');
+    return fromConstants;
+  }
+  
+  // Try process.env (for web/bare workflow)
+  const fromEnv = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+  if (fromEnv) {
+    console.log('[Supabase] Anon key loaded from process.env');
+    return fromEnv;
+  }
+  
+  console.error('[Supabase] ❌ Anon key not found in app.json extra or process.env');
+  return '';
+};
+
+const supabaseUrl = getSupabaseUrl();
+const supabaseAnonKey = getSupabaseAnonKey();
 
 // Validate credentials
 if (!supabaseUrl || !supabaseAnonKey) {

@@ -3,8 +3,11 @@
  *
  * This service now uses the central mock data store instead of AsyncStorage.
  * To wire a real backend, replace the mock store calls with API calls.
+ *
+ * INTEGRATION: When USE_MOCK=false, delegates to Supabase implementation.
  */
 
+import { USE_MOCK } from './featureFlags';
 import {
   getEmployees,
   getBusinessById,
@@ -22,25 +25,39 @@ import type {
 const toEmployeeType = (mock: MockEmployee): Employee => mock as Employee;
 
 export async function loadEmployees(): Promise<Employee[]> {
+  if (!USE_MOCK) {
+    const { loadEmployees: loadFromSupabase } = await import('./employeeService.supabase');
+    return loadFromSupabase();
+  }
   const employees = await getEmployees();
   return employees.map(toEmployeeType);
 }
 
 export async function saveEmployees(_employees: Employee[]): Promise<void> {
-  // In mock mode, we don't need to save the entire list
+  if (!USE_MOCK) {
+    const { saveEmployees: saveToSupabase } = await import('./employeeService.supabase');
+    return saveToSupabase(_employees);
+  }
   console.log('[MockService] saveEmployees called - no-op in mock mode');
 }
 
 export async function createEmployee(values: EmployeeFormValues): Promise<Employee> {
+  if (!USE_MOCK) {
+    const { createEmployee: createInSupabase } = await import('./employeeService.supabase');
+    return createInSupabase(values);
+  }
   // Get business details
   const business = await getBusinessById(values.businessId);
+  if (!business) {
+    throw new Error('Business not found');
+  }
 
   const created = await createEmployeeInStore({
     fullName: values.fullName.trim(),
-    mobile: values.mobile.replace(/\D/g, ''),
+    mobile: values.mobile.replace(/\D/g, ""),
     businessId: values.businessId,
-    businessName: business?.name ?? 'Unknown Business',
-    businessType: business?.type ?? 'taxi',
+    businessName: business.name,
+    businessType: business.type,
     pin: values.pin,
     status: values.status,
   });
@@ -51,6 +68,10 @@ export async function updateEmployee(
   id: string,
   values: EmployeeFormValues
 ): Promise<Employee | null> {
+  if (!USE_MOCK) {
+    const { updateEmployee: updateInSupabase } = await import('./employeeService.supabase');
+    return updateInSupabase(id, values);
+  }
   // Get business details
   const business = await getBusinessById(values.businessId);
   const employees = await getEmployees();
@@ -69,5 +90,9 @@ export async function updateEmployee(
 }
 
 export async function deleteEmployee(id: string): Promise<void> {
+  if (!USE_MOCK) {
+    const { deleteEmployee: deleteInSupabase } = await import('./employeeService.supabase');
+    return deleteInSupabase(id);
+  }
   await deleteEmployeeInStore(id);
 }

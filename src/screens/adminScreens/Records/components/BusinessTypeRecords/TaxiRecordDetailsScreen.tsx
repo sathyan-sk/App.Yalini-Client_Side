@@ -19,8 +19,8 @@ import { TripCard } from "./TaxiType/TripCard";
 import { FooterSummaryCard } from "./TaxiType/FooterSummaryCard";
 
 import { colors, spacing, fontSize, radius } from "../../../../../theme";
-import { getDriverRecordById } from "../../../../../services/mockData/index";
-import type { MockDriverRecord } from "../../../../../services/mockData/types";
+import { getDriverRecordByIdService } from "../../../../../services/recordsService";
+import type { DriverRecord } from "../../../../../types/taxiRecords";
 import type { RecordsStackParamList } from "../../../../../types/navigation";
 
 
@@ -37,7 +37,7 @@ export default function TaxiRecordDetailed() {
   const { recordId } = route.params;
   
   // State for async data loading
-  const [record, setRecord] = useState<MockDriverRecord | undefined>(undefined);
+  const [record, setRecord] = useState<DriverRecord | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,7 +49,7 @@ export default function TaxiRecordDetailed() {
       try {
         setLoading(true);
         setError(null);
-        const data = await getDriverRecordById(recordId);
+        const data = await getDriverRecordByIdService(recordId);
         if (isMounted) {
           setRecord(data);
         }

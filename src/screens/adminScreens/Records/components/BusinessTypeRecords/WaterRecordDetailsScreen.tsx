@@ -18,8 +18,8 @@ import { WaterSummarySection } from "./WaterType/WaterSummarySection";
 import { HotelDeliveryCard } from "./WaterType/HotelDeliveryCard";
 
 import { colors, spacing, fontSize, radius } from "../../../../../theme";
-import { getWaterDeliveryRecordById } from "../../../../../services/mockData/index";
-import type { MockWaterDeliveryRecord } from "../../../../../services/mockData/types";
+import { getWaterRecordByIdService } from "../../../../../services/recordsService";
+import type { WaterDeliveryRecord } from "../../../../../types/waterRecords";
 import type { RecordsStackParamList } from "../../../../../types/navigation";
 
 const TAB_BAR_CLEARANCE = 80;
@@ -35,7 +35,7 @@ export default function WaterRecordDetailsScreen() {
   const { recordId } = route.params;
 
   // State for async data loading
-  const [record, setRecord] = useState<MockWaterDeliveryRecord | undefined>(undefined);
+  const [record, setRecord] = useState<WaterDeliveryRecord | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,7 +47,7 @@ export default function WaterRecordDetailsScreen() {
       try {
         setLoading(true);
         setError(null);
-        const data = await getWaterDeliveryRecordById(recordId);
+        const data = await getWaterRecordByIdService(recordId);
         if (isMounted) {
           setRecord(data);
         }

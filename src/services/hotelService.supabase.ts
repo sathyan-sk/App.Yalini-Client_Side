@@ -57,6 +57,14 @@ export async function createHotel(values: HotelFormValues): Promise<Hotel> {
     created_at: getTodayDate(),
   };
 
+  // Add assignment fields if provided
+  if (values.assignedEmployeeId) {
+    insertData.assigned_employee_id = values.assignedEmployeeId;
+  }
+  if (values.assignedEmployeeName) {
+    insertData.assigned_employee_name = values.assignedEmployeeName;
+  }
+
   const { data, error } = await supabase
     .from('hotels')
     .insert(insertData)
@@ -85,6 +93,14 @@ export async function updateHotel(
     location: values.location?.trim() || null,
   };
 
+  // Add assignment fields if changing
+  if (values.assignedEmployeeId !== undefined) {
+    updateData.assigned_employee_id = values.assignedEmployeeId || null;
+  }
+  if (values.assignedEmployeeName !== undefined) {
+    updateData.assigned_employee_name = values.assignedEmployeeName || null;
+  }
+
   const { data, error } = await supabase
     .from('hotels')
     .update(updateData)
@@ -98,6 +114,13 @@ export async function updateHotel(
   }
 
   return data ? fromSupabaseRow(data) : null;
+}
+
+/**
+ * Save hotels - no-op for Supabase (operations are done individually).
+ */
+export async function saveHotels(_hotels: Hotel[]): Promise<void> {
+  console.log('[Supabase] saveHotels called - no-op in Supabase mode');
 }
 
 /**

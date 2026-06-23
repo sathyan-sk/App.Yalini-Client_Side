@@ -3,8 +3,11 @@
  *
  * Currently backed by the mock data store. To wire the real backend, replace
  * with a fetch call to the API endpoint.
+ *
+ * INTEGRATION: When USE_MOCK=false, delegates to Supabase implementation.
  */
 
+import { USE_MOCK } from './featureFlags';
 import {
   getBusinesses,
   getEmployees,
@@ -20,6 +23,12 @@ const MOCK_LATENCY_MS = 200;
  * This provides real-time data based on the current state of the store.
  */
 export async function fetchDashboardData(isoDate: string): Promise<DashboardData> {
+  // Delegate to Supabase implementation when mock mode is off
+  if (!USE_MOCK) {
+    const { fetchDashboardData: fetchFromSupabase } = await import('./dashboardService.supabase');
+    return fetchFromSupabase(isoDate);
+  }
+
   await new Promise(resolve => setTimeout(resolve, MOCK_LATENCY_MS));
 
   const [businesses, employees, driverRecords, waterRecords] = await Promise.all([
