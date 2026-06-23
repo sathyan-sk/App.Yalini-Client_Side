@@ -62,22 +62,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isSubmitting: false,
 
   async bootstrap() {
-    //** for development login*/
-      if (__DEV__) {
-    set({ status: "unauthenticated" })
-    return
-  }
-  //*** beoww for production-LOGIN */
-    // const session = await restoreSession();
-    // if (session) {
-    //   set({
-    //     status: "authenticated",
-    //     token: session.token,
-    //     user: session.user,
-    //   });
-    // } else {
-    //   set({ status: "unauthenticated" });
-    // }
+    try {
+      const session = await restoreSession();
+  
+      if (session) {
+        set({
+          status: "authenticated",
+          token: session.token,
+          user: session.user,
+        });
+      } else {
+        set({ status: "unauthenticated" });
+      }
+    } catch (e) {
+      console.error("BOOTSTRAP ERROR:", e);
+      set({ status: "unauthenticated" });
+    }
   },
 
   async signIn(payload) {

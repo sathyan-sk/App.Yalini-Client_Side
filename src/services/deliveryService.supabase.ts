@@ -386,15 +386,26 @@ export async function submitStaffSession(
       waterRecordId = newRecord.id;
     }
 
-    // Insert hotel deliveries
+    // Insert hotel deliveries with real location from hotels table
     const hotelDeliveries: HotelDeliveryInsert[] = [];
+    
+    // Fetch all hotel locations in one query
+    const hotelIds = Array.from(hotelMap.keys());
+    const { data: hotelsData } = await supabase
+      .from('hotels')
+      .select('id, location')
+      .in('id', hotelIds);
+    
+    const hotelLocationMap = new Map((hotelsData || []).map(h => [h.id, h.location || '']));
+    
     hotelMap.forEach((hotel, hotelId) => {
       const hotelName = data.deliveries.find(d => d.hotelId === hotelId)?.hotelName || 'Unknown Hotel';
+      const location = hotelLocationMap.get(hotelId) || '';
       hotelDeliveries.push({
         id: generateId('hd'),
         water_delivery_record_id: waterRecordId,
         hotel_name: hotelName,
-        location: '',
+        location,
         total_cans: hotel.totalCans,
         delivered_cans: hotel.deliveredCans,
         returned_cans: hotel.returnedCans,

@@ -17,7 +17,6 @@
  */
 import React, { useEffect } from "react";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
-import { NavigationContainer, NavigationIndependentTree } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import { useAuthStore } from "../store/authStore";
@@ -69,8 +68,6 @@ export default function RootNavigator() {
   }
 
   return (
-    <NavigationIndependentTree>
-      <NavigationContainer>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           {status === "unauthenticated" ? (
             <Stack.Screen 
@@ -86,8 +83,6 @@ export default function RootNavigator() {
             />
           )}
         </Stack.Navigator>
-      </NavigationContainer>
-    </NavigationIndependentTree>
   );
 }
 

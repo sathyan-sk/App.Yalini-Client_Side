@@ -16,6 +16,10 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.track.yalini",
+      "permissions": [
+        "internet"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -28,12 +32,16 @@
     },
     "extra": {
       "EXPO_PUBLIC_SUPABASE_URL": "https://bzlmzektehaypfddjwhp.supabase.co",
-      "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6bG16ZWt0ZWhheXBmZGRqd2hwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNDEzNzQsImV4cCI6MjA5NzcxNzM3NH0.lKc7Nv-4c2nSoBnDrJOpoLodqPCVmjeN5SeqhxjXdsU"
+      "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6bG16ZWt0ZWhheXBmZGRqd2hwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxNDEzNzQsImV4cCI6MjA5NzcxNzM3NH0.lKc7Nv-4c2nSoBnDrJOpoLodqPCVmjeN5SeqhxjXdsU",
+      "eas": {
+        "projectId": "3e90dd13-ec48-4b77-a902-b68eef01d43e"
+      }
     },
     "plugins": [
       "expo-font",
       "expo-audio",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-asset"
     ]
   }
 }
