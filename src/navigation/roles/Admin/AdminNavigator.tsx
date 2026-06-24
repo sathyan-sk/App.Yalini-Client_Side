@@ -4,7 +4,7 @@
  * Tabs:
  *   Dashboard   → DashboardScreen
  *   DailyRecords → RecordsNavigator
- *   Employees   → EmployeesNavigator
+ *   Finance     → FinanceNavigator
  *   Settings    → SettingsNavigator
  */
 import React from "react"
@@ -15,7 +15,7 @@ import type { RootTabParamList } from "../../../../src/types/navigation"
 
 import DashboardScreen    from "../../../screens/adminScreens/Dashboard/DashboardScreen"
 import RecordsNavigator   from "./RecordsNavigator"
-import EmployeesNavigator from "./EmployeesNavigator"
+import FinanceNavigator   from "./FinanceNavigator"
 import SettingsNavigator  from "./SettingsNavigator"
 
 // ─────────────────────────────────────
@@ -23,8 +23,8 @@ import SettingsNavigator  from "./SettingsNavigator"
 // ─────────────────────────────────────
 const ADMIN_TAB_CONFIG: TabBarConfig = {
   Dashboard:    { label: "Dashboard", icon: "home"      },
-  DailyRecords: { label: "Records",   icon: "file-text" },
-  Employees:    { label: "Employees", icon: "users"     },
+  DailyRecords: { label: "Records",   icon: "hard-drive" },
+  Finance:      { label: "Finance",   icon: "file-text" },
   Settings:     { label: "Settings",  icon: "settings"  },
 }
 
@@ -43,7 +43,7 @@ export default function AdminNavigator() {
     >
       <Tab.Screen name="Dashboard"    component={DashboardScreen} />
       <Tab.Screen name="DailyRecords" component={RecordsNavigator} />
-      <Tab.Screen name="Employees"    component={EmployeesNavigator} />
+      <Tab.Screen name="Finance"      component={FinanceNavigator} />
       <Tab.Screen name="Settings"     component={SettingsNavigator} />
     </Tab.Navigator>
   )

@@ -10,7 +10,7 @@ import type { AllTripsTrip, TripExpense } from './driver';
 export type RootTabParamList = {
   Dashboard: undefined;
   DailyRecords: undefined;
-  Employees: undefined;
+  Finance: undefined;
   Settings: undefined;
 };
 
@@ -72,7 +72,10 @@ export type RecordsStackParamList = {
   TaxiRecordDetails: { recordId: string };
   WaterRecordDetails: { recordId: string };
 };
-
+export type FinanceStackParamList = {
+  FinanceHome: undefined;
+  FinanceDetails: { recordId: string };
+};
 /**
  * Native-stack screens for the Employees tab.
  * EmployeesList is the entry point; Add/Edit screens handle CRUD.
