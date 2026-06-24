@@ -1,5 +1,13 @@
 /**
- * Finance API service
+ * Finance API service.
+ *
+ * Single entry point used by FinanceScreen. When Supabase is enabled
+ * (USE_SUPABASE in featureFlags), the data is fetched from the same tables
+ * that power the Daily Records screen (driver_records, water_delivery_records,
+ * trip_details, employees, businesses).
+ *
+ * Otherwise we fall back to an empty (safe-default) response so the screen
+ * still renders without crashing.
  */
 import type {
   FinanceBusiness,
@@ -7,35 +15,44 @@ import type {
   PaginatedRecords,
   FinanceFilters,
 } from '../types/finance';
+import { USE_SUPABASE, SUPABASE_CONFIG } from './featureFlags';
 
-const API_BASE = process.env.EXPO_PUBLIC_BACKEND_URL;
+const supabaseReady = USE_SUPABASE && SUPABASE_CONFIG.ENABLED;
 
-async function fetchJSON<T>(url: string): Promise<T> {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`API error: ${res.status}`);
-  return res.json();
-}
+const EMPTY_SUMMARY: FinanceSummary = {
+  totalIncome: 0,
+  totalExpense: 0,
+  totalProfit: 0,
+  recordCount: 0,
+  byBusiness: [],
+};
+
+const EMPTY_PAGE: PaginatedRecords = {
+  records: [],
+  total: 0,
+  page: 1,
+  limit: 10,
+  hasMore: false,
+};
 
 export async function getFinanceBusinesses(): Promise<FinanceBusiness[]> {
-  return fetchJSON<FinanceBusiness[]>(`${API_BASE}/api/finance/businesses`);
+  if (supabaseReady) {
+    const { getFinanceBusinessesFromSupabase } = await import('./financeService.supabase');
+    return getFinanceBusinessesFromSupabase();
+  }
+  console.warn('[finance] Supabase disabled — returning empty business list');
+  return [];
 }
 
 export async function getFinanceSummary(
   filters: FinanceFilters
 ): Promise<FinanceSummary> {
-  const params = new URLSearchParams();
-  if (filters.mode === 'custom' && filters.fromDate && filters.toDate) {
-    params.set('fromDate', filters.fromDate);
-    params.set('toDate', filters.toDate);
-  } else if (filters.month) {
-    params.set('month', filters.month);
+  if (supabaseReady) {
+    const { getFinanceSummaryFromSupabase } = await import('./financeService.supabase');
+    return getFinanceSummaryFromSupabase(filters);
   }
-  if (filters.businessId && filters.businessId !== 'all') {
-    params.set('businessId', filters.businessId);
-  }
-  return fetchJSON<FinanceSummary>(
-    `${API_BASE}/api/finance/summary?${params.toString()}`
-  );
+  console.warn('[finance] Supabase disabled — returning empty summary');
+  return EMPTY_SUMMARY;
 }
 
 export async function getFinanceRecords(
@@ -43,19 +60,10 @@ export async function getFinanceRecords(
   page: number = 1,
   limit: number = 10
 ): Promise<PaginatedRecords> {
-  const params = new URLSearchParams();
-  if (filters.mode === 'custom' && filters.fromDate && filters.toDate) {
-    params.set('fromDate', filters.fromDate);
-    params.set('toDate', filters.toDate);
-  } else if (filters.month) {
-    params.set('month', filters.month);
+  if (supabaseReady) {
+    const { getFinanceRecordsFromSupabase } = await import('./financeService.supabase');
+    return getFinanceRecordsFromSupabase(filters, page, limit);
   }
-  if (filters.businessId && filters.businessId !== 'all') {
-    params.set('businessId', filters.businessId);
-  }
-  params.set('page', String(page));
-  params.set('limit', String(limit));
-  return fetchJSON<PaginatedRecords>(
-    `${API_BASE}/api/finance/records?${params.toString()}`
-  );
+  console.warn('[finance] Supabase disabled — returning empty records page');
+  return { ...EMPTY_PAGE, page, limit };
 }

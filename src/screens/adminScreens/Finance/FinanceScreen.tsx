@@ -149,15 +149,17 @@ export default function FinanceScreen() {
     try {
       if (!append) setLoading(true);
       const [summaryData, recordsData] = await Promise.all([
-        !append ? getFinanceSummary(f) : Promise.resolve(null),
+        append ? Promise.resolve<SummaryType | null>(null) : getFinanceSummary(f),
         getFinanceRecords(f, pageNum),
       ]);
       if (summaryData) setSummary(summaryData);
-      const newRecords = append ? [...records, ...recordsData.records] : recordsData.records;
-      setRecords(newRecords);
+      setRecords(prev => (append ? [...prev, ...recordsData.records] : recordsData.records));
       setHasMore(recordsData.hasMore);
       setTotal(recordsData.total);
       setPage(pageNum);
+            allRecordsRef.current = append
+        ? [...allRecordsRef.current, ...recordsData.records]
+        : recordsData.records;
     } catch (err) {
       console.error('Finance data error:', err);
     } finally {
@@ -165,7 +167,7 @@ export default function FinanceScreen() {
       setLoadingMore(false);
       setRefreshing(false);
     }
-  }, [records]);
+  }, []);
 
   useEffect(() => {
     getFinanceBusinesses().then(setBusinesses).catch(console.error);
@@ -215,7 +217,7 @@ export default function FinanceScreen() {
         // CSV export
         const header = 'Date,Employee,Business,Asset,Income,Expense,Profit,Payment Type';
         const csvRows = allData.records.map(r =>
-          `${r.date},\"${r.employeeName}\",\"${r.businessName}\",\"${r.assetName}\",${r.income},${r.expense},${r.profit},${r.paymentType}`
+          `${r.date},"${r.employeeName}","${r.businessName}","${r.assetName}",${r.income},${r.expense},${r.profit},${r.paymentType}`
         ).join('\n');
         const csvContent = header + csvRows;
 
