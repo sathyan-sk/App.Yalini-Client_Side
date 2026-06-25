@@ -14,9 +14,7 @@ import { StatusBar } from 'expo-status-bar';
 
 import FinanceHeader from '../Finance/components/FinanceHeader';
 import FilterSection from '../Finance/components/FilterSection';
-import SummaryCards from '../Finance/components/SummaryCards';
-import SpendAnalysisCard from '../Finance/components/SpendAnalysisCard';
-import EmployeeReportList from '../Finance/components/EmployeeReportList';
+import { FinanceTable } from '../Finance/components/ListingRecords';
 import ExportSheet from '../Finance/components/ExportSheet';
 
 import {
@@ -74,9 +72,9 @@ function buildHTMLReport(
       <td>${r.employeeName}</td>
       <td>${r.businessName}</td>
       <td>${r.assetName}</td>
-      <td style=\"color:#059669\">₹${r.income.toLocaleString('en-IN')}</td>
-      <td style=\"color:#DC2626\">₹${r.expense.toLocaleString('en-IN')}</td>
-      <td style=\"color:#7C3AED\">₹${r.profit.toLocaleString('en-IN')}</td>
+      <td style="color:#059669">₹${r.income.toLocaleString('en-IN')}</td>
+      <td style="color:#DC2626">₹${r.expense.toLocaleString('en-IN')}</td>
+      <td style="color:#7C3AED">₹${r.profit.toLocaleString('en-IN')}</td>
       <td>${r.paymentType}</td>
     </tr>
   `).join('');
@@ -100,7 +98,7 @@ function buildHTMLReport(
       <h1>Finance Report - ${period}</h1>
       <p class=\"meta\">Business: ${bizName} | Generated: ${new Date().toLocaleDateString()}</p>
       <div class=\"summary\">
-        <div class=\"summary-card\" style=\"background:#ECFDF5\">
+        <div class=\"summary-card" style=\"background:#ECFDF5\">
           <b>Total Income:</b> ₹${(summary?.totalIncome ?? 0).toLocaleString('en-IN')}
         </div>
         <div class=\"summary-card\" style=\"background:#FEF2F2\">
@@ -266,19 +264,12 @@ export default function FinanceScreen() {
           businesses={businesses}
           onFiltersChange={setFilters}
         />
-        <SummaryCards summary={summary} loading={loading} />
-        <SpendAnalysisCard
-          byBusiness={summary?.byBusiness ?? []}
-          loading={loading}
-        />
-        <EmployeeReportList
+        {/* <SummaryCards summary={summary} loading={loading} /> */}
+        <FinanceTable
           records={records}
           loading={loading}
-          hasMore={hasMore}
-          loadingMore={loadingMore}
-          onLoadMore={handleLoadMore}
-          total={total}
         />
+
       </ScrollView>
       <ExportSheet
         visible={showExport}

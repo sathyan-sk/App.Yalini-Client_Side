@@ -32,7 +32,7 @@ export default function FinanceHeader({ periodLabel, onExport }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#1A237E',
+    backgroundColor: '#f3af32f9',
     paddingHorizontal: 16,
     paddingBottom: 16,
     flexDirection: 'row',
@@ -53,14 +53,14 @@ const styles = StyleSheet.create({
   exportBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(239, 75, 75, 0.62)',
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
     gap: 6,
   },
   exportText: {
-    color: '#FFFFFF',
+    color: '#ffffff',
     fontSize: 13,
     fontWeight: '600',
   },

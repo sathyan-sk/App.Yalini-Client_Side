@@ -40,6 +40,10 @@ export interface FinanceRecord {
   expense: number;
   paymentType: string;
   assetName: string;
+    // Extra details for display
+  trips?: number; // for taxi
+  totalCans?: number; // for water
+  totalHotels?: number; // for water
 }
 
 export interface PaginatedRecords {

@@ -5,7 +5,6 @@
  * screen (driver_records / water_delivery_records / trip_details). It joins
  * each record to its employee → business so we can:
  *   - filter by a specific business
- *   - aggregate totals per business (Spend Analysis card)
  *   - group records per employee (Employee Reports list)
  *
  * Data flow:

@@ -11,6 +11,7 @@ export type RootTabParamList = {
   Dashboard: undefined;
   DailyRecords: undefined;
   Finance: undefined;
+  Employees: undefined;
   Settings: undefined;
 };
 
