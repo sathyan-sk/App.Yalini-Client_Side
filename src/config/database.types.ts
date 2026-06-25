@@ -172,6 +172,7 @@ export interface Database {
           total_profit: number
           per_km_rate: number
           fuel_expense: number
+          payment_mode: string | null
         }
         Insert: {
           id?: string
@@ -269,6 +270,7 @@ export interface Database {
           total_income: number
           total_expense: number
           total_profit: number
+          payment_mode: string | null
         }
         Insert: {
           id?: string
@@ -285,6 +287,7 @@ export interface Database {
           total_income: number
           total_expense: number
           total_profit: number
+          payment_mode: string | null
         }
         Update: {
           id?: string
@@ -301,6 +304,7 @@ export interface Database {
           total_income?: number
           total_expense?: number
           total_profit?: number
+          payment_mode?: string | null
         }
       }
       hotel_deliveries: {

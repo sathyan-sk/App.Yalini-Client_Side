@@ -268,6 +268,18 @@ export async function submitStaffSession(
     const today = getTodayDate();
     const avatarColor = getRandomAvatarColor();
 
+
+    // FIX 3: Compute dominant payment mode from individual deliveries so that
+    // water_delivery_records stores the real payment mode instead of always 'cash'.
+    const paymentModes = data.deliveries.map(d => (d.paymentMode ?? 'CASH').toUpperCase());
+    const cashCount = paymentModes.filter(m => m === 'CASH').length;
+    const onlineCount = paymentModes.filter(m => m === 'ONLINE').length;
+    const dominantPaymentMode =
+      cashCount > 0 && onlineCount === 0 ? 'cash'
+      : onlineCount > 0 && cashCount === 0 ? 'online'
+      : 'mixed';
+
+
     // Group deliveries by hotel and aggregate
     const hotelMap = new Map<string, {
       totalCans: number;
@@ -347,6 +359,7 @@ export async function submitStaffSession(
           total_income: totalIncome,
           total_expense: totalExpense,
           total_profit: totalProfit,
+          payment_mode: dominantPaymentMode,
         })
         .eq('id', waterRecordId);
 
@@ -374,6 +387,7 @@ export async function submitStaffSession(
         total_income: totalIncome,
         total_expense: totalExpense,
         total_profit: totalProfit,
+        payment_mode: dominantPaymentMode,
       };
 
       const { data: newRecord, error: insertError } = await supabase

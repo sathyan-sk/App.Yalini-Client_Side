@@ -67,3 +67,17 @@ export async function getFinanceRecords(
   console.warn('[finance] Supabase disabled — returning empty records page');
   return { ...EMPTY_PAGE, page, limit };
 }
+// Supabase round-trip (one fetchCombinedRecords call instead of two).
+export async function getFinanceSummaryAndRecords(
+  filters: FinanceFilters,
+  page: number = 1,
+  limit: number = 10
+): Promise<{ summary: FinanceSummary | null; paginated: PaginatedRecords }>
+{
+  if (supabaseReady) {
+    const { getFinanceSummaryAndRecordsFromSupabase } = await import('./financeService.supabase');
+    return getFinanceSummaryAndRecordsFromSupabase(filters, page, limit);
+  }
+  console.warn('[finance] Supabase disabled — returning empty summary and records');
+  return { summary: null, paginated: { ...EMPTY_PAGE, page, limit } };
+}

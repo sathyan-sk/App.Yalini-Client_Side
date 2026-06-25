@@ -53,7 +53,7 @@ interface TableRowProps {
 }
 
 function TableRow({ record, index, onPress }: TableRowProps) {
-  const profitColor = record.income >= 0 ? tones.green.accent : tones.red.accent;
+  const profitColor = record.profit >= 0 ? tones.green.accent : tones.red.accent;
   
   return (
     <Pressable
@@ -110,7 +110,7 @@ function TableRow({ record, index, onPress }: TableRowProps) {
       </View>
       
       { /*Payment Type */}
-        <View style={styles.cellStatus}>
+        <View style={styles.cellAmount}>
           <Text style={styles.typeText}>{record.paymentType}</Text>
         </View>
     </Pressable>
@@ -146,7 +146,7 @@ export function FinanceTable({
       {/* Table Header */}
       <View style={styles.headerow}>
         <View style={styles.cellNo}>
-          <Text style={styles.headerText}>#</Text>
+          <Text style={styles.headerText}>No</Text>
         </View>
         <View style={styles.cellDate}>
           <Text style={styles.headerText}>Date</Text>
@@ -163,8 +163,8 @@ export function FinanceTable({
         <View style={styles.cellAmount}>
           <Text style={styles.headerText}>Profit</Text>
         </View>
-        <View style={styles.cellStatus}>
-          <Text style={styles.headerText}>Status</Text>
+        <View style={styles.cellAmount}>
+          <Text style={styles.headerText}>Payment</Text>
         </View>
       </View>
 
@@ -267,20 +267,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cellDate: {
-    width: 50,
+    width: 40,
   },
   cellEmployee: {
-    flex: 1,
-    minWidth: 50,
+    flex: 0.5,
+    minWidth: 80,
     paddingRight: spacing.sm,
   },
   cellAmount: {
-    width: 50,
+    width: 60,
     alignItems: 'baseline',
-  },
-  cellStatus: {
-    width: 50,
-    alignItems: 'center',
   },
   cellText: {
     fontSize: fontSize.xs,

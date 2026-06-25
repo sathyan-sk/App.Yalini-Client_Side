@@ -1,11 +1,14 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
+  Text,
   ScrollView,
   StyleSheet,
   RefreshControl,
   Alert,
   Platform,
+  TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
@@ -19,9 +22,9 @@ import ExportSheet from '../Finance/components/ExportSheet';
 
 import {
   getFinanceBusinesses,
-  getFinanceSummary,
+  getFinanceSummaryAndRecords,
   getFinanceRecords,
-} from '../../../services/financeService'
+} from '../../../services/financeService';
 
 import type {
   FinanceBusiness,
@@ -72,9 +75,9 @@ function buildHTMLReport(
       <td>${r.employeeName}</td>
       <td>${r.businessName}</td>
       <td>${r.assetName}</td>
-      <td style="color:#059669">₹${r.income.toLocaleString('en-IN')}</td>
-      <td style="color:#DC2626">₹${r.expense.toLocaleString('en-IN')}</td>
-      <td style="color:#7C3AED">₹${r.profit.toLocaleString('en-IN')}</td>
+      <td style=\"color:#059669\">₹${r.income.toLocaleString('en-IN')}</td>
+      <td style=\"color:#DC2626\">₹${r.expense.toLocaleString('en-IN')}</td>
+      <td style=\"color:#7C3AED\">₹${r.profit.toLocaleString('en-IN')}</td>
       <td>${r.paymentType}</td>
     </tr>
   `).join('');
@@ -98,7 +101,7 @@ function buildHTMLReport(
       <h1>Finance Report - ${period}</h1>
       <p class=\"meta\">Business: ${bizName} | Generated: ${new Date().toLocaleDateString()}</p>
       <div class=\"summary\">
-        <div class=\"summary-card" style=\"background:#ECFDF5\">
+        <div class=\"summary-card\" style=\"background:#ECFDF5\">
           <b>Total Income:</b> ₹${(summary?.totalIncome ?? 0).toLocaleString('en-IN')}
         </div>
         <div class=\"summary-card\" style=\"background:#FEF2F2\">
@@ -143,21 +146,31 @@ export default function FinanceScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const allRecordsRef = useRef<FinanceRecord[]>([]);
 
+  // FIX 6: Use combined fetch to avoid calling fetchCombinedRecords twice.
+  // For initial load → getFinanceSummaryAndRecords (one DB round-trip).
+  // For load-more  → getFinanceRecords only (summary stays unchanged).
   const loadData = useCallback(async (f: FinanceFilters, pageNum: number = 1, append: boolean = false) => {
     try {
       if (!append) setLoading(true);
-      const [summaryData, recordsData] = await Promise.all([
-        append ? Promise.resolve<SummaryType | null>(null) : getFinanceSummary(f),
-        getFinanceRecords(f, pageNum),
-      ]);
-      if (summaryData) setSummary(summaryData);
-      setRecords(prev => (append ? [...prev, ...recordsData.records] : recordsData.records));
-      setHasMore(recordsData.hasMore);
-      setTotal(recordsData.total);
-      setPage(pageNum);
-            allRecordsRef.current = append
-        ? [...allRecordsRef.current, ...recordsData.records]
-        : recordsData.records;
+
+      if (append) {
+        // Load more: only fetch additional records
+        const recordsData = await getFinanceRecords(f, pageNum);
+        setRecords(prev => [...prev, ...recordsData.records]);
+        setHasMore(recordsData.hasMore);
+        setTotal(recordsData.total);
+        setPage(pageNum);
+        allRecordsRef.current = [...allRecordsRef.current, ...recordsData.records];
+      } else {
+        // Initial / refresh: one combined call for both summary + records
+        const { summary: summaryData, paginated: recordsData } = await getFinanceSummaryAndRecords(f, pageNum);
+        if (summaryData) setSummary(summaryData);
+        setRecords(recordsData.records);
+        setHasMore(recordsData.hasMore);
+        setTotal(recordsData.total);
+        setPage(pageNum);
+        allRecordsRef.current = recordsData.records;
+      }
     } catch (err) {
       console.error('Finance data error:', err);
     } finally {
@@ -176,6 +189,7 @@ export default function FinanceScreen() {
     loadData(filters, 1, false);
   }, [filters]);
 
+  // FIX 7: handleLoadMore now triggers from the Load More button in the UI below
   const handleLoadMore = () => {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
@@ -212,12 +226,11 @@ export default function FinanceScreen() {
           });
         }
       } else if (format === 'excel') {
-        // CSV export
         const header = 'Date,Employee,Business,Asset,Income,Expense,Profit,Payment Type';
         const csvRows = allData.records.map(r =>
-          `${r.date},"${r.employeeName}","${r.businessName}","${r.assetName}",${r.income},${r.expense},${r.profit},${r.paymentType}`
+          `${r.date},\"${r.employeeName}\",\"${r.businessName}\",\"${r.assetName}\",${r.income},${r.expense},${r.profit},${r.paymentType}`
         ).join('\n');
-        const csvContent = header + csvRows;
+        const csvContent = header + '\n' + csvRows;
 
         const fileUri = `${FileSystem.cacheDirectory}finance_report.csv`;
         await FileSystem.writeAsStringAsync(fileUri, csvContent, {
@@ -264,12 +277,29 @@ export default function FinanceScreen() {
           businesses={businesses}
           onFiltersChange={setFilters}
         />
-        {/* <SummaryCards summary={summary} loading={loading} /> */}
         <FinanceTable
           records={records}
           loading={loading}
         />
 
+        {/* FIX 7: Load More button — was fully implemented but never rendered */}
+        {!loading && hasMore && (
+          <TouchableOpacity
+            testID="finance-load-more-btn"
+            style={styles.loadMoreBtn}
+            onPress={handleLoadMore}
+            disabled={loadingMore}
+            activeOpacity={0.7}
+          >
+            {loadingMore ? (
+              <ActivityIndicator size="small" color="#4527A0" />
+            ) : (
+              <Text style={styles.loadMoreText}>
+                Load More Records ({total - records.length} remaining)
+              </Text>
+            )}
+          </TouchableOpacity>
+        )}
       </ScrollView>
       <ExportSheet
         visible={showExport}
@@ -292,5 +322,21 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+  },
+  loadMoreBtn: {
+    marginHorizontal: 16,
+    marginVertical: 12,
+    paddingVertical: 12,
+    borderRadius: 8,
+    backgroundColor: '#EDE9FE',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#C4B5FD',
+  },
+  loadMoreText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4527A0',
   },
 });

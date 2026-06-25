@@ -156,6 +156,7 @@ function fromWaterRow(
   empMap: Map<string, EmployeeBusinessInfo>
 ): FinanceRecord {
   const emp = empMap.get(row.employee_id);
+  const paymentType = row.payment_mode ?? 'cash';
   return {
     id: row.id,
     employeeId: row.employee_id,
@@ -168,7 +169,7 @@ function fromWaterRow(
     income: row.total_income ?? 0,
     expense: row.total_expense ?? 0,
     profit: row.total_profit ?? 0,
-    paymentType: 'cash',
+    paymentType,
     assetName: `${row.total_cans ?? 0} cans • ${row.total_hotels ?? 0} hotels`,
   };
 }
@@ -300,4 +301,64 @@ export async function getFinanceRecordsFromSupabase(
     limit,
     hasMore: end < total,
   };
+}
+// FIX 6: Combined function — calls fetchCombinedRecords exactly once and
+// returns both the FinanceSummary and a paginated FinanceRecord slice.
+// FinanceScreen uses this on initial load / refresh to avoid a duplicate
+// fetchCombinedRecords call that was previously triggered by calling
+// getFinanceSummaryFromSupabase + getFinanceRecordsFromSupabase in parallel.
+export async function getFinanceSummaryAndRecordsFromSupabase(
+  filters: FinanceFilters,
+  page: number = 1,
+  limit: number = 10
+): Promise<{ summary: FinanceSummary; paginated: PaginatedRecords }> {
+  const all = await fetchCombinedRecords(filters);
+
+  // Compute summary from the same array (no second DB call)
+  let totalIncome = 0;
+  let totalExpense = 0;
+  let totalProfit = 0;
+  const byBizMap = new Map<string, BusinessBreakdown>();
+
+  for (const r of all) {
+    totalIncome += r.income;
+    totalExpense += r.expense;
+    totalProfit += r.profit;
+
+    const key = r.businessId || `__${r.businessType}`;
+    const existing = byBizMap.get(key) ?? {
+      businessId: r.businessId,
+      businessName: r.businessName,
+      businessType: r.businessType,
+      income: 0,
+      expense: 0,
+      profit: 0,
+    };
+    existing.income += r.income;
+    existing.expense += r.expense;
+    existing.profit += r.profit;
+    byBizMap.set(key, existing);
+  }
+
+  const summary: FinanceSummary = {
+    totalIncome,
+    totalExpense,
+    totalProfit,
+    recordCount: all.length,
+    byBusiness: Array.from(byBizMap.values()).sort((a, b) => b.income - a.income),
+  };
+
+  // Paginate
+  const total = all.length;
+  const start = (page - 1) * limit;
+  const end = start + limit;
+  const paginated: PaginatedRecords = {
+    records: all.slice(start, end),
+    total,
+    page,
+    limit,
+    hasMore: end < total,
+  };
+
+  return { summary, paginated };
 }
