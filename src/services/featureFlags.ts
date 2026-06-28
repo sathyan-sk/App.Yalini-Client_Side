@@ -1,44 +1,36 @@
 /**
-
- * Central place to toggle between mock data and real database/API calls 
- * MIGRATION STRATEGY:
- * 1. Start with USE_MOCK = true (development with in-memory data)
- * 2. Set USE_SUPABASE = true to test Supabase integration (with mock fallback)
- * 3. Set USE_MOCK = false for full production mode with Supabase
+ * Central configuration for backend connectivity
+ * 
+ * ARCHITECTURE:
+ * 1. Supabase - Primary backend (PostgreSQL via Supabase)
+ * 2. Custom Backend - Future abstraction for custom API (not implemented yet)
+ * 
+ * No mock mode - production-ready only
  */
 
 /**
- * USE_MOCK - Controls whether the app uses mock data or real database
- * 
- * When true:
- *   - All service calls return mock data from in-memory store
- *   - Simulated network latency is added for realistic UX
- *   - No backend/database connection required
- * 
- * When false:
- *   - Service calls hit real API endpoints
- *   - Backend must be running and accessible
- *   - API_BASE_URL must be configured correctly
+ * Backend provider selection
+ * - 'supabase': Uses Supabase (PostgreSQL)
+ * - 'custom': Uses custom backend API (future implementation)
  */
-export const USE_MOCK = false;
+export const BACKEND_PROVIDER = 'supabase' as const;
 
 /**
- * USE_SUPABASE - Controls whether Supabase database is used
- * 
- * When true:
- *   - Services will attempt to use Supabase for data operations
- *   - Falls back to mock if Supabase is not configured
- *   - Requires EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY
- * 
- * When false:
- *   - Services use mock data only
+ * Supabase Configuration
+ * Credentials loaded from environment variables
  */
-export const USE_SUPABASE = true;
+export const SUPABASE_CONFIG = {
+  URL: process.env.EXPO_PUBLIC_SUPABASE_URL || '',
+  ANON_KEY: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
+  ENABLED: !!(process.env.EXPO_PUBLIC_SUPABASE_URL && process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY),
+};
 
-/** * In production, this should come from environment variables
+/**
+ * API Configuration for custom backend (future use)
+ * Currently using Supabase, but structured for easy backend switching
  */
 export const API_CONFIG = {
-  // Base URL for API calls - should be configured via environment
+  // Base URL for custom API calls
   // For local development: http://localhost:8001
   // For production: https://your-api-domain.com
   BASE_URL: process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:8001',
@@ -50,15 +42,6 @@ export const API_CONFIG = {
   TIMEOUT: 30000,
 };
 
-/**
- * Supabase Configuration
- * Credentials loaded from environment variables
- */
-export const SUPABASE_CONFIG = {
-  URL: process.env.EXPO_PUBLIC_SUPABASE_URL || '',
-  ANON_KEY: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
-  ENABLED: USE_SUPABASE && !!(process.env.EXPO_PUBLIC_SUPABASE_URL && process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY),
-};
 /**
  * Feature Toggles - Enable/disable specific features
  */
@@ -80,5 +63,4 @@ export const FEATURES = {
 export const ENV = {
   isDev: __DEV__,
   isProd: !__DEV__,
-  useMock: USE_MOCK,
 };

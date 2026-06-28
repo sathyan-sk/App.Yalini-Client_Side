@@ -8,12 +8,13 @@
  *   - Taps Start Day to begin session and navigate to StaffMain
  */
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, ScrollView, Alert, ActivityIndicator, Text } from 'react-native';
+import { StyleSheet, View, ScrollView, Alert, ActivityIndicator, Text, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
 import { StaffStackParamList } from '../../../types/navigation';
-import { colors, spacing, fontSize } from '../../../theme';
+import { colors, spacing, fontSize, radius } from '../../../theme';
 import { useAuthStore } from '../../../store/authStore';
 import { getStaffHomeData } from '../../../services/deliveryService';
 
@@ -30,8 +31,10 @@ import {
 } from '../StartDay/components';
 
 const BACKGROUND_COLOR = '#F7F8FA';
-
+console.log('=== STAFF START DAY SCREEN LOADED ===');
 export default function StaffStartDayScreen() {
+  console.log('[StaffStartDay] COMPONENT MOUNTED');
+  
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
   const authUser = useAuthStore((state) => state.user);
@@ -39,6 +42,8 @@ export default function StaffStartDayScreen() {
   const [staffData, setStaffData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [businessMode, setBusinessMode] = useState<'auto' | 'manual'>('manual');
+  const [availableHotels, setAvailableHotels] = useState<any[]>([]);
 
   // Fetch real staff data from Supabase on mount
   useEffect(() => {
@@ -49,6 +54,15 @@ export default function StaffStartDayScreen() {
         const employeeId = authUser?.userId;
         const data = await getStaffHomeData(employeeId);
         setStaffData(data);
+        // Extract business mode and available hotels
+        setBusinessMode(data?.staff?.businessMode || 'manual');
+        setAvailableHotels(data?.availableHotels || []);
+        
+        // DEBUG: Log what we got
+        console.log('[StaffStartDay] Business mode:', data?.staff?.businessMode);
+        console.log('[StaffStartDay] Available hotels:', data?.availableHotels?.length || 0);
+        console.log('[StaffStartDay] Has assignment:', data?.assignedHotels?.length > 0);
+        console.log('[StaffStartDay] Full staff data:', JSON.stringify(data, null, 2));
       } catch (error) {
         console.error('[StaffStartDay] Failed to load staff data:', error);
         setLoadError('Failed to load staff data');
@@ -59,7 +73,27 @@ export default function StaffStartDayScreen() {
     loadData();
   }, [authUser]);
 
+  const handleSelectHotel = async (hotelId: string) => {
+    try {
+      const { assignEmployeeToHotel } = await import('../../../services/hotelService');
+      await assignEmployeeToHotel(hotelId, authUser?.userId || '');
+      // Refresh data
+      const employeeId = authUser?.userId;
+      const data = await getStaffHomeData(employeeId);
+      setStaffData(data);
+      setBusinessMode(data?.staff?.businessMode || 'manual');
+      setAvailableHotels(data?.availableHotels || []);
+    } catch (error) {
+      console.error('Failed to select hotel:', error);
+      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to select hotel');
+    }
+  };
+
   const hasAssignment = staffData?.assignedHotels && staffData.assignedHotels.length > 0;
+  const hasAvailableHotels = availableHotels.length > 0;
+  
+  // DEBUG: Log rendering decision
+  console.log('[StaffStartDay] Rendering - hasAssignment:', hasAssignment, 'businessMode:', businessMode, 'hasAvailableHotels:', hasAvailableHotels);
 
   const handleMenuPress = () => {
     console.log('Menu pressed');
@@ -76,6 +110,7 @@ export default function StaffStartDayScreen() {
       [{ text: 'OK' }]
     );
   };
+  const signOut = useAuthStore((state) => state.signOut);
 
   const handleViewHotels = () => {
     if (staffData?.assignedHotels && staffData.assignedHotels.length > 0) {
@@ -105,7 +140,7 @@ export default function StaffStartDayScreen() {
   if (loadError || !staffData) {
     return (
       <View style={styles.container}>
-        <StartDayHeader onMenuPress={handleMenuPress} />
+        <StartDayHeader onMenuPress={signOut} />
         <View style={styles.centerContainer}>
           <Text style={styles.errorText}>No Staff Data Available</Text>
           <Text style={styles.errorSubtext}>
@@ -118,7 +153,7 @@ export default function StaffStartDayScreen() {
 
   return (
     <View style={styles.container}>
-      <StartDayHeader onMenuPress={handleMenuPress} />
+      <StartDayHeader onMenuPress={signOut} />
       
       <ScrollView
         style={styles.scrollView}
@@ -138,6 +173,7 @@ export default function StaffStartDayScreen() {
 
         {/* Assignment Status */}
         {hasAssignment ? (
+          // HAS ASSIGNMENT - Show hotels and start button
           <>
             <HotelAssignmentCard
               hotelCount={staffData.assignedHotels.length}
@@ -148,10 +184,39 @@ export default function StaffStartDayScreen() {
             />
             <StartDayButton onPress={handleStartDay} />
           </>
+        ) : businessMode === 'auto' && hasAvailableHotels ? (
+          // AUTO MODE - Show hotel selection
+          <View style={styles.selectionContainer}>
+            <Text style={styles.selectionTitle}>Select Your Hotels</Text>
+            <Text style={styles.selectionSubtitle}>
+              Choose hotels to start your deliveries
+            </Text>
+            {availableHotels.map((hotel: any) => (
+              <Pressable
+                key={hotel.id}
+                style={({ pressed }) => [
+                  styles.hotelOption,
+                  pressed && styles.hotelOptionPressed,
+                ]}
+                onPress={() => handleSelectHotel(hotel.id)}
+              >
+                <Ionicons name="business" size={28} color={colors.primaryBlue} />
+                <View style={styles.hotelInfo}>
+                  <Text style={styles.hotelName}>{hotel.name}</Text>
+                  <Text style={styles.hotelLocation}>{hotel.location || 'No location'}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+              </Pressable>
+            ))}
+          </View>
         ) : (
+          // MANUAL MODE or NO AVAILABLE HOTELS - Show waiting state
           <>
             <NoAssignmentCard type="hotel" />
             <ContactAdminButton onPress={handleContactAdmin} />
+            {businessMode === 'auto' && (
+              <InfoBanner message="No hotels available. Please try again later or contact admin." />
+            )}
           </>
         )}
       </ScrollView>
@@ -192,5 +257,48 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: spacing.xs,
     textAlign: 'center',
+  },
+  selectionContainer: {
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  selectionTitle: {
+    fontSize: fontSize.lg,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+  },
+  selectionSubtitle: {
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
+  },
+  hotelOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    marginBottom: spacing.sm,
+    gap: spacing.md,
+  },
+  hotelOptionPressed: {
+    opacity: 0.7,
+    backgroundColor: colors.brandSoft,
+  },
+  hotelInfo: {
+    flex: 1,
+  },
+  hotelName: {
+    fontSize: fontSize.base,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  hotelLocation: {
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
 });

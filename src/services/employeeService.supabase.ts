@@ -7,7 +7,7 @@
 
 import { supabase } from '../config/supabase';
 import { getTodayDate } from '../config/supabaseHelpers';
-import { generateId } from '../services/mockData';
+import { generateId } from '../utils/idGenerator';
 import type { Database } from '../config/database.types';
 import type {
   Employee,
@@ -62,10 +62,10 @@ export async function saveEmployees(_employees: Employee[]): Promise<void> {
  * Also increments the parent business employee count.
  */
 export async function createEmployee(values: EmployeeFormValues): Promise<Employee> {
-  // Get business details
+  // Get business details including mode
   const { data: business, error: bizError } = await supabase
     .from('businesses')
-    .select('name, type, employees')
+    .select('name, type, employees, mode')
     .eq('id', values.businessId)
     .single();
 
@@ -124,6 +124,9 @@ export async function updateEmployee(
     .eq('id', values.businessId)
     .single();
 
+  // Auto-derive role from business type (same logic as createEmployee)
+  const derivedRole = business?.type === 'taxi' ? 'driver' : 'staff';
+
   const updateData: EmployeeUpdate = {
     full_name: values.fullName.trim(),
     mobile: values.mobile.replace(/\D/g, ''),
@@ -131,6 +134,7 @@ export async function updateEmployee(
     business_name: business?.name ?? 'Unknown Business',
     business_type: business?.type ?? 'taxi',
     pin: values.pin,
+    role: derivedRole,
     status: values.status,
   };
 

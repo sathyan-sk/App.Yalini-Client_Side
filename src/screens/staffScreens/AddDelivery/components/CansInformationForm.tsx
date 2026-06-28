@@ -31,6 +31,8 @@ interface CansInformationFormProps {
   estAmount: number;
   /** Rate per can for display */
   ratePerCan: number;
+  /** Previous outstanding cans from last delivery */
+  previousOutstandingCans?: number;
   /** Callback when loaded cans changes */
   onLoadedCansChange: (value: string) => void;
   /** Callback when cans delivered changes */
@@ -57,6 +59,7 @@ export function CansInformationForm({
   outstandingCans,
   estAmount,
   ratePerCan,
+  previousOutstandingCans = 0,
   onLoadedCansChange,
   onCansDeliveredChange,
   onCansReturnedChange,
@@ -182,14 +185,33 @@ export function CansInformationForm({
       <View style={styles.calculationsSection}>
         <Text style={styles.calculationsSectionTitle}>Outstanding Calculations</Text>
         
+        {/* Previous Outstanding (if exists) */}
+        {previousOutstandingCans > 0 && (
+          <View style={styles.calculatedRow}>
+            <View style={[styles.calculatedIcon, styles.previousIconBg]}>
+              <Feather name="archive" size={18} color={colors.warning} />
+            </View>
+            <View style={styles.calculatedInfo}>
+              <Text style={styles.calculatedLabel}>Previous Outstanding</Text>
+              <Text style={styles.calculatedSubtitle}>From last delivery</Text>
+            </View>
+            <Text style={styles.equalsSign}>=</Text>
+            <Text style={[styles.calculatedValue, styles.previousValue]}>
+              {previousOutstandingCans} <Text style={styles.calculatedUnit}>Cans</Text>
+            </Text>
+          </View>
+        )}
+
         {/* Outstanding Cans (Read-only, Auto-calculated) */}
         <View style={styles.calculatedRow}>
           <View style={styles.calculatedIcon}>
             <Feather name="box" size={18} color={colors.primaryBlue} />
           </View>
           <View style={styles.calculatedInfo}>
-            <Text style={styles.calculatedLabel}>Outstanding Cans</Text>
-            <Text style={styles.calculatedSubtitle}>(Delivered - Returned)</Text>
+            <Text style={styles.calculatedLabel}>New Outstanding</Text>
+            <Text style={styles.calculatedSubtitle}>
+              (Previous: {previousOutstandingCans} + Delivered: {cansDelivered} - Returned: {cansReturned})
+            </Text>
           </View>
           <Text style={styles.equalsSign}>=</Text>
           <Text
@@ -339,8 +361,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  previousIconBg: {
+    backgroundColor: colors.warningSoft,
+  },
   estAmountIconBg: {
     backgroundColor: colors.successSoft,
+  },
+  previousValue: {
+    color: colors.warning,
   },
   calculatedInfo: {
     flex: 1,

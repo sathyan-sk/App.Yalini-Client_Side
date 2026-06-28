@@ -6,7 +6,6 @@ import { colors, fontSize, radius, spacing } from "../../../../theme";
 
 interface EmptyBusinessStateProps {
   hasFilters: boolean;
-  onAddPress: () => void;
   onClearFilters?: () => void;
   testID?: string;
 }
@@ -22,7 +21,6 @@ interface EmptyBusinessStateProps {
  */
 export function EmptyBusinessState({
   hasFilters,
-  onAddPress,
   onClearFilters,
   testID,
 }: EmptyBusinessStateProps) {
@@ -32,12 +30,12 @@ export function EmptyBusinessState({
         <Ionicons name="storefront-outline" size={32} color="#4F46E5" />
       </View>
       <Text style={styles.title}>
-        {hasFilters ? "No businesses match" : "No businesses yet"}
+        {hasFilters ? "No businesses match" : "No businesses found"}
       </Text>
       <Text style={styles.body}>
         {hasFilters
           ? "Try a different status or clear the search query to see all businesses."
-          : "Create your first business to start managing employees and assets."}
+          : "Businesses are pre-configured. Contact administrator if you need assistance."}
       </Text>
       {hasFilters && onClearFilters ? (
         <Pressable
@@ -50,19 +48,7 @@ export function EmptyBusinessState({
         >
           <Text style={styles.ghostText}>Clear filters</Text>
         </Pressable>
-      ) : (
-        <Pressable
-          testID="empty-add-business"
-          onPress={onAddPress}
-          style={({ pressed }) => [
-            styles.primaryButton,
-            pressed && styles.pressed,
-          ]}
-        >
-          <Ionicons name="add" size={18} color="#FFFFFF" />
-          <Text style={styles.primaryText}>Add Business</Text>
-        </Pressable>
-      )}
+      ) : null}
     </View>
   );
 }
@@ -93,21 +79,6 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: "center",
     lineHeight: 20,
-  },
-  primaryButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: spacing.xl,
-    minHeight: 48,
-    borderRadius: radius.md,
-    backgroundColor: colors.brand,
-    marginTop: spacing.sm,
-  },
-  primaryText: {
-    color: "#FFFFFF",
-    fontSize: fontSize.base,
-    fontWeight: "600",
   },
   ghostButton: {
     paddingHorizontal: spacing.xl,

@@ -3,8 +3,7 @@
  */
 
 import { supabase } from '../config/supabase';
-import { getTodayDate } from '../config/supabaseHelpers';
-import { generateId } from '../services/mockData';
+import { generateId } from '../utils/idGenerator';
 import type { Database } from '../config/database.types';
 import type {
   Vehicle,
@@ -26,9 +25,28 @@ const fromSupabaseRow = (row: VehicleRow): Vehicle => ({
   notes: row.notes ?? undefined,
   assignedDriver: row.assigned_driver ?? undefined,
   assignedEmployeeId: row.assigned_employee_id ?? undefined,
+  assignmentStatus: row.assignment_status ?? undefined,
   createdAt: row.created_at,
   updatedAt: row.updated_at,
 });
+
+/**
+ * Get vehicle by ID (helper function)
+ */
+export async function getVehicleById(vehicleId: string): Promise<Vehicle | null> {
+  const { data, error } = await supabase
+    .from('vehicles')
+    .select('*')
+    .eq('id', vehicleId)
+    .single();
+
+  if (error) {
+    console.error('[Supabase] Error fetching vehicle:', error);
+    return null;
+  }
+
+  return data ? fromSupabaseRow(data) : null;
+}
 
 /**
  * Load all vehicles from Supabase.
@@ -48,6 +66,16 @@ export async function loadVehicles(): Promise<Vehicle[]> {
 }
 
 /**
+ * Check if vehicle is available for assignment
+ */
+export async function isVehicleAvailable(vehicleId: string): Promise<boolean> {
+  const vehicle = await getVehicleById(vehicleId);
+  if (!vehicle) return false;
+  
+  return vehicle.assignmentStatus === 'available' && vehicle.status === 'enabled';
+}
+
+/**
  * Create a new vehicle.
  */
 export async function createVehicle(values: VehicleFormValues): Promise<Vehicle> {
@@ -57,8 +85,7 @@ export async function createVehicle(values: VehicleFormValues): Promise<Vehicle>
     number: values.number.trim().toUpperCase(),
     status: values.status,
     notes: values.notes?.trim() || null,
-    created_at: getTodayDate(),
-    updated_at: getTodayDate(),
+    created_at: new Date().toISOString().slice(0, 10),
   };
 
   // Add assignment fields if provided
@@ -95,7 +122,6 @@ export async function updateVehicle(
     number: values.number.trim().toUpperCase(),
     status: values.status,
     notes: values.notes?.trim() || null,
-    updated_at: getTodayDate(),
   };
 
   // Add assignment fields if changing
@@ -144,16 +170,39 @@ export async function deleteVehicle(id: string): Promise<void> {
 }
 
 /**
- * Assign an employee to a vehicle.
+ * Assign an employee to a vehicle with conflict checking.
+ * @returns void - throws on error
  */
 export async function assignEmployeeToVehicle(
   vehicleId: string,
   employeeId: string
 ): Promise<void> {
+  // Get vehicle to check current status
+  const vehicle = await getVehicleById(vehicleId);
+  if (!vehicle) {
+    throw new Error('Vehicle not found');
+  }
+
+  // Check if vehicle is locked
+  if (vehicle.assignmentStatus === 'locked') {
+    throw new Error('This vehicle is locked by admin and cannot be assigned');
+  }
+
+  // Check if already assigned to another employee
+  if (vehicle.assignmentStatus === 'assigned' && 
+      vehicle.assignedEmployeeId !== employeeId) {
+    throw new Error(`Vehicle is already assigned to ${vehicle.assignedDriver}`);
+  }
+
+  // CONCURRENCY CONTROL: Check if vehicle is being assigned right now
+  if (vehicle.assignmentStatus === 'assigning') {
+    throw new Error('Vehicle is being assigned by another user. Please wait.');
+  }
+
   // Get employee details
   const { data: employee } = await supabase
     .from('employees')
-    .select('full_name, business_type')
+    .select('full_name, business_type, business_id')
     .eq('id', employeeId)
     .single();
 
@@ -161,14 +210,29 @@ export async function assignEmployeeToVehicle(
     throw new Error('Can only assign taxi employees to vehicles');
   }
 
+  // Conflict prevention: unassign from previous vehicle if any
+  if (vehicle.assignmentStatus !== 'assigned' || vehicle.assignedEmployeeId !== employeeId) {
+    await supabase
+      .from('vehicles')
+      .update({ 
+        assigned_employee_id: null,
+        assigned_driver: null,
+        assignment_status: 'available'
+      })
+      .eq('assigned_employee_id', employeeId);
+  }
+
+  // Assign to new vehicle with concurrency control
+  // Only update if still available (prevents race condition)
   const { error } = await supabase
     .from('vehicles')
     .update({
       assigned_employee_id: employeeId,
       assigned_driver: employee.full_name,
-      updated_at: getTodayDate(),
+      assignment_status: 'assigned',
     })
-    .eq('id', vehicleId);
+    .eq('id', vehicleId)
+    .eq('assignment_status', 'available'); // Optimistic locking
 
   if (error) {
     console.error('[Supabase] Error assigning employee:', error);
@@ -185,12 +249,46 @@ export async function unassignEmployeeFromVehicle(vehicleId: string): Promise<vo
     .update({
       assigned_employee_id: null,
       assigned_driver: null,
-      updated_at: getTodayDate(),
+      assignment_status: 'available',
     })
     .eq('id', vehicleId);
 
   if (error) {
     console.error('[Supabase] Error unassigning employee:', error);
     throw new Error(`Failed to unassign employee: ${error.message}`);
+  }
+}
+
+/**
+ * Lock a vehicle (prevents auto-assignment in auto mode)
+ */
+export async function lockVehicle(vehicleId: string): Promise<void> {
+  const { error } = await supabase
+    .from('vehicles')
+    .update({
+      assignment_status: 'locked',
+    })
+    .eq('id', vehicleId);
+
+  if (error) {
+    console.error('[Supabase] Error locking vehicle:', error);
+    throw new Error(`Failed to lock vehicle: ${error.message}`);
+  }
+}
+
+/**
+ * Unlock a vehicle (allows auto-assignment in auto mode)
+ */
+export async function unlockVehicle(vehicleId: string): Promise<void> {
+  const { error } = await supabase
+    .from('vehicles')
+    .update({
+      assignment_status: 'available',
+    })
+    .eq('id', vehicleId);
+
+  if (error) {
+    console.error('[Supabase] Error unlocking vehicle:', error);
+    throw new Error(`Failed to unlock vehicle: ${error.message}`);
   }
 }

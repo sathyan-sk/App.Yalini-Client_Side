@@ -5,6 +5,7 @@
  */
 import React, { useEffect, useState, useCallback } from "react";
 import {
+  Pressable,
   StyleSheet,
   View,
   ScrollView,
@@ -12,12 +13,13 @@ import {
   Text,
   RefreshControl,
 } from "react-native";
+import { Ionicons, Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, CompositeNavigationProp } from "@react-navigation/native";
 import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
-import { colors, spacing, fontSize } from "../../../theme";
+import { colors, spacing, fontSize, radius } from "../../../theme";
 import { useAuthStore } from "../../../store/authStore";
 import { getGreeting, getDriverHomeData } from "../../../services/driverService";
 import type { DriverHomeData } from "../../../types/driver";
@@ -130,10 +132,26 @@ const handleLogout = () => {
     navigation.navigate("AllTripsStack");
   };
 
+  const handleSelectVehicle = async (vehicleId: string) => {
+    // In auto mode, driver selects their own vehicle
+    // This assigns the vehicle to the driver
+    try {
+      const { assignEmployeeToVehicle } = await import('../../../services/vehicleService');
+      await assignEmployeeToVehicle(vehicleId, authUser?.userId || '');
+      // Refresh data to show the assignment
+      const employeeId = authUser?.userId;
+      const data = await getDriverHomeData(employeeId);
+      setDriverData(data);
+    } catch (error) {
+      console.error('Failed to select vehicle:', error);
+    }
+  };
+
   // Use ONLY Supabase data - no fallback to mock/tripStore
-  // This ensures the driver sees their REAL assigned data from admin
   const displayData = driverData;
   const hasAssignment = displayData?.assignment?.isAssigned || false;
+  const businessMode = displayData?.businessMode || 'manual';
+  const availableVehicles = displayData?.availableVehicles || [];
 
   if (sessionLoading) {
     return (
@@ -195,13 +213,36 @@ const handleLogout = () => {
           sessionStatus={displayData.sessionStatus}
         />
 
-        {/* Vehicle Assignment Card (only if assigned) */}
-        {hasAssignment && displayData.assignment && (
+        {/* Vehicle Assignment Card */}
+        {hasAssignment && displayData.assignment ? (
+          // Manual mode or already assigned in auto mode
           <VehicleAssignmentCard
             vehicleNumber={displayData.assignment.vehicleNumber}
             isAssigned={true}
           />
-        )}
+        ) : businessMode === 'auto' && availableVehicles.length > 0 ? (
+          // Auto mode: Show vehicle selection
+          <View style={styles.vehicleSelectionContainer}>
+            <Text style={styles.selectionTitle}>Select Your Vehicle</Text>
+            {availableVehicles.map((vehicle) => (
+              <Pressable
+                key={vehicle.id}
+                style={({ pressed }) => [
+                  styles.vehicleOption,
+                  pressed && styles.vehicleOptionPressed,
+                ]}
+                onPress={() => handleSelectVehicle(vehicle.id)}
+              >
+                <Ionicons name="car" size={24} color={colors.primaryBlue} />
+                <View style={styles.vehicleInfo}>
+                  <Text style={styles.vehicleName}>{vehicle.name}</Text>
+                  <Text style={styles.vehicleNumber}>{vehicle.number}</Text>
+                </View>
+                <Feather name="chevron-right" size={20} color={colors.textSecondary} />
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
 
         {/* Quick Actions */}
         <QuickActions
@@ -261,6 +302,44 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
     color: colors.textSecondary,
     marginTop: spacing.xs,
-    textAlign: 'center',
+    textAlign: "center",
+  },
+  vehicleSelectionContainer: {
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  selectionTitle: {
+    fontSize: fontSize.base,
+    fontWeight: "600",
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
+  },
+  vehicleOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.surface,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    marginBottom: spacing.sm,
+    gap: spacing.md,
+  },
+  vehicleOptionPressed: {
+    opacity: 0.7,
+    backgroundColor: colors.brandSoft,
+  },
+  vehicleInfo: {
+    flex: 1,
+  },
+  vehicleName: {
+    fontSize: fontSize.base,
+    fontWeight: "600",
+    color: colors.textPrimary,
+  },
+  vehicleNumber: {
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
 });

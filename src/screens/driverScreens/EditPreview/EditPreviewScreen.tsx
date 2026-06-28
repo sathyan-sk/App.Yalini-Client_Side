@@ -30,7 +30,7 @@ import {
 import { useTripStore, TripWithExpense } from '../../../store/tripStore';
 import type { AllTripsStackParamList } from '../../../types/navigation';
 import type { EditTripFormData, PaymentMode } from '../../../types/driver';
-import { DEFAULT_EXPENSE } from '../../../services/mockData/driverConfig';
+import { DEFAULT_EXPENSE } from '../../../services/archive/mockData/driverConfig';
 
 
 const BACKGROUND_COLOR = colors.surfaceSecondary;

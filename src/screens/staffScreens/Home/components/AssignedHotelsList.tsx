@@ -32,6 +32,14 @@ export function AssignedHotelsList({ hotels, onHotelPress }: AssignedHotelsListP
             <Text style={styles.locationText}>{item.location}</Text>
           </View>
         )}
+        {item.outstandingCans !== undefined && item.outstandingCans > 0 && (
+          <View style={styles.outstandingRow}>
+            <Feather name="alert-circle" size={12} color={colors.warning} />
+            <Text style={styles.outstandingText}>
+              {item.outstandingCans} outstanding can{item.outstandingCans !== 1 ? 's' : ''}
+            </Text>
+          </View>
+        )}
       </View>
       <Feather name="chevron-right" size={20} color={colors.textTertiary} />
     </TouchableOpacity>
@@ -136,6 +144,17 @@ const styles = StyleSheet.create({
   locationText: {
     fontSize: fontSize.sm,
     color: colors.textSecondary,
+  },
+  outstandingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+  },
+  outstandingText: {
+    fontSize: fontSize.xs,
+    color: colors.warning,
+    fontWeight: '500',
   },
   separator: {
     height: spacing.sm,

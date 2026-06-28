@@ -69,6 +69,12 @@ export default function EmployeesScreen() {
     };
   }, [employees]);
 
+  // Get business mode for each employee
+  const getBusinessMode = (businessId: string): 'auto' | 'manual' | undefined => {
+    const business = businesses.find(b => b.id === businessId);
+    return business?.mode;
+  };
+
   const handleAdd = useCallback(() => {
     navigation.navigate("AddEmployee");
   }, [navigation]);
@@ -150,6 +156,7 @@ export default function EmployeesScreen() {
               <EmployeeCard
                 key={employee.id}
                 employee={employee}
+                businessMode={getBusinessMode(employee.businessId)}
                 onPress={() => handleEdit(employee.id)}
                 onEdit={() => handleEdit(employee.id)}
                 onDelete={() => setPendingDelete(employee)}

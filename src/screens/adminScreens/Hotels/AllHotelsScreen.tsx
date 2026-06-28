@@ -68,10 +68,12 @@ export default function AllHotelsScreen() {
 
   const counts = useMemo(() => {
     const enabled = hotels.filter((h) => h.status === "enabled").length;
+    const totalOutstandingCans = hotels.reduce((sum, h) => sum + (h.outstandingCans || 0), 0);
     return {
+      disabled: hotels.length - enabled,
       total: hotels.length,
       enabled,
-      disabled: hotels.length - enabled,
+      outstandingCans: totalOutstandingCans,
     };
   }, [hotels]);
 
@@ -146,6 +148,7 @@ export default function AllHotelsScreen() {
             total={counts.total}
             enabled={counts.enabled}
             disabled={counts.disabled}
+            outstandingCans={counts.outstandingCans}
             testID="hotel-stat-cards"
           />
 

@@ -22,20 +22,14 @@ import { useHotels } from "../../../hooks/useHotels";
 import {
   assignEmployeeToVehicle,
   unassignEmployeeFromVehicle,
-  loadVehicles,
-  saveVehicles,
 } from "../../../services/vehicleService";
 import {
   assignEmployeeToHotel,
   unassignEmployeeFromHotel,
-  loadHotels,
-  saveHotels,
 } from "../../../services/hotelService";
 
 import type { AssetType } from "./types";
 import type { Employee } from "../Employees/types";
-import type { Vehicle } from "../../../types/vehicle";
-import type { Hotel } from "../Hotels/types";
 import type { SettingsStackParamList } from "../../../types/navigation";
 
 import { AssignmentHeader } from "./components/AssignmentHeader";
@@ -54,7 +48,7 @@ export default function AssignAssetScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<Nav>();
 
-  // Data hooks
+  // Data hooks - always fetch fresh to keep data consistent
   const { employees, loading: employeesLoading, refresh: refreshEmployees } = useEmployees();
   const { vehicles, loading: vehiclesLoading, refresh: refreshVehicles } = useVehicles();
   const { hotels, loading: hotelsLoading, refresh: refreshHotels } = useHotels();
@@ -69,43 +63,33 @@ export default function AssignAssetScreen() {
 
   const loading = employeesLoading || vehiclesLoading || hotelsLoading;
 
-  // Handle back navigation
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  // Handle asset type selection
   const handleAssetTypeChange = useCallback((type: AssetType) => {
     setSelectedAssetType(type);
   }, []);
 
-  // Handle assign button press - opens asset selection sheet
   const handleAssignPress = useCallback((employee: Employee) => {
     setSelectedEmployee(employee);
     setAssetSheetVisible(true);
   }, []);
 
-  // Handle asset selection from sheet
   const handleAssetSelect = useCallback(
     async (assetId: string) => {
       if (!selectedEmployee) return;
 
       try {
         if (selectedAssetType === "vehicle") {
-          await assignEmployeeToVehicle(
-            assetId,
-            selectedEmployee.id,
-            selectedEmployee.fullName
-          );
-          await refreshVehicles();
+          await assignEmployeeToVehicle(assetId, selectedEmployee.id);
         } else {
-          await assignEmployeeToHotel(
-            assetId,
-            selectedEmployee.id,
-            selectedEmployee.fullName
-          );
-          await refreshHotels();
+          await assignEmployeeToHotel(assetId, selectedEmployee.id);
         }
+        // Force fresh data sync across all screens
+        await refreshVehicles();
+        await refreshEmployees();
+        await refreshHotels();
       } catch (error) {
         console.error("Failed to assign asset:", error);
       }
@@ -113,16 +97,14 @@ export default function AssignAssetScreen() {
       setAssetSheetVisible(false);
       setSelectedEmployee(null);
     },
-    [selectedEmployee, selectedAssetType, refreshVehicles, refreshHotels]
+    [selectedEmployee, selectedAssetType, refreshVehicles, refreshEmployees, refreshHotels]
   );
 
-  // Handle unassign button press - opens confirmation sheet
   const handleUnassignPress = useCallback(
     (employee: Employee, assetId: string) => {
       setSelectedEmployee(employee);
       setSelectedAssetId(assetId);
 
-      // Find asset name
       if (selectedAssetType === "vehicle") {
         const vehicle = vehicles.find((v) => v.id === assetId);
         setSelectedAssetName(vehicle?.name || "Vehicle");
@@ -136,18 +118,19 @@ export default function AssignAssetScreen() {
     [selectedAssetType, vehicles, hotels]
   );
 
-  // Handle unassign confirmation
   const handleUnassignConfirm = useCallback(async () => {
     if (!selectedAssetId) return;
 
     try {
       if (selectedAssetType === "vehicle") {
         await unassignEmployeeFromVehicle(selectedAssetId);
-        await refreshVehicles();
       } else {
         await unassignEmployeeFromHotel(selectedAssetId);
-        await refreshHotels();
       }
+      // Force fresh data sync across all screens
+      await refreshVehicles();
+      await refreshEmployees();
+      await refreshHotels();
     } catch (error) {
       console.error("Failed to unassign asset:", error);
     }
@@ -156,9 +139,8 @@ export default function AssignAssetScreen() {
     setSelectedEmployee(null);
     setSelectedAssetId(null);
     setSelectedAssetName("");
-  }, [selectedAssetId, selectedAssetType, refreshVehicles, refreshHotels]);
+  }, [selectedAssetId, selectedAssetType, refreshVehicles, refreshEmployees, refreshHotels]);
 
-  // Handle unassign cancel
   const handleUnassignCancel = useCallback(() => {
     setUnassignSheetVisible(false);
     setSelectedEmployee(null);
@@ -166,7 +148,6 @@ export default function AssignAssetScreen() {
     setSelectedAssetName("");
   }, []);
 
-  // Close asset sheet
   const handleAssetSheetClose = useCallback(() => {
     setAssetSheetVisible(false);
     setSelectedEmployee(null);

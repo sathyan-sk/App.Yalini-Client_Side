@@ -6,8 +6,6 @@
  */
 
 import { supabase } from '../config/supabase';
-import { getTodayDate } from '../config/supabaseHelpers';
-import { generateId } from '../services/mockData';
 import type { Database } from '../config/database.types';
 import type {
   Business,
@@ -15,7 +13,6 @@ import type {
 } from '../screens/adminScreens/MyBusiness/types';
 
 type BusinessRow = Database['public']['Tables']['businesses']['Row'];
-type BusinessInsert = Database['public']['Tables']['businesses']['Insert'];
 type BusinessUpdate = Database['public']['Tables']['businesses']['Update'];
 
 /**
@@ -58,44 +55,32 @@ export async function saveBusinesses(_businesses: Business[]): Promise<void> {
 
 /**
  * Create a new business.
+ * @deprecated Business creation is not allowed - businesses are pre-configured.
+ * This function is kept for backward compatibility but should not be used.
  */
 export async function createBusiness(values: BusinessFormValues): Promise<Business> {
-  const insertData: BusinessInsert = {
-    id: generateId('biz'),
-    name: values.name.trim(),
-    type: values.type,
-    mode: values.mode,
-    status: values.status,
-    // BusinessFormValues may not declare `location`; cast to any to safely access if present
-    location: (values as any).location?.trim() || null,
-    employees: 0,
-    created_at: getTodayDate(),
-  };
-
-  const { data, error } = await supabase
-    .from('businesses')
-    .insert(insertData)
-    .select()
-    .single();
-
-  if (error) {
-    console.error('[Supabase] Error creating business:', error);
-    throw new Error(`Failed to create business: ${error.message}`);
-  }
-
-  return fromSupabaseRow(data);
+  throw new Error('Business creation is not allowed. Businesses are pre-configured with Taxi and Water Delivery types.');
 }
 
 /**
  * Update an existing business by ID.
+ * Note: Business type cannot be changed - it's locked after creation.
+ * Only name, mode, and status can be updated.
  */
 export async function updateBusiness(
   id: string,
   patch: BusinessFormValues
 ): Promise<Business | null> {
+  // First, fetch the existing business to preserve the type
+  const existing = await getBusinessByIdFromService(id);
+  if (!existing) {
+    return null;
+  }
+
+  // Business type is locked - use existing type
   const updateData: BusinessUpdate = {
     name: patch.name.trim(),
-    type: patch.type,
+    type: existing.type, // Lock: always use existing type
     mode: patch.mode,
     status: patch.status,
     // patch may not declare `location`; cast to any to safely access if present
@@ -119,17 +104,11 @@ export async function updateBusiness(
 
 /**
  * Delete a business by ID.
+ * @deprecated Business deletion is not allowed - businesses are pre-configured.
+ * This function is kept for backward compatibility but should not be used.
  */
 export async function deleteBusiness(id: string): Promise<void> {
-  const { error } = await supabase
-    .from('businesses')
-    .delete()
-    .eq('id', id);
-
-  if (error) {
-    console.error('[Supabase] Error deleting business:', error);
-    throw new Error(`Failed to delete business: ${error.message}`);
-  }
+  throw new Error('Business deletion is not allowed. Businesses are pre-configured and cannot be deleted.');
 }
 
 /**
@@ -153,3 +132,6 @@ export async function getBusinessByIdFromService(id: string): Promise<Business |
 
   return data ? fromSupabaseRow(data) : undefined;
 }
+
+// Seed function removed - businesses are created via SQL migration in Supabase.
+// Run the migration script from supabase_schema.md to create the 2 pre-configured businesses.

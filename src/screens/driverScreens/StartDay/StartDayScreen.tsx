@@ -6,10 +6,11 @@
  * consistency with admin module and seed data.
  */
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, ScrollView, Alert, ActivityIndicator, Text } from 'react-native';
+import { StyleSheet, View, ScrollView, Alert, ActivityIndicator, Text, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
 
 import { StartDayHeader } from './components/StartDayHeader';
 import { ServiceInfoCard } from './components/ServiceInfoCard';
@@ -19,10 +20,10 @@ import { InfoBanner } from './components/InfoBanner';
 import { StartDayButton } from './components/StartDayButton';
 import { ContactAdminButton } from './components/ContactAdminButton';
 import { useAuthStore } from '../../../store/authStore';
-import { getStartDayData } from '../../../services/driverService';
-import type { StartDayData } from '@/types/driver';
+import { getStartDayData, getDriverHomeData } from '../../../services/driverService';
+import type { StartDayData, DriverHomeData } from '@/types/driver';
 import type { DriverStackParamList } from '../../../types/navigation';
-import { colors, spacing, fontSize } from '../../../theme';
+import { colors, spacing, fontSize, radius } from '../../../theme';
 
 type NavigationProp = NativeStackNavigationProp<DriverStackParamList>;
 
@@ -39,6 +40,7 @@ export default function DriverStartDayScreen() {
   const authUser = useAuthStore((state) => state.user);
 
   const [data, setData] = useState<StartDayData | null>(null);
+  const [driverHomeData, setDriverHomeData] = useState<DriverHomeData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,6 +53,15 @@ export default function DriverStartDayScreen() {
         const employeeId = authUser?.userId;
         const startDayData = await getStartDayData(employeeId);
         setData(startDayData);
+        
+        // Also fetch driver home data to get business mode and available vehicles
+        const homeData = await getDriverHomeData(employeeId);
+        setDriverHomeData(homeData);
+        
+        // DEBUG: Log what we got
+        console.log('[StartDay] Business mode:', homeData?.businessMode);
+        console.log('[StartDay] Available vehicles:', homeData?.availableVehicles?.length || 0);
+        console.log('[StartDay] Has assignment:', startDayData?.assignment !== null);
       } catch (err) {
         console.error('Error fetching start day data:', err);
         setError('Failed to load driver data');
@@ -62,7 +73,28 @@ export default function DriverStartDayScreen() {
     fetchData();
   }, [authUser]);
 
+  const handleSelectVehicle = async (vehicleId: string) => {
+    try {
+      const { assignEmployeeToVehicle } = await import('../../../services/vehicleService');
+      await assignEmployeeToVehicle(vehicleId, authUser?.userId || '');
+      // Refresh data
+      const employeeId = authUser?.userId;
+      const startDayData = await getStartDayData(employeeId);
+      setData(startDayData);
+      const homeData = await getDriverHomeData(employeeId);
+      setDriverHomeData(homeData);
+    } catch (error) {
+      console.error('Failed to select vehicle:', error);
+      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to select vehicle');
+    }
+  };
+
   const hasAssignment = data?.assignment !== null;
+  const businessMode = driverHomeData?.businessMode || 'manual';
+  const availableVehicles = driverHomeData?.availableVehicles || [];
+  
+  // DEBUG: Log rendering decision
+  console.log('[StartDay] Rendering with - hasAssignment:', hasAssignment, 'businessMode:', businessMode, 'availableVehicles:', availableVehicles.length);
 
   const handleMenuPress = () => {
     // Navigation drawer will be connected later
@@ -81,6 +113,7 @@ export default function DriverStartDayScreen() {
       [{ text: 'OK' }]
     );
   };
+  const signOut = useAuthStore((state) => state.signOut);
 
   // Show loading state
   if (isLoading) {
@@ -106,7 +139,7 @@ export default function DriverStartDayScreen() {
 
   return (
     <View style={styles.container}>
-      <StartDayHeader onMenuPress={handleMenuPress} />
+      <StartDayHeader onMenuPress={signOut} />
       
       <ScrollView
         style={styles.scrollView}
@@ -126,6 +159,7 @@ export default function DriverStartDayScreen() {
 
         {/* Assignment Status */}
         {hasAssignment && data.assignment ? (
+          // HAS ASSIGNMENT - Show vehicle and start button
           <>
             <VehicleAssignmentCard
               vehicleNumber={data.assignment.vehicleNumber}
@@ -136,10 +170,39 @@ export default function DriverStartDayScreen() {
             />
             <StartDayButton onPress={handleStartDay} />
           </>
+        ) : businessMode === 'auto' && availableVehicles.length > 0 ? (
+          // AUTO MODE - Show vehicle selection
+          <View style={styles.selectionContainer}>
+            <Text style={styles.selectionTitle}>Select Your Vehicle</Text>
+            <Text style={styles.selectionSubtitle}>
+              Choose a vehicle to start your day
+            </Text>
+            {availableVehicles.map((vehicle) => (
+              <Pressable
+                key={vehicle.id}
+                style={({ pressed }) => [
+                  styles.vehicleOption,
+                  pressed && styles.vehicleOptionPressed,
+                ]}
+                onPress={() => handleSelectVehicle(vehicle.id)}
+              >
+                <Ionicons name="car" size={28} color={colors.primaryBlue} />
+                <View style={styles.vehicleInfo}>
+                  <Text style={styles.vehicleName}>{vehicle.name}</Text>
+                  <Text style={styles.vehicleNumber}>{vehicle.number}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+              </Pressable>
+            ))}
+          </View>
         ) : (
+          // MANUAL MODE or NO AVAILABLE VEHICLES - Show waiting state
           <>
             <NoAssignmentCard type="vehicle" />
             <ContactAdminButton onPress={handleContactAdmin} />
+            {businessMode === 'auto' && (
+              <InfoBanner message="No vehicles available. Please try again later or contact admin." />
+            )}
           </>
         )}
       </ScrollView>
@@ -180,5 +243,48 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
     textAlign: 'center',
     paddingHorizontal: 24,
+  },
+  selectionContainer: {
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  selectionTitle: {
+    fontSize: fontSize.lg,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+  },
+  selectionSubtitle: {
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
+  },
+  vehicleOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    marginBottom: spacing.sm,
+    gap: spacing.md,
+  },
+  vehicleOptionPressed: {
+    opacity: 0.7,
+    backgroundColor: colors.brandSoft,
+  },
+  vehicleInfo: {
+    flex: 1,
+  },
+  vehicleName: {
+    fontSize: fontSize.base,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  vehicleNumber: {
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
 });

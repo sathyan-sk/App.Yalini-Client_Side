@@ -8,6 +8,9 @@ interface VehicleStatCardsProps {
   total: number;
   enabled: number;
   disabled: number;
+  available?: number;
+  assigned?: number;
+  locked?: number;
   testID?: string;
 }
 
@@ -15,6 +18,9 @@ export function VehicleStatCards({
   total,
   enabled,
   disabled,
+  available = 0,
+  assigned = 0,
+  locked = 0,
   testID,
 }: VehicleStatCardsProps) {
   return (
@@ -37,20 +43,30 @@ export function VehicleStatCards({
         
         <View style={styles.statItem}>
           <View style={styles.labelRow}>
-            <View style={[styles.dot, { backgroundColor: colors.running }]} />
-            <Text style={styles.statLabel}>Enabled</Text>
+            <View style={[styles.dot, { backgroundColor: colors.success }]} />
+            <Text style={styles.statLabel}>Available</Text>
           </View>
-          <Text style={styles.statValue}>{enabled}</Text>
+          <Text style={styles.statValue}>{available}</Text>
         </View>
         
         <View style={styles.divider} />
         
         <View style={styles.statItem}>
           <View style={styles.labelRow}>
-            <View style={[styles.dot, { backgroundColor: colors.maintenance }]} />
-            <Text style={styles.statLabel}>Disabled</Text>
+            <View style={[styles.dot, { backgroundColor: colors.info }]} />
+            <Text style={styles.statLabel}>Assigned</Text>
           </View>
-          <Text style={styles.statValue}>{disabled}</Text>
+          <Text style={styles.statValue}>{assigned}</Text>
+        </View>
+        
+        <View style={styles.divider} />
+        
+        <View style={styles.statItem}>
+          <View style={styles.labelRow}>
+            <View style={[styles.dot, { backgroundColor: colors.warning }]} />
+            <Text style={styles.statLabel}>Locked</Text>
+          </View>
+          <Text style={styles.statValue}>{locked}</Text>
         </View>
       </View>
     </View>

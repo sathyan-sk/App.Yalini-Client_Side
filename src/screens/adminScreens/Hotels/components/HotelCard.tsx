@@ -78,6 +78,18 @@ export function HotelCard({ hotel, onPress, onEdit, onDelete }: HotelCardProps) 
         </View>
       </View>
 
+      {/* Outstanding Cans Section */}
+      {hotel.outstandingCans !== undefined && hotel.outstandingCans > 0 && (
+        <View style={styles.pendingSection}>
+          <View style={styles.pendingBadge}>
+            <Ionicons name="cube-outline" size={14} color={colors.warning} />
+            <Text style={styles.pendingText}>
+              {hotel.outstandingCans} outstanding can{hotel.outstandingCans !== 1 ? 's' : ''}
+            </Text>
+          </View>
+        </View>
+      )}
+
       <View style={styles.divider} />
 
       <View style={styles.actionsRow}>
@@ -201,6 +213,24 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: colors.borderLight,
     marginVertical: spacing.md,
+  },
+  pendingSection: {
+    marginTop: spacing.sm,
+  },
+  pendingBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    backgroundColor: colors.warningSoft,
+    borderRadius: radius.sm,
+    alignSelf: "flex-start",
+  },
+  pendingText: {
+    fontSize: fontSize.sm,
+    fontWeight: "600",
+    color: colors.warning,
   },
   actionsRow: {
     flexDirection: "row",

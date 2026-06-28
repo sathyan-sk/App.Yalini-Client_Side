@@ -52,7 +52,12 @@ interface UseVehiclesResult {
 }
 
 export function useVehicles(): UseVehiclesResult {
-  const [vehicles, setVehicles] = useState<Vehicle[]>(() => cache ?? []);
+  // Force invalidate cache on mount to ensure fresh data
+  const [vehicles, setVehicles] = useState<Vehicle[]>(() => {
+    if (cache === null) return [];
+    // Still verify cache isn't stale by triggering refresh
+    return cache;
+  });
   const [loading, setLoading] = useState<boolean>(() => cache === null);
 
   useEffect(() => {

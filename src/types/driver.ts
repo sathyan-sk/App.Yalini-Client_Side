@@ -51,7 +51,13 @@ export interface RecentActivity {
 
 export interface DriverHomeData {
   driver: DriverInfo;
+  businessMode: 'auto' | 'manual';
   assignment: DriverAssignment | null;
+  availableVehicles?: Array<{
+    id: string;
+    name: string;
+    number: string;
+  }>;
   sessionStatus: SessionStatus;
   sessionDate: string;
   sessionStartTime: string;
@@ -66,15 +72,21 @@ export interface StartDayData {
     id:           string
     name:         string
     businessName: string
-    businessType: BusinessType        // ← use shared type
+    businessType: BusinessType
     role:         string
   }
+  businessMode: 'auto' | 'manual'
   assignment: {
     vehicleId:     string
     vehicleName:   string
     vehicleNumber: string
     isAssigned:    boolean
   } | null
+  availableVehicles?: Array<{
+    id: string
+    name: string
+    number: string
+  }>
 }
 
 /**

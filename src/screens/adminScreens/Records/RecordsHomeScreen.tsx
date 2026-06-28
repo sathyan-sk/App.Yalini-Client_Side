@@ -41,18 +41,22 @@ export default function RecordsHomeScreen() {
   const [activeTab, setActiveTab] = useState<RecordStatus | WaterRecordStatus>("submitted");
   const [refreshing, setRefreshing] = useState(false);
 
-  // Set initial selected business when businesses load
+  // Set initial selected business to "All" (null) when businesses load
   useEffect(() => {
-    if (businesses.length > 0 && !selectedBusiness) {
-      setSelectedBusiness(businesses[0] as Business);
+    if (businesses.length > 0 && selectedBusiness === undefined) {
+      setSelectedBusiness(null); // Default to "All Businesses"
     }
-  }, [businesses, selectedBusiness]);
+  }, [businesses]);
 
-  // Determine if current business is water type
+  // Determine if we should show water records (when "All" or water business selected)
+  const showWaterRecords = selectedBusiness === null || selectedBusiness?.type === "water_delivery";
+  const showTaxiRecords = selectedBusiness === null || selectedBusiness?.type === "taxi";
+  
+  // Determine if current business is water type (for backward compatibility)
   const isWaterBusiness = selectedBusiness?.type === "water_delivery";
 
   // Handle business selection change
-  const handleBusinessChange = (business: Business) => {
+  const handleBusinessChange = (business: Business | null) => {
     setSelectedBusiness(business);
     // Reset to submitted tab
     setActiveTab("submitted");
@@ -60,6 +64,19 @@ export default function RecordsHomeScreen() {
 
   // Filter records based on tab, business type, and date
   const filteredRecords = useMemo(() => {
+    // If "All Businesses" selected, show both types
+    if (selectedBusiness === null) {
+      const waterFiltered = waterRecords.filter(
+        (record) => record.status === activeTab && record.date === selectedDate
+      );
+      const taxiFiltered = driverRecords.filter(
+        (record) => record.status === activeTab && record.date === selectedDate
+      );
+      // Combine and sort by some criteria (e.g., time or id)
+      return [...waterFiltered, ...taxiFiltered];
+    }
+    
+    // Filter by specific business type
     if (isWaterBusiness) {
       return waterRecords.filter(
         (record) => record.status === activeTab && record.date === selectedDate
@@ -68,10 +85,17 @@ export default function RecordsHomeScreen() {
     return driverRecords.filter(
       (record) => record.status === activeTab && record.date === selectedDate
     );
-  }, [activeTab, isWaterBusiness, driverRecords, waterRecords, selectedDate]);
+  }, [activeTab, selectedBusiness, isWaterBusiness, driverRecords, waterRecords, selectedDate]);
 
   // Calculate counts based on business type and date
   const submittedCount = useMemo(() => {
+    if (selectedBusiness === null) {
+      // Count from both types
+      return (
+        waterRecords.filter((r) => r.status === "submitted" && r.date === selectedDate).length +
+        driverRecords.filter((r) => r.status === "submitted" && r.date === selectedDate).length
+      );
+    }
     if (isWaterBusiness) {
       return waterRecords.filter(
         (r) => r.status === "submitted" && r.date === selectedDate
@@ -80,9 +104,16 @@ export default function RecordsHomeScreen() {
     return driverRecords.filter(
       (r) => r.status === "submitted" && r.date === selectedDate
     ).length;
-  }, [isWaterBusiness, driverRecords, waterRecords, selectedDate]);
+  }, [selectedBusiness, isWaterBusiness, driverRecords, waterRecords, selectedDate]);
 
   const pendingCount = useMemo(() => {
+    if (selectedBusiness === null) {
+      // Count from both types
+      return (
+        waterRecords.filter((r) => r.status === "pending" && r.date === selectedDate).length +
+        driverRecords.filter((r) => r.status === "pending" && r.date === selectedDate).length
+      );
+    }
     if (isWaterBusiness) {
       return waterRecords.filter(
         (r) => r.status === "pending" && r.date === selectedDate
@@ -91,7 +122,7 @@ export default function RecordsHomeScreen() {
     return driverRecords.filter(
       (r) => r.status === "pending" && r.date === selectedDate
     ).length;
-  }, [isWaterBusiness, driverRecords, waterRecords, selectedDate]);
+  }, [selectedBusiness, isWaterBusiness, driverRecords, waterRecords, selectedDate]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -100,8 +131,8 @@ export default function RecordsHomeScreen() {
   };
 
   // Handle record press based on business type
-  const handleRecordPress = (recordId: string) => {
-    if (isWaterBusiness) {
+  const handleRecordPress = (recordId: string, businessType: string) => {
+    if (businessType === "water_delivery") {
       navigation.navigate("WaterRecordDetails", { recordId });
     } else {
       navigation.navigate("TaxiRecordDetails", { recordId });
@@ -170,25 +201,27 @@ export default function RecordsHomeScreen() {
         {/* Records List - Conditionally render based on business type */}
         <View style={styles.listContainer}>
           {filteredRecords.length > 0 ? (
-            isWaterBusiness ? (
-              // Render Water Delivery Records
-              filteredRecords.map((record: any) => (
-                <DeliveryPersonCard
-                  key={record.id}
-                  record={record}
-                  onPress={() => handleRecordPress(record.id)}
-                />
-              ))
-            ) : (
-              // Render Taxi Driver Records
-              filteredRecords.map((record: any) => (
-                <DriverCard
-                  key={record.id}
-                  record={record}
-                  onPress={() => handleRecordPress(record.id)}
-                />
-              ))
-            )
+            filteredRecords.map((record: any) => {
+              // Determine record type from the record data
+              const businessType = record.businessType || (isWaterBusiness ? "water_delivery" : "taxi");
+              if (businessType === "water_delivery" || (selectedBusiness === null && record.hasOwnProperty('totalHotels'))) {
+                return (
+                  <DeliveryPersonCard
+                    key={record.id}
+                    record={record}
+                    onPress={() => handleRecordPress(record.id, "water_delivery")}
+                  />
+                );
+              } else {
+                return (
+                  <DriverCard
+                    key={record.id}
+                    record={record}
+                    onPress={() => handleRecordPress(record.id, "taxi")}
+                  />
+                );
+              }
+            })
           ) : (
             <View style={styles.emptyState}>
               <Text style={styles.emptyText}>No records found</Text>

@@ -3,7 +3,6 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import SettingsScreen from "../../../screens/adminScreens/Settings/SettingsScreen";
 import MyBusinessScreen from "../../../screens/adminScreens/MyBusiness/MyBusinessScreen";
-import AddBusinessScreen from "../../../screens/adminScreens/MyBusiness/AddBusinessScreen";
 import EditBusinessScreen from "../../../screens/adminScreens/MyBusiness/EditBusinessScreen";
 import VehiclesNavigator from "./VehiclesNavigator";
 import HotelsNavigator from "./HotelsNavigator";
@@ -26,11 +25,6 @@ export default function SettingsNavigator() {
       <Stack.Screen name="SettingsHome" component={SettingsScreen} />
 
       <Stack.Screen name="MyBusiness" component={MyBusinessScreen} />
-      <Stack.Screen
-        name="AddBusiness"
-        component={AddBusinessScreen}
-        options={{ animation: "slide_from_right" }}
-      />
       <Stack.Screen
         name="EditBusiness"
         component={EditBusinessScreen}

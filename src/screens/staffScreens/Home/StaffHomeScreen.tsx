@@ -5,6 +5,7 @@
  */
 import React, { useEffect, useState, useCallback } from 'react';
 import {
+  Pressable,
   StyleSheet,
   View,
   ScrollView,
@@ -13,11 +14,12 @@ import {
   Text,
   ActivityIndicator,
 } from 'react-native';
+import { Ionicons, Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 
-import { colors, spacing, fontSize } from '../../../theme';
+import { colors, spacing, fontSize, radius } from '../../../theme';
 import { useAuthStore } from '../../../store/authStore';
 import { getStaffHomeData } from '../../../services/deliveryService';
 import type { StaffTabParamList } from '../../../types/navigation';
@@ -85,11 +87,13 @@ export default function StaffHomeScreen() {
             minute: '2-digit',
           }),
           assignedHotels: data.assignedHotels || [],
+          totalOutstandingCans: data.totalOutstandingCans,
           overview: {
             assignedHotels: data.assignedHotels?.length || 0,
             deliveriesDone: 0,
             cashCollected: 0,
             creditSales: 0,
+            totalOutstandingCans: data.totalOutstandingCans,
           },
         };
         
@@ -122,11 +126,13 @@ export default function StaffHomeScreen() {
           minute: '2-digit',
         }),
         assignedHotels: data.assignedHotels || [],
+        totalOutstandingCans: data.totalOutstandingCans,
         overview: {
           assignedHotels: data.assignedHotels?.length || 0,
           deliveriesDone: 0,
           cashCollected: 0,
           creditSales: 0,
+          totalOutstandingCans: data.totalOutstandingCans,
         },
       };
       
@@ -137,6 +143,9 @@ export default function StaffHomeScreen() {
     }
     setIsRefreshing(false);
   }, [authUser]);
+
+  const businessMode = 'manual'; // TODO: Add businessMode to StaffSessionData type
+  const availableHotels: any[] = []; // TODO: Pass availableHotels from getStaffHomeData
 
   // Logout handler
   const handleLogout = useCallback(() => {
@@ -174,6 +183,38 @@ export default function StaffHomeScreen() {
     console.log('Hotel pressed:', hotel.hotelName);
     navigation.navigate('AddDelivery');
   }, [navigation]);
+
+  const handleSelectHotel = async (hotelId: string) => {
+    // In auto mode, staff selects their own hotel
+    try {
+      const { assignEmployeeToHotel } = await import('../../../services/hotelService');
+      await assignEmployeeToHotel(hotelId, authUser?.userId || '');
+      // Refresh data
+      const employeeId = authUser?.userId;
+      const data = await getStaffHomeData(employeeId);
+      const session: StaffSessionData = {
+        staffId: data.staff.id,
+        staffName: data.staff.name,
+        businessName: data.staff.businessName,
+        sessionDate: data.sessionDate,
+        sessionTime: new Date().toLocaleTimeString('en-IN', {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        assignedHotels: data.assignedHotels || [],
+        overview: {
+          assignedHotels: data.assignedHotels?.length || 0,
+          deliveriesDone: 0,
+          cashCollected: 0,
+          creditSales: 0,
+        },
+      };
+      setSessionData(session);
+      setAssignedHotels(data.assignedHotels || []);
+    } catch (error) {
+      console.error('Failed to select hotel:', error);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -275,5 +316,43 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
     color: colors.textSecondary,
     marginTop: spacing.xs,
+  },
+  hotelSelectionContainer: {
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  selectionTitle: {
+    fontSize: fontSize.base,
+    fontWeight: "600",
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
+  },
+  hotelOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.surface,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    marginBottom: spacing.sm,
+    gap: spacing.md,
+  },
+  hotelOptionPressed: {
+    opacity: 0.7,
+    backgroundColor: colors.brandSoft,
+  },
+  hotelInfo: {
+    flex: 1,
+  },
+  hotelName: {
+    fontSize: fontSize.base,
+    fontWeight: "600",
+    color: colors.textPrimary,
+  },
+  hotelLocation: {
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
 });

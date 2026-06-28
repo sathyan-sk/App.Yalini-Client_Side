@@ -11,7 +11,7 @@
  * - Hotels: hotel_seed_
  */
 
-import { colors } from '../../theme';
+import { colors } from '../../../theme';
 import type {
   MockBusiness,
   MockEmployee,

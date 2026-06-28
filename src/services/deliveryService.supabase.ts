@@ -10,7 +10,7 @@
  */
 import { supabase, isSupabaseConfigured } from '../config/supabase';
 import { getTodayDate } from '../config/supabaseHelpers';
-import { generateId } from '../services/mockData';
+import { generateId } from '../utils/idGenerator';
 import type { Database } from '../config/database.types';
 import type {
   HotelOption,
@@ -51,7 +51,8 @@ let currentSession: DeliverySessionData | null = null;
 
 /**
  * Loads all enabled hotels from Supabase.
- * If employeeId provided, filters by assigned employee.
+ * If employeeId provided, fetches hotels assigned to that employee.
+ * In auto mode, also includes unassigned hotels for self-assignment.
  */
 export async function loadHotelsForDelivery(employeeId?: string): Promise<HotelOption[]> {
   if (!isSupabaseConfigured()) {
@@ -65,7 +66,8 @@ export async function loadHotelsForDelivery(employeeId?: string): Promise<HotelO
 
   // Filter by assigned employee if provided
   if (employeeId) {
-    query = query.eq('assigned_employee_id', employeeId);
+    // Fetch hotels assigned to this employee OR unassigned hotels (for auto mode)
+    query = query.or(`assigned_employee_id.eq.${employeeId},assigned_employee_id.is.null`);
   }
 
   const { data, error } = await query.order('name', { ascending: true });
@@ -75,7 +77,9 @@ export async function loadHotelsForDelivery(employeeId?: string): Promise<HotelO
     throw new Error(`Failed to load hotels: ${error.message}`);
   }
 
-  return (data || []).map(toHotelOption);
+  const hotels = (data || []).map(toHotelOption);
+  console.log(`[Delivery] Loaded ${hotels.length} hotels for employee ${employeeId}`);
+  return hotels;
 }
 
 /**
@@ -438,6 +442,22 @@ export async function submitStaffSession(
       if (hotelError) throw hotelError;
     }
 
+    // Update outstanding_cans for each hotel
+    // The outstanding_cans in hotels table should reflect the latest outstanding amount
+    hotelMap.forEach((hotelData, hotelId) => {
+      supabase
+        .from('hotels')
+        .update({ outstanding_cans: hotelData.outstandingCans })
+        .eq('id', hotelId)
+        .then(({ error }) => {
+          if (error) {
+            console.error('[Supabase] Error updating hotel outstanding cans:', error);
+          } else {
+            console.log(`[Supabase] Updated hotel ${hotelId} outstanding_cans to ${hotelData.outstandingCans}`);
+          }
+        });
+    });
+
     // Clear local session data after successful submission
     deliveryRecords = [];
 
@@ -466,12 +486,20 @@ export async function getStaffHomeData(employeeId?: string): Promise<{
     businessName: string;
     businessType: string;
     role: string;
+    businessMode?: 'auto' | 'manual';
   };
   assignedHotels: Array<{
     hotelId: string;
     hotelName: string;
     location: string;
+    outstandingCans?: number;
   }>;
+  availableHotels?: Array<{
+    hotelId: string;
+    hotelName: string;
+    location: string;
+  }>;
+  totalOutstandingCans?: number;
   sessionStatus: string;
   sessionDate: string;
 }> {
@@ -495,10 +523,10 @@ export async function getStaffHomeData(employeeId?: string): Promise<{
     };
   }
 
-  // Fetch staff data from Supabase using the provided employee ID
+  // Fetch staff data with business mode from Supabase
   const { data: employee } = await supabase
     .from('employees')
-    .select('*')
+    .select('*, businesses!inner(mode)')
     .eq('id', employeeId)
     .single();
   
@@ -517,7 +545,10 @@ export async function getStaffHomeData(employeeId?: string): Promise<{
     };
   }
 
-  // Get assigned hotels for this employee
+  // Get business mode
+  const businessMode = (employee.businesses as any)?.mode || 'manual';
+
+  // Get assigned hotels for this employee with outstanding cans
   const { data: hotels } = await supabase
     .from('hotels')
     .select('*')
@@ -528,7 +559,25 @@ export async function getStaffHomeData(employeeId?: string): Promise<{
     hotelId: hotel.id,
     hotelName: hotel.name,
     location: hotel.location || '',
+    outstandingCans: hotel.outstanding_cans || 0,
   }));
+
+  // Calculate total outstanding cans
+  const totalOutstandingCans = assignedHotels.reduce(
+    (sum, hotel) => sum + (hotel.outstandingCans || 0), 
+    0
+  );
+
+  // In auto mode, also fetch available hotels for self-assignment
+  let availableHotels: any[] = [];
+  if (businessMode === 'auto') {
+    const { data: availHotels } = await supabase
+      .from('hotels')
+      .select('id, name, location')
+      .eq('status', 'enabled')
+      .or(`assigned_employee_id.is.null,assigned_employee_id.neq.${employeeId}`);
+    availableHotels = availHotels || [];
+  }
 
   return {
     staff: {
@@ -537,8 +586,11 @@ export async function getStaffHomeData(employeeId?: string): Promise<{
       businessName: employee.business_name,
       businessType: employee.business_type,
       role: 'Staff',
+      businessMode,
     },
     assignedHotels,
+    availableHotels: businessMode === 'auto' ? availableHotels : undefined,
+    totalOutstandingCans,
     sessionStatus: 'OPEN',
     sessionDate: formatDisplayDate(getTodayDate()),
   };

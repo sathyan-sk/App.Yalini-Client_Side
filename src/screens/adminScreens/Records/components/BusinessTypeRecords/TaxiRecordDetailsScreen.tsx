@@ -16,7 +16,6 @@ import { Feather } from "@expo/vector-icons";
 import { DriverInfoHeader } from "./TaxiType/DriverInfoHeader";
 import { SummarySection } from "./TaxiType/SummarySection";
 import { TripCard } from "./TaxiType/TripCard";
-import { FooterSummaryCard } from "./TaxiType/FooterSummaryCard";
 
 import { colors, spacing, fontSize, radius } from "../../../../../theme";
 import { getDriverRecordByIdService } from "../../../../../services/recordsService";
@@ -152,12 +151,6 @@ export default function TaxiRecordDetailed() {
             <TripCard key={trip.id} trip={trip} />
           ))}
         </View>
-
-        {/* Footer Cards */}
-        <View style={styles.footerSection}>
-          <FooterSummaryCard type="fuel" value={record.fuelExpense} />
-          <FooterSummaryCard type="balance" value={record.balanceShortage} />
-        </View>
       </ScrollView>
     </View>
   );
@@ -218,9 +211,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: colors.textPrimary,
     marginBottom: spacing.md,
-  },
-  footerSection: {
-    marginTop: spacing.md,
   },
   loadingText: {
     fontSize: fontSize.base,

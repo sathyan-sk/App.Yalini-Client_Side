@@ -110,6 +110,10 @@ export default function AddDeliveryScreen(): React.JSX.Element {
   // Computed values
   const isSessionSubmitted = session.sessionStatus === 'SUBMITTED';
   const isHotelSelected = formValues.hotelId !== '';
+  
+  // Outstanding cans calculation with previous value
+  const previousOutstandingCans = formValues.hotelId ? (formValues as any).previousOutstandingCans || 0 : 0;
+  const newOutstandingCans = previousOutstandingCans + formValues.cansDelivered - formValues.cansReturned;
 
   /**
    * Filters out hotels that already have saved deliveries.
@@ -146,11 +150,13 @@ export default function AddDeliveryScreen(): React.JSX.Element {
 
   /**
    * Updates outstanding cans when delivered or returned changes.
+   * Formula: previousOutstanding + delivered - returned
    */
   useEffect(() => {
-    const outstanding = formValues.cansDelivered - formValues.cansReturned;
-    if (outstanding !== formValues.outstandingCans) {
-      setFormValues((prev) => ({ ...prev, outstandingCans: outstanding }));
+    const previousOutstanding = (formValues as any).previousOutstandingCans || 0;
+    const newOutstanding = previousOutstanding + formValues.cansDelivered - formValues.cansReturned;
+    if (newOutstanding !== formValues.outstandingCans) {
+      setFormValues((prev) => ({ ...prev, outstandingCans: Math.max(0, newOutstanding) }));
     }
   }, [formValues.cansDelivered, formValues.cansReturned, formValues.outstandingCans]);
 
@@ -183,14 +189,40 @@ export default function AddDeliveryScreen(): React.JSX.Element {
    * @param hotel - Selected hotel option
    */
   const handleHotelSelect = useCallback((hotel: HotelOption) => {
-    setFormValues((prev) => ({
-      ...prev,
-      hotelId: hotel.id,
-      hotelName: hotel.name,
-      ratePerCan: hotel.ratePerCan,
-      // Recalculate estAmount with new rate
-      estAmount: prev.cansDelivered * hotel.ratePerCan,
-    }));
+    // Fetch hotel's current outstanding cans
+    const fetchHotelOutstanding = async () => {
+      try {
+        const { getHotelById } = await import('../../../services/hotelService');
+        const hotelData = await getHotelById(hotel.id);
+        const previousOutstanding = hotelData?.outstandingCans || 0;
+        
+        setFormValues((prev) => ({
+          ...prev,
+          hotelId: hotel.id,
+          hotelName: hotel.name,
+          ratePerCan: hotel.ratePerCan,
+          previousOutstandingCans: previousOutstanding,
+          // Recalculate outstanding with previous value
+          outstandingCans: Math.max(0, previousOutstanding + prev.cansDelivered - prev.cansReturned),
+          // Recalculate estAmount with new rate
+          estAmount: prev.cansDelivered * hotel.ratePerCan,
+        }));
+      } catch (error) {
+        console.error('Failed to fetch hotel outstanding cans:', error);
+        // Fallback to 0 if fetch fails
+        setFormValues((prev) => ({
+          ...prev,
+          hotelId: hotel.id,
+          hotelName: hotel.name,
+          ratePerCan: hotel.ratePerCan,
+          previousOutstandingCans: 0,
+          estAmount: prev.cansDelivered * hotel.ratePerCan,
+        }));
+      }
+    };
+    
+    fetchHotelOutstanding();
+    
     if (errors.hotelId) {
       setErrors((prev) => ({ ...prev, hotelId: undefined }));
     }
@@ -441,6 +473,7 @@ export default function AddDeliveryScreen(): React.JSX.Element {
               outstandingCans={formValues.outstandingCans}
               estAmount={formValues.estAmount}
               ratePerCan={formValues.ratePerCan}
+              previousOutstandingCans={(formValues as any).previousOutstandingCans}
               onLoadedCansChange={handleLoadedCansChange}
               onCansDeliveredChange={handleCansDeliveredChange}
               onCansReturnedChange={handleCansReturnedChange}

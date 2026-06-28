@@ -5,6 +5,7 @@ export interface HotelInfo {
   hotelId: string;
   hotelName: string;
   location?: string;
+  outstandingCans?: number;
 }
 
 export interface TodayOverviewData {
@@ -12,6 +13,7 @@ export interface TodayOverviewData {
   deliveriesDone: number;
   cashCollected: number;
   creditSales: number;
+  totalOutstandingCans?: number;
 }
 
 export interface StaffSessionData {
@@ -21,5 +23,6 @@ export interface StaffSessionData {
   sessionDate: string;
   sessionTime: string;
   assignedHotels: HotelInfo[];
-  overview: TodayOverviewData;
+  totalOutstandingCans?: number;
+  overview: TodayOverviewData & { totalOutstandingCans?: number };
 }

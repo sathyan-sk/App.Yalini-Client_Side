@@ -94,7 +94,6 @@ export type EmployeesStackParamList = {
 export type SettingsStackParamList = {
   SettingsHome: undefined;
   MyBusiness: undefined;
-  AddBusiness: undefined;
   EditBusiness: { businessId: string };
   Vehicles: undefined;
   Hotels: undefined;

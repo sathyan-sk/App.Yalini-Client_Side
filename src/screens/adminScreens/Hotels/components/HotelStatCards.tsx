@@ -15,6 +15,7 @@ interface HotelStatCardsProps {
   total: number;
   enabled: number;
   disabled: number;
+  outstandingCans?: number;
   testID?: string;
 }
 
@@ -38,6 +39,7 @@ export function HotelStatCards({
   total,
   enabled,
   disabled,
+  outstandingCans = 0,
   testID,
 }: HotelStatCardsProps) {
   const configs: CardConfig[] = [
@@ -55,6 +57,14 @@ export function HotelStatCards({
       tone: "green",
       iconName: "ellipse",
       dotColor: "#16A34A",
+    },
+    {
+      key: "outstanding",
+      value: outstandingCans,
+      label: "Outstanding",
+      tone: "orange",
+      iconName: "ellipse",
+      dotColor: "#F59E0B",
     },
     {
       key: "disabled",

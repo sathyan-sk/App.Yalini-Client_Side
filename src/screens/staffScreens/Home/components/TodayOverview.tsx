@@ -34,7 +34,7 @@ function StatCard({ icon, iconBgColor, value, label, valueColor = colors.textPri
 }
 
 export function TodayOverview({ data }: TodayOverviewProps) {
-  const { assignedHotels, deliveriesDone, cashCollected, creditSales } = data;
+  const { assignedHotels, deliveriesDone, cashCollected, creditSales, totalOutstandingCans } = data;
 
   return (
     <View style={styles.container}>
@@ -49,6 +49,18 @@ export function TodayOverview({ data }: TodayOverviewProps) {
             value={assignedHotels}
             label="Assigned Hotels"
             valueColor="#1976D2"
+          />
+
+          {/* Divider */}
+          <View style={styles.divider} />
+
+          {/* Outstanding Cans */}
+          <StatCard
+            icon={<MaterialCommunityIcons name="package-variant-closed" size={24} color="#E65100" />}
+            iconBgColor="#FFF3E0"
+            value={totalOutstandingCans || 0}
+            label="Outstanding Cans"
+            valueColor="#E65100"
           />
 
           {/* Divider */}
@@ -73,18 +85,6 @@ export function TodayOverview({ data }: TodayOverviewProps) {
             value={`₹${cashCollected}`}
             label="Cash Collected"
             valueColor="#388E3C"
-          />
-
-          {/* Divider */}
-          <View style={styles.divider} />
-
-          {/* Credit Sales */}
-          <StatCard
-            icon={<MaterialCommunityIcons name="credit-card-outline" size={24} color="#7B1FA2" />}
-            iconBgColor="#F3E5F5"
-            value={`₹${creditSales}`}
-            label="Credit Sales"
-            valueColor="#1976D2"
           />
         </View>
       </View>

@@ -18,7 +18,6 @@ interface BusinessCardProps {
   business: Business;
   onPress: () => void;
   onEdit: () => void;
-  onDelete: () => void;
 }
 
 /**
@@ -39,7 +38,6 @@ export function BusinessCard({
   business,
   onPress,
   onEdit,
-  onDelete,
 }: BusinessCardProps) {
   const typeMeta = BUSINESS_TYPE_MAP[business.type];
   const palette = tones[typeMeta.tone];
@@ -103,21 +101,6 @@ export function BusinessCard({
             ]}
           >
             <Feather name="edit-2" size={16} color="#4F46E5" />
-          </Pressable>
-
-          <Pressable
-            testID={`business-card-${business.id}-delete`}
-            onPress={onDelete}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel={`Delete ${business.name}`}
-            style={({ pressed }) => [
-              styles.actionButton,
-              { backgroundColor: "#FEE2E2" },
-              pressed && styles.pressed,
-            ]}
-          >
-            <Feather name="trash-2" size={16} color="#DC2626" />
           </Pressable>
 
           <Feather

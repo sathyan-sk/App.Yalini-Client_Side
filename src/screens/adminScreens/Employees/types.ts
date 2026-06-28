@@ -18,6 +18,14 @@ export interface Employee {
   businessType: BusinessTypeId;
   pin: string;
   status: EmployeeStatusId;
+  /** Assigned vehicle ID (taxi drivers) */
+  assignedVehicleId?: string;
+  /** Assigned vehicle name (taxi drivers) */
+  assignedVehicleName?: string;
+  /** Assigned hotel ID (water delivery staff) */
+  assignedHotelId?: string;
+  /** Assigned hotel name (water delivery staff) */
+  assignedHotelName?: string;
   /** ISO-8601 date string (YYYY-MM-DD). */
   createdAt: string;
 }

@@ -40,6 +40,7 @@ const INITIAL_VALUES: HotelFormValues = {
   ratePerCan: 0,
   status: "enabled",
   location: "",
+  address: "",
 };
 
 /**
@@ -66,6 +67,10 @@ export default function AddHotelScreen() {
 
   const setLocation = (next: string) => {
     setValues((v) => ({ ...v, location: next }));
+  };
+
+  const setAddress = (next: string) => {
+    setValues((v) => ({ ...v, address: next }));
   };
 
   const setRatePerCan = (next: string) => {
@@ -98,6 +103,7 @@ export default function AddHotelScreen() {
         ratePerCan: values.ratePerCan,
         status: values.status,
         location: values.location?.trim() || undefined,
+        address: values.address?.trim() || undefined,
       });
       setToastVisible(true);
       setTimeout(() => {
@@ -201,13 +207,39 @@ export default function AddHotelScreen() {
                   testID="add-hotel-location-input"
                   value={values.location || ""}
                   onChangeText={setLocation}
-                  placeholder="Enter hotel location (e.g., Chennai, Tamil Nadu)\"
+                  placeholder="Enter hotel location (e.g., Chennai, Tamil Nadu)"
                   placeholderTextColor={colors.textTertiary}
                   style={styles.input}
                   autoCapitalize="words"
                   autoCorrect={false}
                   returnKeyType="next"
                   maxLength={100}
+                />
+              </View>
+            </View>
+
+            {/* Hotel Address */}
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>
+                Hotel Address
+              </Text>
+              <View style={styles.inputContainer}>
+                <Ionicons
+                  name="map-outline"
+                  size={20}
+                  color={colors.textTertiary}
+                />
+                <TextInput
+                  testID="add-hotel-address-input"
+                  value={values.address || ""}
+                  onChangeText={setAddress}
+                  placeholder="Enter full address for delivery"
+                  placeholderTextColor={colors.textTertiary}
+                  style={styles.input}
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                  returnKeyType="next"
+                  maxLength={200}
                 />
               </View>
             </View>

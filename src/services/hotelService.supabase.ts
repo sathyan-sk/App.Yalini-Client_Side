@@ -3,8 +3,7 @@
  */
 
 import { supabase } from '../config/supabase';
-import { getTodayDate } from '../config/supabaseHelpers';
-import { generateId } from '../services/mockData';
+import { generateId } from '../utils/idGenerator';
 import type { Database } from '../config/database.types';
 import type {
   Hotel,
@@ -24,9 +23,13 @@ const fromSupabaseRow = (row: HotelRow): Hotel => ({
   ratePerCan: row.rate_per_can,
   status: row.status,
   location: row.location ?? undefined,
+  address: row.address ?? undefined,
   assignedEmployeeId: row.assigned_employee_id ?? undefined,
   assignedEmployeeName: row.assigned_employee_name ?? undefined,
+  outstandingCans: row.outstanding_cans ?? 0,
   createdAt: row.created_at,
+  // updated_at column may not exist yet in database - use createdAt as fallback
+  updatedAt: row.updated_at || row.created_at,
 });
 
 /**
@@ -56,7 +59,9 @@ export async function createHotel(values: HotelFormValues): Promise<Hotel> {
     rate_per_can: values.ratePerCan,
     status: values.status,
     location: values.location?.trim() || null,
-    created_at: getTodayDate(),
+    address: values.address?.trim() || null,
+    outstanding_cans: 0,  // New hotels start with 0 outstanding cans
+    created_at: new Date().toISOString().slice(0, 10),
   };
 
   // Add assignment fields if provided
@@ -93,6 +98,7 @@ export async function updateHotel(
     rate_per_can: values.ratePerCan,
     status: values.status,
     location: values.location?.trim() || null,
+    address: values.address?.trim() || null,
   };
 
   // Add assignment fields if changing
@@ -141,16 +147,22 @@ export async function deleteHotel(id: string): Promise<void> {
 }
 
 /**
- * Assign an employee to a hotel.
+ * Assign an employee to a hotel with conflict checking.
  */
 export async function assignEmployeeToHotel(
   hotelId: string,
   employeeId: string
 ): Promise<void> {
+  // Get hotel to check current status
+  const hotel = await getHotelById(hotelId);
+  if (!hotel) {
+    throw new Error('Hotel not found');
+  }
+
   // Get employee details
   const { data: employee } = await supabase
     .from('employees')
-    .select('full_name, business_type')
+    .select('full_name, business_type, business_id')
     .eq('id', employeeId)
     .single();
 
@@ -158,13 +170,41 @@ export async function assignEmployeeToHotel(
     throw new Error('Can only assign water delivery employees to hotels');
   }
 
+  // Get business to check mode
+  const { data: business } = await supabase
+    .from('businesses')
+    .select('mode')
+    .eq('id', employee.business_id)
+    .single();
+
+  // Conflict prevention: unassign from previous hotel if any
+  if (hotel.assignedEmployeeId !== employeeId) {
+    await supabase
+      .from('hotels')
+      .update({ 
+        assigned_employee_id: null,
+        assigned_employee_name: null
+      })
+      .eq('assigned_employee_id', employeeId);
+  }
+
+  // CONCURRENCY CONTROL: Check if hotel is being assigned right now
+  const hotelForCheck = await getHotelById(hotelId);
+  if (hotelForCheck?.assignmentStatus === 'assigning') {
+    throw new Error('Hotel is being assigned by another user. Please wait.');
+  }
+
+  // Assign to new hotel with concurrency control
+  // Only update if still available (prevents race condition)
   const { error } = await supabase
     .from('hotels')
     .update({
       assigned_employee_id: employeeId,
       assigned_employee_name: employee.full_name,
+      assignment_status: 'assigned',
     })
-    .eq('id', hotelId);
+    .eq('id', hotelId)
+    .eq('assignment_status', 'available'); // Optimistic locking
 
   if (error) {
     console.error('[Supabase] Error assigning employee:', error);
@@ -181,6 +221,7 @@ export async function unassignEmployeeFromHotel(hotelId: string): Promise<void> 
     .update({
       assigned_employee_id: null,
       assigned_employee_name: null,
+      assignment_status: 'available',
     })
     .eq('id', hotelId);
 
@@ -188,4 +229,57 @@ export async function unassignEmployeeFromHotel(hotelId: string): Promise<void> 
     console.error('[Supabase] Error unassigning employee:', error);
     throw new Error(`Failed to unassign employee: ${error.message}`);
   }
+}
+
+/**
+ * Update pending cans for a hotel (called after delivery submission)
+ */
+export async function updateHotelPendingCans(
+  hotelId: string,
+  deliveredCans: number,
+  returnedCans: number
+): Promise<void> {
+  const hotel = await getHotelById(hotelId);
+  if (!hotel) {
+    throw new Error('Hotel not found');
+  }
+
+  // Calculate new outstanding cans: previous outstanding + delivered - returned
+  const currentOutstanding = hotel.outstandingCans || 0;
+  const newOutstandingCans = Math.max(0, currentOutstanding + deliveredCans - returnedCans);
+
+  const { error } = await supabase
+    .from('hotels')
+    .update({
+      outstanding_cans: newOutstandingCans,
+    })
+    .eq('id', hotelId);
+
+  if (error) {
+    console.error('[Supabase] Error updating pending cans:', error);
+    throw new Error(`Failed to update pending cans: ${error.message}`);
+  }
+}
+
+/**
+ * Get hotel by ID (helper function)
+ */
+export async function getHotelById(hotelId: string): Promise<Hotel | null> {
+  const { data, error } = await supabase
+    .from('hotels')
+    .select('*')
+    .eq('id', hotelId)
+    .maybeSingle();  // Use maybeSingle to avoid error when not found
+
+  if (error) {
+    console.error('[Supabase] Error fetching hotel:', error);
+    return null;
+  }
+
+  if (!data) {
+    console.warn('[Supabase] Hotel not found:', hotelId);
+    return null;
+  }
+
+  return fromSupabaseRow(data);
 }

@@ -15,7 +15,7 @@ import type { Business } from "../../../../../types/waterRecords";
 interface BusinessSelectorProps {
   businesses: Business[];
   selectedBusiness: Business | null;
-  onSelect: (business: Business) => void;
+  onSelect: (business: Business | null) => void;
 }
 
 export function BusinessSelector({
@@ -25,7 +25,7 @@ export function BusinessSelector({
 }: BusinessSelectorProps) {
   const [visible, setVisible] = useState(false);
 
-  const handleSelect = (business: Business) => {
+  const handleSelect = (business: Business | null) => {
     onSelect(business);
     setVisible(false);
   };
@@ -75,38 +75,68 @@ export function BusinessSelector({
         <Pressable style={styles.overlay} onPress={() => setVisible(false)}>
           <View style={styles.sheet}>
             <Text style={styles.sheetTitle}>Select Business</Text>
-            <ScrollView style={styles.list}>
-              {businesses.map((business) => (
+      <ScrollView style={styles.list}>
+                {/* All Business Option */}
                 <Pressable
-                  key={business.id}
                   style={({ pressed }) => [
                     styles.option,
                     pressed && styles.optionPressed,
-                    selectedBusiness?.id === business.id && styles.optionSelected,
+                    selectedBusiness === null && styles.optionSelected,
                   ]}
-                  onPress={() => handleSelect(business)}
+                  onPress={() => handleSelect(null)}
                 >
                   <View style={styles.optionContent}>
                     <Ionicons 
-                      name={getBusinessIcon(business.type)} 
+                      name="globe" 
                       size={20} 
-                      color={selectedBusiness?.id === business.id ? colors.brand : colors.textSecondary} 
+                      color={selectedBusiness === null ? colors.brand : colors.textSecondary} 
                     />
                     <Text
                       style={[
                         styles.optionText,
-                        selectedBusiness?.id === business.id && styles.optionTextSelected,
+                        selectedBusiness === null && styles.optionTextSelected,
                       ]}
                     >
-                      {business.name}
+                      All Businesses
                     </Text>
                   </View>
-                  {selectedBusiness?.id === business.id && (
+                  {selectedBusiness === null && (
                     <Ionicons name="checkmark" size={20} color={colors.brand} />
                   )}
                 </Pressable>
-              ))}
-            </ScrollView>
+
+                {/* Individual Business Options */}
+                {businesses.map((business) => (
+                  <Pressable
+                    key={business.id}
+                    style={({ pressed }) => [
+                      styles.option,
+                      pressed && styles.optionPressed,
+                      selectedBusiness?.id === business.id && styles.optionSelected,
+                    ]}
+                    onPress={() => handleSelect(business)}
+                  >
+                    <View style={styles.optionContent}>
+                      <Ionicons 
+                        name={getBusinessIcon(business.type)} 
+                        size={20} 
+                        color={selectedBusiness?.id === business.id ? colors.brand : colors.textSecondary} 
+                      />
+                      <Text
+                        style={[
+                          styles.optionText,
+                          selectedBusiness?.id === business.id && styles.optionTextSelected,
+                        ]}
+                      >
+                        {business.name}
+                      </Text>
+                    </View>
+                    {selectedBusiness?.id === business.id && (
+                      <Ionicons name="checkmark" size={20} color={colors.brand} />
+                    )}
+                  </Pressable>
+                ))}
+              </ScrollView>
           </View>
         </Pressable>
       </Modal>

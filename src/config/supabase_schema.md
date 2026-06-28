@@ -108,15 +108,18 @@ CREATE TABLE IF NOT EXISTS vehicles (
     notes TEXT,
     assigned_driver VARCHAR(255),
     assigned_employee_id VARCHAR(255) REFERENCES employees(id) ON DELETE SET NULL,
+    assignment_status VARCHAR(20) NOT NULL DEFAULT 'available',  -- available, assigned, locked
     created_at DATE NOT NULL DEFAULT CURRENT_DATE,
     updated_at DATE NOT NULL DEFAULT CURRENT_DATE,
     CONSTRAINT vehicles_name_check CHECK (length(trim(name)) > 0),
     CONSTRAINT vehicles_number_check CHECK (length(trim(number)) > 0),
-    CONSTRAINT vehicles_number_unique UNIQUE (number)
+    CONSTRAINT vehicles_number_unique UNIQUE (number),
+    CONSTRAINT vehicles_assignment_status_check CHECK (assignment_status IN ('available', 'assigned', 'locked'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_vehicles_status ON vehicles(status);
 CREATE INDEX IF NOT EXISTS idx_vehicles_assigned_employee ON vehicles(assigned_employee_id);
+CREATE INDEX IF NOT EXISTS idx_vehicles_assignment_status ON vehicles(assignment_status);
 CREATE INDEX IF NOT EXISTS idx_vehicles_created_at ON vehicles(created_at);
 
 -- ============================================================================
@@ -128,15 +131,20 @@ CREATE TABLE IF NOT EXISTS hotels (
     rate_per_can INTEGER NOT NULL,
     status status_type NOT NULL DEFAULT 'enabled',
     location TEXT,
+    address TEXT,  -- Hotel address for delivery
     assigned_employee_id VARCHAR(255) REFERENCES employees(id) ON DELETE SET NULL,
     assigned_employee_name VARCHAR(255),
+    pending_cans INTEGER NOT NULL DEFAULT 0,  -- Non-returned cans tracking
     created_at DATE NOT NULL DEFAULT CURRENT_DATE,
+    updated_at DATE NOT NULL DEFAULT CURRENT_DATE,
     CONSTRAINT hotels_name_check CHECK (length(trim(name)) > 0),
-    CONSTRAINT hotels_rate_check CHECK (rate_per_can > 0)
+    CONSTRAINT hotels_rate_check CHECK (rate_per_can > 0),
+    CONSTRAINT hotels_pending_cans_check CHECK (pending_cans >= 0)
 );
 
 CREATE INDEX IF NOT EXISTS idx_hotels_status ON hotels(status);
 CREATE INDEX IF NOT EXISTS idx_hotels_assigned_employee ON hotels(assigned_employee_id);
+CREATE INDEX IF NOT EXISTS idx_hotels_pending_cans ON hotels(pending_cans);
 CREATE INDEX IF NOT EXISTS idx_hotels_created_at ON hotels(created_at);
 
 -- ============================================================================

@@ -95,6 +95,8 @@ export interface Database {
           notes: string | null
           assigned_driver: string | null
           assigned_employee_id: string | null
+          assignment_status: 'available' | 'assigned' | 'assigning' | 'locked'
+          assignment_locked_at: string | null
           created_at: string
           updated_at: string
         }
@@ -106,6 +108,8 @@ export interface Database {
           notes?: string | null
           assigned_driver?: string | null
           assigned_employee_id?: string | null
+          assignment_status?: 'available' | 'assigned' | 'assigning' | 'locked'
+          assignment_locked_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -117,6 +121,8 @@ export interface Database {
           notes?: string | null
           assigned_driver?: string | null
           assigned_employee_id?: string | null
+          assignment_status?: 'available' | 'assigned' | 'assigning' | 'locked'
+          assignment_locked_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -128,9 +134,14 @@ export interface Database {
           rate_per_can: number
           status: 'enabled' | 'disabled'
           location: string | null
+          address: string | null
           assigned_employee_id: string | null
           assigned_employee_name: string | null
+          outstanding_cans: number
+          assignment_status: 'available' | 'assigned' | 'assigning' | 'locked'
+          assignment_locked_at: string | null
           created_at: string
+          updated_at: string
         }
         Insert: {
           id?: string
@@ -138,9 +149,14 @@ export interface Database {
           rate_per_can: number
           status: 'enabled' | 'disabled'
           location?: string | null
+          address?: string | null
           assigned_employee_id?: string | null
           assigned_employee_name?: string | null
+          outstanding_cans?: number
+          assignment_status?: 'available' | 'assigned' | 'assigning' | 'locked'
+          assignment_locked_at?: string | null
           created_at?: string
+          updated_at?: string
         }
         Update: {
           id?: string
@@ -148,9 +164,14 @@ export interface Database {
           rate_per_can?: number
           status?: 'enabled' | 'disabled'
           location?: string | null
+          address?: string | null
           assigned_employee_id?: string | null
           assigned_employee_name?: string | null
+          outstanding_cans?: number
+          assignment_status?: 'available' | 'assigned' | 'assigning' | 'locked'
+          assignment_locked_at?: string | null
           created_at?: string
+          updated_at?: string
         }
       }
       driver_records: {

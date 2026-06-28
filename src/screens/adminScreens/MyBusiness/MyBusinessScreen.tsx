@@ -17,7 +17,6 @@ import { BusinessCard } from "./components/BusinessCard";
 import { BusinessListHeader } from "./components/BusinessListHeader";
 import { BusinessSearchBar } from "./components/BusinessSearchBar";
 import { BusinessStatCards } from "./components/BusinessStatCards";
-import { DeleteConfirmSheet } from "./components/DeleteConfirmSheet";
 import { EmptyBusinessState } from "./components/EmptyBusinessState";
 import { InfoBanner } from "./components/InfoBanner";
 import { StatusFilterSheet } from "./components/StatusFilterSheet";
@@ -45,7 +44,7 @@ export default function MyBusinessScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<Nav>();
 
-  const { businesses, loading, removeBusiness } = useBusinesses();
+  const { businesses, loading } = useBusinesses();
 
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<BusinessStatusFilter>("all");
@@ -70,12 +69,9 @@ export default function MyBusinessScreen() {
     };
   }, [businesses]);
 
-  const handleAdd = useCallback(() => {
-    navigation.navigate("AddBusiness");
-  }, [navigation]);
-
   const handleEdit = useCallback(
     (id: string) => {
+      // Navigate to EditBusiness screen to edit name/mode/status
       navigation.navigate("EditBusiness", { businessId: id });
     },
     [navigation],
@@ -87,9 +83,9 @@ export default function MyBusinessScreen() {
 
   const handleConfirmDelete = useCallback(async () => {
     if (!pendingDelete) return;
-    await removeBusiness(pendingDelete.id);
+    // Business deletion is not allowed - businesses are required for app operation
     setPendingDelete(null);
-  }, [pendingDelete, removeBusiness]);
+  }, [pendingDelete]);
 
   const clearFilters = useCallback(() => {
     setQuery("");
@@ -106,7 +102,6 @@ export default function MyBusinessScreen() {
       <View style={styles.stickyHeader}>
         <BusinessListHeader
           onMenuPress={handleBack}
-          onAddPress={handleAdd}
           testID="business-list-header"
         />
       </View>
@@ -141,7 +136,6 @@ export default function MyBusinessScreen() {
           {filtered.length === 0 ? (
             <EmptyBusinessState
               hasFilters={hasFilters}
-              onAddPress={handleAdd}
               onClearFilters={clearFilters}
               testID="business-empty-state"
             />
@@ -152,7 +146,6 @@ export default function MyBusinessScreen() {
                 business={business}
                 onPress={() => handleEdit(business.id)}
                 onEdit={() => handleEdit(business.id)}
-                onDelete={() => setPendingDelete(business)}
               />
             ))
           )}
@@ -178,12 +171,7 @@ export default function MyBusinessScreen() {
         onClose={() => setFilterSheetVisible(false)}
       />
 
-      <DeleteConfirmSheet
-        visible={pendingDelete !== null}
-        businessName={pendingDelete?.name ?? ""}
-        onCancel={() => setPendingDelete(null)}
-        onConfirm={handleConfirmDelete}
-      />
+      
     </View>
   );
 }

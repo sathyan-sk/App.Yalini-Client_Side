@@ -9,7 +9,7 @@
  */
 import { supabase, isSupabaseConfigured } from '../config/supabase';
 import { getTodayDate } from '../config/supabaseHelpers';
-import { generateId } from '../services/mockData';
+import { generateId } from '../utils/idGenerator';
 import type { Database } from '../config/database.types';
 import type {
   DriverHomeData,
@@ -57,22 +57,26 @@ function formatDisplayDate(isoDate: string): string {
 /**
  * Get driver info by employee ID.
  * Pulls from Supabase employees/vehicles tables.
+ * Respects business mode (auto = employee can self-assign, manual = admin assigns).
  */
 export async function getDriverInfo(employeeId: string): Promise<DriverHomeData | null> {
   if (!isSupabaseConfigured()) {
     throw new Error('Supabase is not configured');
   }
 
-  // Fetch employee
+  // Fetch employee with business mode
   const { data: employee, error: empError } = await supabase
     .from('employees')
-    .select('*')
+    .select('*, businesses!inner(mode)')
     .eq('id', employeeId)
     .single();
 
   if (empError || !employee || employee.business_type !== 'taxi') {
     return null;
   }
+
+  // Get business mode (auto or manual)
+  const businessMode = (employee.businesses as any)?.mode || 'manual';
 
   // Find assigned vehicle
   const { data: vehicles } = await supabase
@@ -82,6 +86,18 @@ export async function getDriverInfo(employeeId: string): Promise<DriverHomeData 
     .limit(1);
 
   const assignedVehicle = vehicles?.[0] || null;
+  
+  // In auto mode, also fetch available vehicles for self-assignment
+  let availableVehicles: any[] = [];
+  if (businessMode === 'auto') {
+    const { data: availVehicles } = await supabase
+      .from('vehicles')
+      .select('*')
+      .eq('status', 'enabled')
+      .eq('assignment_status', 'available')
+      .or(`assigned_employee_id.is.null,assigned_employee_id.neq.${employeeId}`);
+    availableVehicles = availVehicles || [];
+  }
 
   // Check for existing record today
   const today = getTodayDate();
@@ -100,12 +116,14 @@ export async function getDriverInfo(employeeId: string): Promise<DriverHomeData 
       businessType: 'taxi',
       role: 'Driver',
     },
+    businessMode,
     assignment: assignedVehicle ? {
       vehicleId: assignedVehicle.id,
       vehicleName: assignedVehicle.name,
       vehicleNumber: assignedVehicle.number,
       isAssigned: true,
     } : null,
+    availableVehicles: businessMode === 'auto' ? availableVehicles : undefined,
     sessionStatus: todayRecord?.status === 'submitted' ? 'SUBMITTED' : 'OPEN',
     sessionDate: formatDisplayDate(today),
     sessionStartTime: '08:00 AM',
@@ -138,7 +156,9 @@ export async function getDriverHomeData(employeeId?: string): Promise<DriverHome
         businessType: 'taxi',
         role: 'Driver',
       },
+      businessMode: 'manual' as const,
       assignment: null,
+      availableVehicles: undefined,
       sessionStatus: 'OPEN',
       sessionDate: formatDisplayDate(getTodayDate()),
       sessionStartTime: '--',
@@ -163,7 +183,9 @@ export async function getDriverHomeData(employeeId?: string): Promise<DriverHome
         businessType: 'taxi',
         role: 'Driver',
       },
+      businessMode: 'manual' as const,
       assignment: null,
+      availableVehicles: undefined,
       sessionStatus: 'OPEN',
       sessionDate: formatDisplayDate(getTodayDate()),
       sessionStartTime: '--',
@@ -484,14 +506,16 @@ export async function getStartDayData(employeeId?: string): Promise<StartDayData
         businessType: 'taxi',
         role: 'Driver',
       },
+      businessMode: 'manual' as const,
       assignment: null,
+      availableVehicles: undefined,
     };
   }
 
-  // Fetch driver data from Supabase using the provided employee ID
+  // Fetch driver data with business mode from Supabase
   const { data: employee } = await supabase
     .from('employees')
-    .select('*')
+    .select('*, businesses!inner(mode)')
     .eq('id', employeeId)
     .single();
   
@@ -504,9 +528,14 @@ export async function getStartDayData(employeeId?: string): Promise<StartDayData
         businessType: 'taxi',
         role: 'Driver',
       },
+      businessMode: 'manual' as const,
       assignment: null,
+      availableVehicles: undefined,
     };
   }
+
+  // Get business mode
+  const businessMode = (employee.businesses as any)?.mode || 'manual';
 
   // Find assigned vehicle
   const { data: vehicles } = await supabase
@@ -517,6 +546,18 @@ export async function getStartDayData(employeeId?: string): Promise<StartDayData
 
   const assignedVehicle = vehicles?.[0] || null;
 
+  // In auto mode, fetch available vehicles
+  let availableVehicles: any[] = [];
+  if (businessMode === 'auto') {
+    const { data: availVehicles } = await supabase
+      .from('vehicles')
+      .select('*')
+      .eq('status', 'enabled')
+      .eq('assignment_status', 'available')
+      .or(`assigned_employee_id.is.null,assigned_employee_id.neq.${employeeId}`);
+    availableVehicles = availVehicles || [];
+  }
+
   return {
     driver: {
       id: employee.id,
@@ -525,11 +566,13 @@ export async function getStartDayData(employeeId?: string): Promise<StartDayData
       businessType: 'taxi',
       role: 'Driver',
     },
+    businessMode,
     assignment: assignedVehicle ? {
       vehicleId: assignedVehicle.id,
       vehicleName: assignedVehicle.name,
       vehicleNumber: assignedVehicle.number,
       isAssigned: true,
     } : null,
+    availableVehicles: businessMode === 'auto' ? availableVehicles : undefined,
   };
 }

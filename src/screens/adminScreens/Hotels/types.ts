@@ -15,12 +15,20 @@ export interface Hotel {
   status: HotelStatusId;
   /** Hotel location for display purposes */
   location?: string;
+  /** Hotel address for delivery */
+  address?: string;
   /** Assigned employee ID (for proper tracking) */
   assignedEmployeeId?: string;
   /** Assigned employee name (for display) */
   assignedEmployeeName?: string;
+  /** Outstanding/non-returned cans tracking */
+  outstandingCans?: number;
+  /** Assignment status for concurrency control */
+  assignmentStatus?: 'available' | 'assigned' | 'assigning' | 'locked';
   /** ISO-8601 date string (YYYY-MM-DD). */
   createdAt: string;
+  /** ISO-8601 date string (YYYY-MM-DD). */
+  updatedAt?: string;
 }
 
 /** Shape used by add/edit forms (no id / createdAt on create). */
@@ -29,6 +37,7 @@ export interface HotelFormValues {
   ratePerCan: number;
   status: HotelStatusId;
   location?: string;
+  address?: string;
   assignedEmployeeId?: string;
   assignedEmployeeName?: string;
 }

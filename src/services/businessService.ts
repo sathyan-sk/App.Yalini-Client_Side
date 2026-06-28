@@ -1,112 +1,76 @@
 /**
- * Business persistence service — Mock Service Layer implementation.
+ * Business persistence service — Centralized service layer.
  *
- * This service now uses the central mock data store instead of AsyncStorage.
- * To wire a real backend, replace the mock store calls with API calls.
- * 
- * The mock service layer maintains coherent data relationships and
- * simulates async behavior for easy backend migration.
+ * ARCHITECTURE:
+ * - Direct Supabase implementation (production)
+ * - Structured for future backend abstraction
+ * - No mock mode - production-ready only
  *
- * INTEGRATION: When USE_MOCK=false, delegates to Supabase implementation.
+ * All functions delegate to Supabase implementation.
  */
 
-import { USE_MOCK } from './featureFlags';
-import {
-  getBusinesses,
-  getBusinessById,
-  createBusiness as createBusinessInStore,
-  updateBusiness as updateBusinessInStore,
-  deleteBusiness as deleteBusinessInStore,
-} from './mockData';
-import type { MockBusiness } from './mockData/types';
 import type {
   Business,
   BusinessFormValues,
 } from '../screens/adminScreens/MyBusiness/types';
 
-// Type conversion: MockBusiness is compatible with Business
-const toBusinessType = (mock: MockBusiness): Business => mock as Business;
-
 /**
- * Load all businesses from the mock data store or Supabase.
+ * Load all businesses from Supabase.
  */
 export async function loadBusinesses(): Promise<Business[]> {
-  if (!USE_MOCK) {
-    const { loadBusinesses: loadFromSupabase } = await import('./businessService.supabase');
-    return loadFromSupabase();
-  }
-  const businesses = await getBusinesses();
-  return businesses.map(toBusinessType);
+  const { loadBusinesses } = await import('./businessService.supabase');
+  return loadBusinesses();
 }
 
 /**
- * Save businesses - no-op in mock mode since the store manages persistence.
+ * Save businesses - no-op (operations are done individually).
  */
 export async function saveBusinesses(_businesses: Business[]): Promise<void> {
-  if (!USE_MOCK) {
-    const { saveBusinesses: saveToSupabase } = await import('./businessService.supabase');
-    return saveToSupabase(_businesses);
-  }
-  console.log('[MockService] saveBusinesses called - no-op in mock mode');
+  const { saveBusinesses } = await import('./businessService.supabase');
+  return saveBusinesses(_businesses);
 }
 
 /**
  * Create a new business.
+ * @deprecated Business creation is not allowed - businesses are pre-configured.
  */
 export async function createBusiness(values: BusinessFormValues): Promise<Business> {
-  if (!USE_MOCK) {
-    const { createBusiness: createInSupabase } = await import('./businessService.supabase');
-    return createInSupabase(values);
-  }
-  const created = await createBusinessInStore({
-    name: values.name.trim(),
-    type: values.type,
-    mode: values.mode,
-    status: values.status,
-    employees: 0,
-  });
-  return toBusinessType(created);
+  const { createBusiness } = await import('./businessService.supabase');
+  return createBusiness(values);
 }
 
 /**
  * Update an existing business by ID.
+ * Business type is locked and cannot be changed.
  */
 export async function updateBusiness(
   id: string,
   patch: BusinessFormValues
 ): Promise<Business | null> {
-  if (!USE_MOCK) {
-    const { updateBusiness: updateInSupabase } = await import('./businessService.supabase');
-    return updateInSupabase(id, patch);
-  }
-  const updated = await updateBusinessInStore(id, {
-    name: patch.name.trim(),
-    type: patch.type,
-    mode: patch.mode,
-    status: patch.status,
-  });
-  return updated ? toBusinessType(updated) : null;
+  const { updateBusiness } = await import('./businessService.supabase');
+  return updateBusiness(id, patch);
 }
 
 /**
  * Delete a business by ID.
+ * @deprecated Business deletion is not allowed - businesses are pre-configured.
  */
 export async function deleteBusiness(id: string): Promise<void> {
-  if (!USE_MOCK) {
-    const { deleteBusiness: deleteInSupabase } = await import('./businessService.supabase');
-    return deleteInSupabase(id);
-  }
-  await deleteBusinessInStore(id);
+  const { deleteBusiness } = await import('./businessService.supabase');
+  return deleteBusiness(id);
 }
 
 /**
  * Get a single business by ID.
  */
 export async function getBusinessByIdFromService(id: string): Promise<Business | undefined> {
-  if (!USE_MOCK) {
-    const { getBusinessByIdFromService: getFromSupabase } = await import('./businessService.supabase');
-    return getFromSupabase(id);
-  }
-  const business = await getBusinessById(id);
-  return business ? toBusinessType(business) : undefined;
+  const { getBusinessByIdFromService } = await import('./businessService.supabase');
+  return getBusinessByIdFromService(id);
 }
+
+/**
+ * Seed function removed - businesses are created via SQL migration.
+ * Run the migration script from supabase_schema.md to create the 2 pre-configured businesses.
+ */
+// export async function seedPreConfiguredBusinesses() has been removed.
+// Businesses are created via one-time SQL migration in Supabase database.

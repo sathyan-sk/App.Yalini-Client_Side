@@ -43,9 +43,9 @@ export function SummarySection({ record, testID }: SummarySectionProps) {
           </View>
           <View style={styles.gridItem}>
             <SummaryMetricCard
-              type="settled"
-              value={record.settledToAdmin}
-              label="Settled to Admin"
+              type="balance"
+              value={record.balanceShortage}
+              label="Balance / Shortage"
             />
           </View>
         </View>

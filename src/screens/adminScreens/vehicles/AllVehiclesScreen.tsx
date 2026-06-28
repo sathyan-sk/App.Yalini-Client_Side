@@ -71,10 +71,16 @@ export default function AllVehiclesScreen() {
 
   const counts = useMemo(() => {
     const enabled = vehicles.filter((v) => v.status === "enabled").length;
+    const available = vehicles.filter((v) => v.assignmentStatus === "available").length;
+    const assigned = vehicles.filter((v) => v.assignmentStatus === "assigned").length;
+    const locked = vehicles.filter((v) => v.assignmentStatus === "locked").length;
     return {
       total: vehicles.length,
       enabled,
       disabled: vehicles.length - enabled,
+      available,
+      assigned,
+      locked,
     };
   }, [vehicles]);
 
@@ -149,6 +155,9 @@ export default function AllVehiclesScreen() {
             total={counts.total}
             enabled={counts.enabled}
             disabled={counts.disabled}
+            available={counts.available}
+            assigned={counts.assigned}
+            locked={counts.locked}
             testID="vehicle-stat-cards"
           />
 

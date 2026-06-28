@@ -15,6 +15,7 @@ import { getInitials, formatMobileDisplay } from "../data/constants";
 
 interface EmployeeCardProps {
   employee: Employee;
+  businessMode?: 'auto' | 'manual';
   onPress: () => void;
   onEdit: () => void;
   onDelete: () => void;
@@ -47,6 +48,7 @@ function getAvatarColor(name: string) {
  */
 export function EmployeeCard({
   employee,
+  businessMode,
   onPress,
   onEdit,
   onDelete,
@@ -57,6 +59,8 @@ export function EmployeeCard({
   const statusLabel = employee.status === "enabled" ? "Enabled" : "Disabled";
   const businessIcon = employee.businessType === "taxi" ? "car-sport" : "water";
   const businessIconColor = employee.businessType === "taxi" ? tones.orange.accent : tones.blue.accent;
+  const modeColor = businessMode === 'auto' ? colors.info : businessMode === 'manual' ? colors.warning : colors.textTertiary;
+  const modeLabel = businessMode === 'auto' ? 'Auto Mode' : businessMode === 'manual' ? 'Manual Mode' : '';
 
   return (
     <Pressable
@@ -97,6 +101,24 @@ export function EmployeeCard({
               {formatMobileDisplay(employee.mobile)}
             </Text>
           </View>
+
+          {/* Assignment Status */}
+          {employee.assignedVehicleId && (
+            <View style={styles.assignmentRow}>
+              <Ionicons name="car-outline" size={14} color={colors.info} />
+              <Text style={styles.assignmentText} numberOfLines={1}>
+                {employee.assignedVehicleName || 'Vehicle Assigned'}
+              </Text>
+            </View>
+          )}
+          {employee.assignedHotelId && (
+            <View style={styles.assignmentRow}>
+              <Ionicons name="business-outline" size={14} color={colors.info} />
+              <Text style={styles.assignmentText} numberOfLines={1}>
+                {employee.assignedHotelName || 'Hotel Assigned'}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Right Side: Status + Actions */}
@@ -111,6 +133,15 @@ export function EmployeeCard({
             </Text>
             <Feather name="chevron-right" size={18} color={colors.textTertiary} />
           </View>
+
+          {/* Business Mode Badge */}
+          {modeLabel && (
+            <View style={[styles.modeBadge, { backgroundColor: modeColor + '20' }]}>
+              <Text style={[styles.modeText, { color: modeColor }]}>
+                {modeLabel}
+              </Text>
+            </View>
+          )}
           
           <View style={styles.actionsRow}>
             <Pressable
@@ -225,5 +256,27 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
+  },
+  assignmentRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 2,
+  },
+  assignmentText: {
+    fontSize: fontSize.xs,
+    color: colors.info,
+    fontWeight: "500",
+    flex: 1,
+  },
+  modeBadge: {
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 2,
+    borderRadius: radius.sm,
+    marginTop: spacing.xs,
+  },
+  modeText: {
+    fontSize: fontSize.xs,
+    fontWeight: "600",
   },
 });

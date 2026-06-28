@@ -18,6 +18,8 @@ export interface Vehicle {
   assignedDriver?: string;
   /** Assigned employee ID (for proper tracking) */
   assignedEmployeeId?: string;
+  /** Assignment status: available, assigned, assigning (temp lock), or locked */
+  assignmentStatus?: "available" | "assigned" | "assigning" | "locked";
   /** ISO-8601 date string (YYYY-MM-DD). */
   createdAt: string;
   /** ISO-8601 date string (YYYY-MM-DD). */
@@ -32,6 +34,7 @@ export interface VehicleFormValues {
   notes?: string;
   assignedDriver?: string;
   assignedEmployeeId?: string;
+  assignmentStatus?: "available" | "assigned" | "assigning" | "locked";
 }
 
 export type VehicleStatusFilter = VehicleStatusId | "all";

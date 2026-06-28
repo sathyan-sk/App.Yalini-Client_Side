@@ -66,6 +66,8 @@ export default function EditHotelScreen() {
         name: hotel.name,
         ratePerCan: hotel.ratePerCan,
         status: hotel.status,
+        location: hotel.location || "",
+        address: hotel.address || "",
       });
     }
   }, [hotelId, hotels]);
@@ -79,6 +81,14 @@ export default function EditHotelScreen() {
     const numValue = parseInt(next.replace(/[^0-9]/g, ""), 10) || 0;
     setValues((v) => (v ? { ...v, ratePerCan: numValue } : null));
     if (errors.ratePerCan) setErrors((e) => ({ ...e, ratePerCan: undefined }));
+  };
+
+  const setLocation = (next: string) => {
+    setValues((v) => (v ? { ...v, location: next } : null));
+  };
+
+  const setAddress = (next: string) => {
+    setValues((v) => (v ? { ...v, address: next } : null));
   };
 
   const setStatus = (next: HotelStatusId) =>
@@ -105,6 +115,8 @@ export default function EditHotelScreen() {
         name: values.name.trim(),
         ratePerCan: values.ratePerCan,
         status: values.status,
+        location: values.location?.trim() || undefined,
+        address: values.address?.trim() || undefined,
       });
       setToastVisible(true);
       setTimeout(() => {
@@ -210,6 +222,58 @@ export default function EditHotelScreen() {
               ) : null}
             </View>
 
+            {/* Hotel Location */}
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>
+                Hotel Location
+              </Text>
+              <View style={styles.inputContainer}>
+                <Ionicons
+                  name="location-outline"
+                  size={20}
+                  color={colors.textTertiary}
+                />
+                <TextInput
+                  testID="edit-hotel-location-input"
+                  value={values.location || ""}
+                  onChangeText={setLocation}
+                  placeholder="Enter hotel location"
+                  placeholderTextColor={colors.textTertiary}
+                  style={styles.input}
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                  returnKeyType="next"
+                  maxLength={100}
+                />
+              </View>
+            </View>
+
+            {/* Hotel Address */}
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>
+                Hotel Address
+              </Text>
+              <View style={styles.inputContainer}>
+                <Ionicons
+                  name="map-outline"
+                  size={20}
+                  color={colors.textTertiary}
+                />
+                <TextInput
+                  testID="edit-hotel-address-input"
+                  value={values.address || ""}
+                  onChangeText={setAddress}
+                  placeholder="Enter full address for delivery"
+                  placeholderTextColor={colors.textTertiary}
+                  style={styles.input}
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                  returnKeyType="next"
+                  maxLength={200}
+                />
+              </View>
+            </View>
+            
             {/* Rate per Can */}
             <View style={styles.fieldGroup}>
               <Text style={styles.fieldLabel}>

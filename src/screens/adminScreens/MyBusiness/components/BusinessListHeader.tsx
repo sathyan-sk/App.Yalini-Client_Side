@@ -6,7 +6,6 @@ import { colors, fontSize, radius, spacing } from "../../../../theme";
 
 interface BusinessListHeaderProps {
   onMenuPress: () => void;
-  onAddPress: () => void;
   testID?: string;
 }
 
@@ -14,15 +13,13 @@ interface BusinessListHeaderProps {
  * Top-of-screen header for the Businesses list.
  *
  * - Left: hamburger menu (forwards to drawer/back).
- * - Middle: large \"Businesses\" title + supporting subtitle.
- * - Right: pill-shaped \"+ Add Business\" primary CTA.
+ * - Middle: large "Businesses" title + supporting subtitle.
  *
- * Lives inside the sticky header zone, NOT the scrollable content, so the
- * primary CTA stays reachable while the list scrolls.
+ * Lives inside the sticky header zone, NOT the scrollable content.
+ * Note: Add Business button removed - businesses are pre-configured.
  */
 export function BusinessListHeader({
   onMenuPress,
-  onAddPress,
   testID,
 }: BusinessListHeaderProps) {
   return (
@@ -46,17 +43,6 @@ export function BusinessListHeader({
           <Text style={styles.subtitle}>Manage your businesses</Text>
         </View>
       </View>
-
-      <Pressable
-        testID="businesses-add-button"
-        onPress={onAddPress}
-        accessibilityRole="button"
-        accessibilityLabel="Add a new business"
-        style={({ pressed }) => [styles.addButton, pressed && styles.pressed]}
-      >
-        <Ionicons name="add" size={18} color="#FFFFFF" />
-        <Text style={styles.addLabel}>Add Business</Text>
-      </Pressable>
     </View>
   );
 }
@@ -101,19 +87,5 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontSize: fontSize.sm,
     color: colors.textSecondary,
-  },
-  addButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    minHeight: 40,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.md,
-    backgroundColor: "#4F46E5",
-  },
-  addLabel: {
-    color: "#FFFFFF",
-    fontSize: fontSize.sm,
-    fontWeight: "600",
   },
 });

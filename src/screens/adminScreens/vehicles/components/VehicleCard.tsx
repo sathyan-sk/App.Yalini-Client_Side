@@ -95,6 +95,58 @@ export function VehicleCard({
         </View>
       </View>
 
+      {/* Assignment Status Section */}
+      {vehicle.assignmentStatus && (
+        <View style={styles.assignmentSection}>
+          <View
+            style={[
+              styles.assignmentBadge,
+              {
+                backgroundColor:
+                  vehicle.assignmentStatus === 'available'
+                    ? colors.successSoft
+                    : vehicle.assignmentStatus === 'assigned'
+                    ? colors.infoSoft
+                    : colors.warningSoft,
+              },
+            ]}
+          >
+            <View
+              style={[
+                styles.assignmentDot,
+                {
+                  backgroundColor:
+                    vehicle.assignmentStatus === 'available'
+                      ? colors.success
+                      : vehicle.assignmentStatus === 'assigned'
+                      ? colors.info
+                      : colors.warning,
+                },
+              ]}
+            />
+            <Text
+              style={[
+                styles.assignmentText,
+                {
+                  color:
+                    vehicle.assignmentStatus === 'available'
+                      ? colors.success
+                      : vehicle.assignmentStatus === 'assigned'
+                      ? colors.info
+                      : colors.warning,
+                },
+              ]}
+            >
+              {vehicle.assignmentStatus === 'available'
+                ? 'Available'
+                : vehicle.assignmentStatus === 'assigned'
+                ? 'Assigned'
+                : 'Locked'}
+            </Text>
+          </View>
+        </View>
+      )}
+
       {/* Driver Section */}
       {vehicle.assignedDriver && (
         <View style={styles.driverSection}>
@@ -120,6 +172,34 @@ export function VehicleCard({
           <Feather name="edit-2" size={16} color={colors.brand} />
           <Text style={styles.editButtonText}>Edit</Text>
         </Pressable>
+
+        {vehicle.assignmentStatus === 'locked' ? (
+          <Pressable
+            onPress={() => {/* Unlock handler */}}
+            style={({ pressed }) => [
+              styles.actionButton,
+              styles.unlockButton,
+              pressed && styles.actionButtonPressed,
+            ]}
+            testID={`${testID}-unlock`}
+          >
+            <Feather name="unlock" size={16} color={colors.success} />
+            <Text style={styles.unlockButtonText}>Unlock</Text>
+          </Pressable>
+        ) : (
+          <Pressable
+            onPress={() => {/* Lock handler */}}
+            style={({ pressed }) => [
+              styles.actionButton,
+              styles.lockButton,
+              pressed && styles.actionButtonPressed,
+            ]}
+            testID={`${testID}-lock`}
+          >
+            <Feather name="lock" size={16} color={colors.warning} />
+            <Text style={styles.lockButtonText}>Lock</Text>
+          </Pressable>
+        )}
 
         <Pressable
           onPress={onDelete}
@@ -258,6 +338,22 @@ const styles = StyleSheet.create({
     fontSize: fontSize.base,
     fontWeight: "600",
   },
+  lockButton: {
+    backgroundColor: colors.warningSoft,
+  },
+  lockButtonText: {
+    color: colors.warning,
+    fontSize: fontSize.base,
+    fontWeight: "600",
+  },
+  unlockButton: {
+    backgroundColor: colors.successSoft,
+  },
+  unlockButtonText: {
+    color: colors.success,
+    fontSize: fontSize.base,
+    fontWeight: "600",
+  },
   deleteButton: {
     backgroundColor: colors.errorSoft,
   },
@@ -265,5 +361,31 @@ const styles = StyleSheet.create({
     color: colors.error,
     fontSize: fontSize.base,
     fontWeight: "600",
+  },
+  // Assignment status styles
+  assignmentSection: {
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderLight,
+  },
+  assignmentBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.sm,
+    alignSelf: "flex-start",
+  },
+  assignmentDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  assignmentText: {
+    fontSize: fontSize.sm,
+    fontWeight: "500",
+    textTransform: "capitalize",
   },
 });

@@ -9,8 +9,6 @@
 import { useCallback, useEffect, useState } from "react";
 
 import {
-  createBusiness,
-  deleteBusiness,
   loadBusinesses,
   updateBusiness,
 } from "../services/businessService";
@@ -45,12 +43,10 @@ async function hydrate(): Promise<Business[]> {
 interface UseBusinessesResult {
   businesses: Business[];
   loading: boolean;
-  addBusiness: (values: BusinessFormValues) => Promise<Business>;
   editBusiness: (
     id: string,
     values: BusinessFormValues,
   ) => Promise<Business | null>;
-  removeBusiness: (id: string) => Promise<void>;
   refresh: () => Promise<void>;
 }
 
@@ -80,16 +76,6 @@ export function useBusinesses(): UseBusinessesResult {
     };
   }, []);
 
-  const addBusiness = useCallback(
-    async (values: BusinessFormValues) => {
-      const created = await createBusiness(values);
-      const current = cache ?? (await loadBusinesses());
-      notify([created, ...current.filter((b) => b.id !== created.id)]);
-      return created;
-    },
-    [],
-  );
-
   const editBusiness = useCallback(
     async (id: string, values: BusinessFormValues) => {
       const updated = await updateBusiness(id, values);
@@ -101,17 +87,11 @@ export function useBusinesses(): UseBusinessesResult {
     [],
   );
 
-  const removeBusiness = useCallback(async (id: string) => {
-    await deleteBusiness(id);
-    const current = cache ?? (await loadBusinesses());
-    notify(current.filter((b) => b.id !== id));
-  }, []);
-
   const refresh = useCallback(async () => {
     cache = null;
     const fresh = await loadBusinesses();
     notify(fresh);
   }, []);
 
-  return { businesses, loading, addBusiness, editBusiness, removeBusiness, refresh };
+  return { businesses, loading, editBusiness, refresh };
 }
