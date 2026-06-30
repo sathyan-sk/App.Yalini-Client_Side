@@ -2,11 +2,13 @@
  * CansInformationForm - Form section for cans-related inputs.
  *
  * Includes:
- * - Loaded Cans (numeric input)
  * - Cans Delivered (numeric input)
  * - Cans Returned (numeric input)
  * - Outstanding Cans (auto-calculated, read-only)
  * - Est. Amount (auto-calculated, read-only)
+ *
+ * NOTE: Loaded Cans is now centralized at session level (set on first delivery).
+ * Rate per can is shown here per-hotel since it varies by hotel.
  */
 import React from 'react';
 import { StyleSheet, View, Text, TextInput } from 'react-native';
@@ -19,8 +21,6 @@ import type { DeliveryFormErrors } from '../types';
  * Props for CansInformationForm component.
  */
 interface CansInformationFormProps {
-  /** Number of cans loaded */
-  loadedCans: number;
   /** Number of cans delivered */
   cansDelivered: number;
   /** Number of cans returned */
@@ -29,12 +29,12 @@ interface CansInformationFormProps {
   outstandingCans: number;
   /** Auto-calculated estimated amount */
   estAmount: number;
-  /** Rate per can for display */
+  /** Rate per can for this hotel */
   ratePerCan: number;
-  /** Previous outstanding cans from last delivery */
+  /** Previous outstanding cans from hotel's history */
   previousOutstandingCans?: number;
-  /** Callback when loaded cans changes */
-  onLoadedCansChange: (value: string) => void;
+  /** Remaining cans from centralized pool */
+  remainingCans?: number;
   /** Callback when cans delivered changes */
   onCansDeliveredChange: (value: string) => void;
   /** Callback when cans returned changes */
@@ -53,14 +53,13 @@ interface CansInformationFormProps {
  * @returns JSX element
  */
 export function CansInformationForm({
-  loadedCans,
   cansDelivered,
   cansReturned,
   outstandingCans,
   estAmount,
   ratePerCan,
   previousOutstandingCans = 0,
-  onLoadedCansChange,
+  remainingCans,
   onCansDeliveredChange,
   onCansReturnedChange,
   errors,
@@ -77,50 +76,44 @@ export function CansInformationForm({
         <View style={styles.sectionHeaderText}>
           <Text style={styles.sectionTitle}>Cans Information</Text>
           <Text style={styles.sectionSubtitle}>
-            Enter loading and delivery details
+            Enter delivery details for this hotel
           </Text>
         </View>
       </View>
 
-      {/* Loaded Cans */}
-      <View style={styles.fieldGroup}>
-        <Text style={styles.fieldLabel}>
-          Loaded Cans <Text style={styles.required}>*</Text>
-        </Text>
-        <Text style={styles.fieldHint}>Total cans loaded on vehicle</Text>
-        <View
-          style={[
-            styles.inputContainer,
-            errors.loadedCans && styles.inputError,
-            disabled && styles.inputDisabled,
-          ]}
-        >
-          <TextInput
-            value={loadedCans > 0 ? loadedCans.toString() : ''}
-            onChangeText={onLoadedCansChange}
-            placeholder="0"
-            placeholderTextColor={colors.textTertiary}
-            style={styles.input}
-            keyboardType="numeric"
-            editable={!disabled}
-            maxLength={4}
-            testID={`${testID}-loaded-input`}
-          />
-          <Text style={styles.unitLabel}>Cans</Text>
+      {/* Rate per Can (per-hotel) */}
+      {ratePerCan > 0 && (
+        <View style={styles.rateRow}>
+          <View style={styles.rateIconBg}>
+            <Feather name="tag" size={16} color={colors.primaryBlue} />
+          </View>
+          <Text style={styles.rateLabel}>Rate: </Text>
+          <Text style={styles.rateValue}>₹{ratePerCan}/can</Text>
         </View>
-        {errors.loadedCans ? (
-          <Text style={styles.errorText} testID={`${testID}-loaded-error`}>
-            {errors.loadedCans}
+      )}
+
+      {/* Remaining Cans Warning */}
+      {remainingCans !== undefined && (
+        <View style={[styles.remainingRow, remainingCans <= 0 && styles.remainingRowEmpty]}>
+          <Feather
+            name={remainingCans > 0 ? "check-circle" : "alert-triangle"}
+            size={16}
+            color={remainingCans > 0 ? colors.success : colors.warning}
+          />
+          <Text style={[styles.remainingText, remainingCans <= 0 && styles.remainingTextEmpty]}>
+            {remainingCans > 0
+              ? `${remainingCans} cans remaining from today's load`
+              : 'No cans remaining! Please load more.'}
           </Text>
-        ) : null}
-      </View>
+        </View>
+      )}
 
       {/* Cans Delivered */}
       <View style={styles.fieldGroup}>
         <Text style={styles.fieldLabel}>
           Cans Delivered <Text style={styles.required}>*</Text>
         </Text>
-        <Text style={styles.fieldHint}>Cans delivered to hotel</Text>
+        <Text style={styles.fieldHint}>Cans delivered to this hotel</Text>
         <View
           style={[
             styles.inputContainer,
@@ -193,7 +186,7 @@ export function CansInformationForm({
             </View>
             <View style={styles.calculatedInfo}>
               <Text style={styles.calculatedLabel}>Previous Outstanding</Text>
-              <Text style={styles.calculatedSubtitle}>From last delivery</Text>
+              <Text style={styles.calculatedSubtitle}>From hotel's history</Text>
             </View>
             <Text style={styles.equalsSign}>=</Text>
             <Text style={[styles.calculatedValue, styles.previousValue]}>
@@ -278,6 +271,58 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 2,
   },
+  // Rate per can row
+  rateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primaryBlueSoft,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.sm,
+    marginBottom: spacing.lg,
+    gap: spacing.xs,
+  },
+  rateIconBg: {
+    width: 28,
+    height: 28,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rateLabel: {
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+  },
+  rateValue: {
+    fontSize: fontSize.base,
+    fontWeight: '700',
+    color: colors.primaryBlue,
+  },
+  // Remaining cans warning
+  remainingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.successSoft,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.sm,
+    marginBottom: spacing.lg,
+    gap: spacing.sm,
+  },
+  remainingRowEmpty: {
+    backgroundColor: colors.warningSoft,
+  },
+  remainingText: {
+    flex: 1,
+    fontSize: fontSize.sm,
+    color: colors.success,
+    fontWeight: '500',
+  },
+  remainingTextEmpty: {
+    color: colors.warning,
+  },
+  // Fields
   fieldGroup: {
     marginBottom: spacing.lg,
   },
@@ -330,6 +375,7 @@ const styles = StyleSheet.create({
     color: colors.error,
     marginTop: spacing.xs,
   },
+  // Calculations
   calculationsSection: {
     marginTop: spacing.sm,
     paddingTop: spacing.lg,

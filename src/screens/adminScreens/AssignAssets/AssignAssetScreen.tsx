@@ -26,6 +26,7 @@ import {
 import {
   assignEmployeeToHotel,
   unassignEmployeeFromHotel,
+  batchUpdateHotelAssignments,
 } from "../../../services/hotelService";
 
 import type { AssetType } from "./types";
@@ -213,10 +214,10 @@ export default function AssignAssetScreen() {
         vehicles={vehicles}
         hotels={hotels}
         onSelect={handleAssetSelect}
+        onBatchSave={batchUpdateHotelAssignments}
         onClose={handleAssetSheetClose}
         testID="asset-selection-sheet"
       />
-
       <ConfirmUnassignSheet
         visible={unassignSheetVisible}
         employee={selectedEmployee}

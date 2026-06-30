@@ -29,24 +29,21 @@ export function EmployeeListSection({
   onUnassign,
   testID,
 }: EmployeeListSectionProps) {
-  // Filter employees based on asset type (taxi employees for vehicles, water delivery for hotels)
+  // Filter employees based on asset type
   const filteredEmployees = employees.filter((emp) => {
-        // Exclude disabled employees
-    if (emp.status === "disabled") {
-      return false;
-    }
-    if (assetType === "vehicle") {
-      return emp.businessType === "taxi";
-    }
+    if (emp.status === "disabled") return false;
+    if (assetType === "vehicle") return emp.businessType === "taxi";
     return emp.businessType === "water_delivery";
   });
 
-  // Get assigned asset for an employee
-  const getAssignedAsset = (employeeId: string) => {
-    if (assetType === "vehicle") {
-      return vehicles.find((v) => v.assignedEmployeeId === employeeId);
-    }
-    return hotels.find((h) => h.assignedEmployeeId === employeeId);
+  // Get assigned asset for a vehicle employee (1:1)
+  const getAssignedVehicle = (employeeId: string) => {
+    return vehicles.find((v) => v.assignedEmployeeId === employeeId);
+  };
+
+  // Get ALL assigned hotels for a water delivery employee (N:N)
+  const getAssignedHotels = (employeeId: string): Hotel[] => {
+    return hotels.filter((h) => h.assignedEmployeeId === employeeId);
   };
 
   if (loading) {
@@ -74,9 +71,7 @@ export function EmployeeListSection({
 
   const getInitials = (name: string): string => {
     const parts = name.trim().split(/\s+/);
-    if (parts.length === 1) {
-      return parts[0].substring(0, 2).toUpperCase();
-    }
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
@@ -90,68 +85,145 @@ export function EmployeeListSection({
       </View>
 
       {filteredEmployees.map((employee) => {
-        const assignedAsset = getAssignedAsset(employee.id);
-        const isAssigned = !!assignedAsset;
-        const tone = isAssigned ? tones.green : tones.orange;
+        const isVehicle = assetType === "vehicle";
 
-        return (
-          <View
-            key={employee.id}
-            style={[styles.employeeCard, cardShadow]}
-            testID={`${testID}-employee-${employee.id}`}
-          >
-            <View style={styles.employeeRow}>
-              <View style={[styles.avatar, { backgroundColor: tone.iconBg }]}>
-                <Text style={[styles.avatarText, { color: tone.accent }]}>
-                  {getInitials(employee.fullName)}
-                </Text>
-              </View>
+        if (isVehicle) {
+          // ================================================================
+          // VEHICLE MODE: Single-assignment display (1:1) — UNCHANGED
+          // ================================================================
+          const assignedVehicle = getAssignedVehicle(employee.id);
+          const isAssigned = !!assignedVehicle;
+          const tone = isAssigned ? tones.green : tones.orange;
 
-              <View style={styles.employeeInfo}>
-                <Text style={styles.employeeName}>{employee.fullName}</Text>
-                <Text style={styles.businessName}>{employee.businessName}</Text>
-                {isAssigned && assignedAsset && (
-                  <View style={styles.assignedBadge}>
-                    <Ionicons
-                      name={assetType === "vehicle" ? "car" : "bed"}
-                      size={12}
-                      color={tones.green.accent}
-                    />
-                    <Text style={styles.assignedText}>
-                      {'name' in assignedAsset ? assignedAsset.name : ''}
-                    </Text>
-                  </View>
-                )}
-              </View>
+          return (
+            <View
+              key={employee.id}
+              style={[styles.employeeCard, cardShadow]}
+              testID={`${testID}-employee-${employee.id}`}
+            >
+              <View style={styles.employeeRow}>
+                <View style={[styles.avatar, { backgroundColor: tone.iconBg }]}>
+                  <Text style={[styles.avatarText, { color: tone.accent }]}>
+                    {getInitials(employee.fullName)}
+                  </Text>
+                </View>
 
-              <View style={styles.actionButtons}>
-                {isAssigned ? (
-                  <TouchableOpacity
-                    style={[styles.actionBtn, styles.unassignBtn]}
-                    onPress={() => onUnassign(employee, assignedAsset!.id)}
-                    testID={`${testID}-unassign-${employee.id}`}
-                  >
-                    <Ionicons name="close" size={18} color={tones.red.accent} />
-                    <Text style={[styles.actionBtnText, { color: tones.red.accent }]}>
-                      Unassign
-                    </Text>
-                  </TouchableOpacity>
-                ) : (
-                  <TouchableOpacity
-                    style={[styles.actionBtn, styles.assignBtn]}
-                    onPress={() => onAssign(employee)}
-                    testID={`${testID}-assign-${employee.id}`}
-                  >
-                    <Ionicons name="add" size={18} color={colors.brand} />
-                    <Text style={[styles.actionBtnText, { color: colors.brand }]}>
-                      Assign
-                    </Text>
-                  </TouchableOpacity>
-                )}
+                <View style={styles.employeeInfo}>
+                  <Text style={styles.employeeName}>{employee.fullName}</Text>
+                  <Text style={styles.businessName}>{employee.businessName}</Text>
+                  {isAssigned && assignedVehicle && (
+                    <View style={styles.assignedBadge}>
+                      <Ionicons name="car" size={12} color={tones.green.accent} />
+                      <Text style={styles.assignedText}>{assignedVehicle.name}</Text>
+                    </View>
+                  )}
+                </View>
+
+                <View style={styles.actionButtons}>
+                  {isAssigned ? (
+                    <TouchableOpacity
+                      style={[styles.actionBtn, styles.unassignBtn]}
+                      onPress={() => onUnassign(employee, assignedVehicle!.id)}
+                      testID={`${testID}-unassign-${employee.id}`}
+                    >
+                      <Ionicons name="close" size={18} color={tones.red.accent} />
+                      <Text style={[styles.actionBtnText, { color: tones.red.accent }]}>Unassign</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      style={[styles.actionBtn, styles.assignBtn]}
+                      onPress={() => onAssign(employee)}
+                      testID={`${testID}-assign-${employee.id}`}
+                    >
+                      <Ionicons name="add" size={18} color={colors.brand} />
+                      <Text style={[styles.actionBtnText, { color: colors.brand }]}>Assign</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
               </View>
             </View>
-          </View>
-        );
+          );
+        } else {
+          // ================================================================
+          // HOTEL MODE: Multi-assignment display (N:N) — UPDATED
+          // ================================================================
+          const assignedHotels = getAssignedHotels(employee.id);
+          const hotelCount = assignedHotels.length;
+          const tone = hotelCount > 0 ? tones.green : tones.orange;
+
+          return (
+            <View
+              key={employee.id}
+              style={[styles.employeeCard, cardShadow]}
+              testID={`${testID}-employee-${employee.id}`}
+            >
+              <View style={styles.employeeRow}>
+                <View style={[styles.avatar, { backgroundColor: tone.iconBg }]}>
+                  <Text style={[styles.avatarText, { color: tone.accent }]}>
+                    {getInitials(employee.fullName)}
+                  </Text>
+                </View>
+
+                <View style={styles.employeeInfo}>
+                  <Text style={styles.employeeName}>{employee.fullName}</Text>
+                  <Text style={styles.businessName}>{employee.businessName}</Text>
+
+                  {/* Show count badge */}
+                  <View style={styles.hotelCountRow}>
+                    <Ionicons
+                      name={hotelCount > 0 ? "bed" : "bed-outline"}
+                      size={13}
+                      color={hotelCount > 0 ? tones.green.accent : colors.textTertiary}
+                    />
+                    <Text
+                      style={[
+                        styles.hotelCountText,
+                        hotelCount > 0 ? styles.hotelCountActive : styles.hotelCountNone,
+                      ]}
+                    >
+                      {hotelCount > 0 ? `${hotelCount} Hotel(s) Assigned` : "No Hotels Assigned"}
+                    </Text>
+                  </View>
+
+                  {/* Show first 2 hotel names, then "+N more" */}
+                  {hotelCount > 0 && (
+                    <View style={styles.hotelNamesContainer}>
+                      {assignedHotels.slice(0, 2).map((h) => (
+                        <View key={h.id} style={styles.hotelNameBadge}>
+                          <Text style={styles.hotelNameText} numberOfLines={1}>
+                            {h.name}
+                          </Text>
+                        </View>
+                      ))}
+                      {hotelCount > 2 && (
+                        <View style={styles.hotelNameBadge}>
+                          <Text style={styles.hotelNameText}>+{hotelCount - 2} more</Text>
+                        </View>
+                      )}
+                    </View>
+                  )}
+                </View>
+
+                <View style={styles.actionButtons}>
+                  <TouchableOpacity
+                    style={[styles.actionBtn, styles.manageBtn]}
+                    onPress={() => onAssign(employee)}
+                    testID={`${testID}-manage-${employee.id}`}
+                  >
+                    <Ionicons
+                      name={hotelCount > 0 ? "create-outline" : "add"}
+                      size={18}
+                      color={colors.brand}
+                    />
+                    <Text style={[styles.actionBtnText, { color: colors.brand }]}>
+                      {hotelCount > 0 ? "Manage" : "Assign"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          );
+        }
       })}
     </View>
   );
@@ -217,6 +289,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 2,
   },
+  // Vehicle badge (single)
   assignedBadge: {
     flexDirection: "row",
     alignItems: "center",
@@ -233,6 +306,43 @@ const styles = StyleSheet.create({
     color: tones.green.accent,
     fontWeight: "500",
   },
+  // Hotel count row
+  hotelCountRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: spacing.xs,
+    gap: 4,
+  },
+  hotelCountText: {
+    fontSize: fontSize.xs,
+    fontWeight: "500",
+  },
+  hotelCountActive: {
+    color: tones.green.accent,
+  },
+  hotelCountNone: {
+    color: colors.textTertiary,
+  },
+  // Hotel names list
+  hotelNamesContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginTop: spacing.xs,
+    gap: 4,
+  },
+  hotelNameBadge: {
+    backgroundColor: tones.green.cardBg,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: radius.sm,
+    maxWidth: 140,
+  },
+  hotelNameText: {
+    fontSize: fontSize.xs,
+    color: tones.green.accent,
+    fontWeight: "500",
+  },
+  // Action buttons
   actionButtons: {
     marginLeft: spacing.md,
   },
@@ -249,6 +359,9 @@ const styles = StyleSheet.create({
   },
   unassignBtn: {
     backgroundColor: tones.red.cardBg,
+  },
+  manageBtn: {
+    backgroundColor: colors.brandSoft,
   },
   actionBtnText: {
     fontSize: fontSize.sm,

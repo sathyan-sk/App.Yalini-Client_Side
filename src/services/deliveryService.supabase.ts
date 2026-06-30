@@ -51,7 +51,8 @@ let currentSession: DeliverySessionData | null = null;
 
 /**
  * Loads all enabled hotels from Supabase.
- * If employeeId provided, fetches hotels assigned to that employee.
+ * If employeeId provided, fetches hotels assigned to that employee
+ * via the staff_hotel_assignments junction table (multi-hotel support).
  * In auto mode, also includes unassigned hotels for self-assignment.
  */
 export async function loadHotelsForDelivery(employeeId?: string): Promise<HotelOption[]> {
@@ -59,18 +60,46 @@ export async function loadHotelsForDelivery(employeeId?: string): Promise<HotelO
     throw new Error('Supabase is not configured');
   }
 
-  let query = supabase
-    .from('hotels')
-    .select('*')
-    .eq('status', 'enabled');
-
-  // Filter by assigned employee if provided
+  // If employeeId provided, fetch assigned hotels via junction table
   if (employeeId) {
-    // Fetch hotels assigned to this employee OR unassigned hotels (for auto mode)
-    query = query.or(`assigned_employee_id.eq.${employeeId},assigned_employee_id.is.null`);
+    // Step 1: Get assigned hotel IDs from junction table
+    const { data: junctionRows } = await supabase
+      .from('staff_hotel_assignments')
+      .select('hotel_id')
+      .eq('staff_id', employeeId)
+      .eq('is_active', true);
+
+    const assignedHotelIds = (junctionRows || []).map(row => row.hotel_id);
+
+    if (assignedHotelIds.length > 0) {
+      // Step 2: Fetch full hotel details for assigned IDs
+      const { data, error } = await supabase
+        .from('hotels')
+        .select('*')
+        .in('id', assignedHotelIds)
+        .eq('status', 'enabled')
+        .order('name', { ascending: true });
+
+      if (error) {
+        console.error('[Supabase] Error loading assigned hotels:', error);
+        throw new Error(`Failed to load hotels: ${error.message}`);
+      }
+
+      const hotels = (data || []).map(toHotelOption);
+      console.log(`[Delivery] Loaded ${hotels.length} assigned hotels for employee ${employeeId}`);
+      return hotels;
+    }
+
+    // No assigned hotels found
+    return [];
   }
 
-  const { data, error } = await query.order('name', { ascending: true });
+  // No employeeId - return all enabled hotels
+  const { data, error } = await supabase
+    .from('hotels')
+    .select('*')
+    .eq('status', 'enabled')
+    .order('name', { ascending: true });
 
   if (error) {
     console.error('[Supabase] Error loading hotels:', error);
@@ -78,7 +107,7 @@ export async function loadHotelsForDelivery(employeeId?: string): Promise<HotelO
   }
 
   const hotels = (data || []).map(toHotelOption);
-  console.log(`[Delivery] Loaded ${hotels.length} hotels for employee ${employeeId}`);
+  console.log(`[Delivery] Loaded ${hotels.length} hotels`);
   return hotels;
 }
 
@@ -548,19 +577,40 @@ export async function getStaffHomeData(employeeId?: string): Promise<{
   // Get business mode
   const businessMode = (employee.businesses as any)?.mode || 'manual';
 
-  // Get assigned hotels for this employee with outstanding cans
-  const { data: hotels } = await supabase
-    .from('hotels')
-    .select('*')
-    .eq('assigned_employee_id', employeeId)
-    .eq('status', 'enabled');
+  // ======================================================================
+  // MULTI-HOTEL: Fetch assigned hotels via staff_hotel_assignments junction
+  // ======================================================================
+  // Step 1: Get assigned hotel IDs from junction table
+  const { data: junctionRows } = await supabase
+    .from('staff_hotel_assignments')
+    .select('hotel_id')
+    .eq('staff_id', employeeId)
+    .eq('is_active', true);
 
-  const assignedHotels = (hotels || []).map(hotel => ({
-    hotelId: hotel.id,
-    hotelName: hotel.name,
-    location: hotel.location || '',
-    outstandingCans: hotel.outstanding_cans || 0,
-  }));
+  const assignedHotelIds = (junctionRows || []).map(row => row.hotel_id);
+
+  // Step 2: Fetch full hotel details for assigned IDs
+  let assignedHotels: Array<{
+    hotelId: string;
+    hotelName: string;
+    location: string;
+    outstandingCans?: number;
+  }> = [];
+
+  if (assignedHotelIds.length > 0) {
+    const { data: hotels } = await supabase
+      .from('hotels')
+      .select('*')
+      .in('id', assignedHotelIds)
+      .eq('status', 'enabled');
+
+    assignedHotels = (hotels || []).map(hotel => ({
+      hotelId: hotel.id,
+      hotelName: hotel.name,
+      location: hotel.location || '',
+      outstandingCans: hotel.outstanding_cans || 0,
+    }));
+  }
 
   // Calculate total outstanding cans
   const totalOutstandingCans = assignedHotels.reduce(
@@ -571,11 +621,17 @@ export async function getStaffHomeData(employeeId?: string): Promise<{
   // In auto mode, also fetch available hotels for self-assignment
   let availableHotels: any[] = [];
   if (businessMode === 'auto') {
-    const { data: availHotels } = await supabase
+    let query = supabase
       .from('hotels')
       .select('id, name, location')
-      .eq('status', 'enabled')
-      .or(`assigned_employee_id.is.null,assigned_employee_id.neq.${employeeId}`);
+      .eq('status', 'enabled');
+
+    // Exclude already assigned hotels
+    if (assignedHotelIds.length > 0) {
+      query = query.not('id', 'in', `(${assignedHotelIds.map(id => `'${id}'`).join(',')})`);
+    }
+
+    const { data: availHotels } = await query;
     availableHotels = availHotels || [];
   }
 

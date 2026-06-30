@@ -1,9 +1,9 @@
 /**
  * SessionInfoCard - Displays current delivery session information.
  *
- * Shows service name, staff name, date, and session status.
- * Visual design matches the reference image header section.
- * Fixed alignment issues for consistent layout.
+ * Shows service name, staff name, date, session status,
+ * and centralized loaded/remaining cans info.
+ * Rate per can is now shown per-hotel in the CansInformationForm.
  */
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
@@ -18,8 +18,12 @@ import type { DeliverySessionData } from '../types';
 interface SessionInfoCardProps {
   /** Session data to display */
   session: DeliverySessionData;
-  /** Rate per can for selected hotel */
-  ratePerCan?: number;
+  /** Total cans loaded for the day (centralized) */
+  totalLoadedCans?: number;
+  /** Remaining cans available for delivery */
+  remainingCans?: number;
+  /** Whether loaded cans has been set (locked) */
+  isLoadedCansLocked?: boolean;
   /** Optional test ID */
   testID?: string;
 }
@@ -31,7 +35,9 @@ interface SessionInfoCardProps {
  */
 export function SessionInfoCard({
   session,
-  ratePerCan,
+  totalLoadedCans,
+  remainingCans,
+  isLoadedCansLocked = false,
   testID = 'session-info-card',
 }: SessionInfoCardProps): React.JSX.Element {
   const isSubmitted = session.sessionStatus === 'SUBMITTED';
@@ -85,16 +91,45 @@ export function SessionInfoCard({
         </View>
       </View>
 
-      {/* Rate per Can */}
-      {ratePerCan !== undefined && ratePerCan > 0 && (
-        <View style={styles.rateSection}>
-          <View style={styles.rateIconBg}>
-            <Feather name="tag" size={18} color={colors.primaryBlue} />
-          </View>
-          <View style={styles.rateTextContainer}>
-            <Text style={styles.rateLabel}>Rate per Can (₹)</Text>
-            <Text style={styles.rateValue}>₹{ratePerCan.toFixed(2)}</Text>
-            <Text style={styles.rateNote}>Default rate set by admin</Text>
+      {/* Centralized Loaded & Remaining Cans Section */}
+      {isLoadedCansLocked && totalLoadedCans !== undefined && (
+        <View style={styles.cansSection}>
+          <View style={styles.cansRow}>
+            {/* Total Loaded */}
+            <View style={styles.cansItem}>
+              <View style={[styles.cansIconBg, { backgroundColor: colors.primaryBlueSoft }]}>
+                <Feather name="package" size={18} color={colors.primaryBlue} />
+              </View>
+              <View style={styles.cansTextContainer}>
+                <Text style={styles.cansLabel}>Total Loaded</Text>
+                <Text style={[styles.cansValue, { color: colors.primaryBlue }]}>
+                  {totalLoadedCans}
+                </Text>
+              </View>
+            </View>
+
+            {/* Remaining */}
+            <View style={styles.cansItem}>
+              <View style={[
+                styles.cansIconBg,
+                { backgroundColor: (remainingCans ?? 0) > 0 ? colors.successSoft : colors.warningSoft }
+              ]}>
+                <Feather
+                  name={(remainingCans ?? 0) > 0 ? "check-circle" : "alert-circle"}
+                  size={18}
+                  color={(remainingCans ?? 0) > 0 ? colors.success : colors.warning}
+                />
+              </View>
+              <View style={styles.cansTextContainer}>
+                <Text style={styles.cansLabel}>Remaining</Text>
+                <Text style={[
+                  styles.cansValue,
+                  { color: (remainingCans ?? 0) > 0 ? colors.success : colors.warning }
+                ]}>
+                  {remainingCans ?? 0}
+                </Text>
+              </View>
+            </View>
           </View>
         </View>
       )}
@@ -164,41 +199,46 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.sm,
     alignSelf: 'stretch',
   },
-  rateSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  // Centralized cans section
+  cansSection: {
     marginTop: spacing.lg,
     paddingTop: spacing.lg,
     borderTopWidth: 1,
     borderTopColor: colors.borderLight,
     borderStyle: 'dashed',
+  },
+  cansRow: {
+    flexDirection: 'row',
     gap: spacing.md,
   },
-  rateIconBg: {
+  cansItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surfaceSecondary,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    gap: spacing.md,
+  },
+  cansIconBg: {
     width: 40,
     height: 40,
     borderRadius: radius.md,
-    backgroundColor: colors.primaryBlueSoft,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
-  rateTextContainer: {
+  cansTextContainer: {
     flex: 1,
   },
-  rateLabel: {
-    fontSize: fontSize.sm,
-    color: colors.textSecondary,
-  },
-  rateValue: {
-    fontSize: fontSize.xl,
-    fontWeight: '700',
-    color: colors.primaryBlue,
-  },
-  rateNote: {
+  cansLabel: {
     fontSize: fontSize.xs,
     color: colors.textTertiary,
-    marginTop: 2,
+    marginBottom: 2,
+  },
+  cansValue: {
+    fontSize: fontSize.xl,
+    fontWeight: '700',
   },
   statusBadge: {
     flexDirection: 'row',

@@ -45,6 +45,7 @@ export interface HotelOption {
 
 /**
  * Form values for recording a delivery.
+ * loadedCans is now centralized at session level (set on first delivery).
  */
 export interface DeliveryFormValues {
   /** Selected hotel ID */
@@ -53,8 +54,6 @@ export interface DeliveryFormValues {
   hotelName: string;
   /** Rate per can for the selected hotel */
   ratePerCan: number;
-  /** Number of cans loaded on the vehicle */
-  loadedCans: number;
   /** Number of cans delivered to hotel */
   cansDelivered: number;
   /** Number of empty cans returned from hotel */

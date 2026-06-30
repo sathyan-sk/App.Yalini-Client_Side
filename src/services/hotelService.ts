@@ -71,3 +71,34 @@ export async function getHotelById(hotelId: string): Promise<Hotel | null> {
   const { getHotelById } = await import('./hotelService.supabase');
   return getHotelById(hotelId);
 }
+
+// ============================================================================
+// MULTI-HOTEL ASSIGNMENT (via staff_hotel_assignments junction table)
+// ============================================================================
+
+/** Get all hotel IDs assigned to an employee */
+export async function getAssignedHotelIds(employeeId: string): Promise<string[]> {
+  const { getAssignedHotelIds } = await import('./hotelService.supabase');
+  return getAssignedHotelIds(employeeId);
+}
+
+/** Batch update hotel assignments (replaces all assignments) */
+export async function batchUpdateHotelAssignments(
+  staffId: string,
+  hotelIds: string[]
+): Promise<void> {
+  const { batchUpdateHotelAssignments } = await import('./hotelService.supabase');
+  return batchUpdateHotelAssignments(staffId, hotelIds);
+}
+
+/** Get full hotel objects assigned to an employee */
+export async function getAssignedHotelsForEmployee(employeeId: string): Promise<Hotel[]> {
+  const { getAssignedHotelsForEmployee } = await import('./hotelService.supabase');
+  return getAssignedHotelsForEmployee(employeeId);
+}
+
+/** Get hotels NOT assigned to an employee */
+export async function getUnassignedHotelsForEmployee(employeeId: string): Promise<Hotel[]> {
+  const { getUnassignedHotelsForEmployee } = await import('./hotelService.supabase');
+  return getUnassignedHotelsForEmployee(employeeId);
+}

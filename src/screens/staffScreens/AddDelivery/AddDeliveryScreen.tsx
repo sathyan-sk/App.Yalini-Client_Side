@@ -1,28 +1,17 @@
 /**
  * AddDeliveryScreen - Main screen for recording water can deliveries.
  *
- * This screen allows staff members to record a single water can delivery to a hotel.
  * Features:
- * - Searchable hotel dropdown from admin hotel master list
- * - Loaded Cans, Cans Delivered and Cans Returned numeric inputs
- * - Outstanding Cans auto-calculated (delivered - returned)
+ * - Centralized Loaded Cans: Enter total cans loaded on first delivery (then locked)
+ * - SessionInfoCard shows Total Loaded & Remaining cans
+ * - Rate per can shown per-hotel in CansInformationForm
+ * - Outstanding cans auto-calculated (previous + delivered - returned)
  * - Est. Amount auto-calculated (deliveredCans * ratePerCan)
  * - Income Received input for money collected
  * - Payment Mode toggle (CASH or ONLINE only)
- * - Optional Expense section (Fuel/Others category + amount)
- * - Save button disabled when session status is SUBMITTED
- * - Prevents duplicate deliveries (saved hotels are unclickable)
- * - Full validation before save
- * - Navigation to AllDeliveriesScreen on success
- *
- * Design follows the Admin module patterns with:
- * - USE_MOCK flag for mock service layer
- * - Theme-based colors (no hardcoded values)
- * - Strict TypeScript (no any types)
- * - StyleSheet.create() (no inline styles)
- * - JSDoc on all functions and components
+ * - Full validation including remaining cans check
  */
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   StyleSheet,
   View,
@@ -30,12 +19,15 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Text,
+  TextInput,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { Feather } from '@expo/vector-icons';
 
-import { colors, spacing, cardShadow, radius } from '../../../theme';
+import { colors, spacing, cardShadow, radius, fontSize } from '../../../theme';
 import { useAuthStore } from '../../../store/authStore';
 import { useDeliveryStore } from '../../../store/deliveryStore';
 import {
@@ -72,7 +64,6 @@ const INITIAL_FORM_VALUES: DeliveryFormValues = {
   hotelId: '',
   hotelName: '',
   ratePerCan: 0,
-  loadedCans: 0,
   cansDelivered: 0,
   cansReturned: 0,
   outstandingCans: 0,
@@ -94,12 +85,11 @@ export default function AddDeliveryScreen(): React.JSX.Element {
   const authUser = useAuthStore((state) => state.user);
 
   // Store state
-  const { session, hotels, deliveries, setSession, setHotels, addDelivery } =
+  const { session, hotels, deliveries, setSession, setHotels, addDelivery, getDeliveryById } =
     useDeliveryStore();
 
   // Local state
-  const [formValues, setFormValues] =
-    useState<DeliveryFormValues>(INITIAL_FORM_VALUES);
+  const [formValues, setFormValues] = useState<DeliveryFormValues>(INITIAL_FORM_VALUES);
   const [errors, setErrors] = useState<DeliveryFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -107,17 +97,30 @@ export default function AddDeliveryScreen(): React.JSX.Element {
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
 
+  // Centralized loaded cans state (Option B: set on first delivery, then locked)
+  const [totalLoadedCans, setTotalLoadedCans] = useState<number>(0);
+  const [isLoadedCansLocked, setIsLoadedCansLocked] = useState(false);
+
   // Computed values
   const isSessionSubmitted = session.sessionStatus === 'SUBMITTED';
   const isHotelSelected = formValues.hotelId !== '';
-  
+
+  // Compute remaining cans (total loaded - sum of all delivered cans)
+  const totalDeliveredSoFar = useMemo(() => {
+    return deliveries.reduce((sum, d) => sum + d.cansDelivered, 0);
+  }, [deliveries]);
+
+  const remainingCans = useMemo(() => {
+    if (!isLoadedCansLocked) return undefined;
+    return Math.max(0, totalLoadedCans - totalDeliveredSoFar - formValues.cansDelivered);
+  }, [totalLoadedCans, totalDeliveredSoFar, formValues.cansDelivered, isLoadedCansLocked]);
+
   // Outstanding cans calculation with previous value
   const previousOutstandingCans = formValues.hotelId ? (formValues as any).previousOutstandingCans || 0 : 0;
   const newOutstandingCans = previousOutstandingCans + formValues.cansDelivered - formValues.cansReturned;
 
   /**
    * Filters out hotels that already have saved deliveries.
-   * This prevents duplicate deliveries to the same hotel.
    */
   const availableHotels = useMemo(() => {
     const savedHotelIds = new Set(deliveries.map((d) => d.hotelId));
@@ -126,6 +129,7 @@ export default function AddDeliveryScreen(): React.JSX.Element {
 
   /**
    * Loads session and hotels data on mount.
+   * Also refreshes when screen comes into focus (to pick up new hotel assignments).
    */
   useEffect(() => {
     const loadData = async () => {
@@ -146,7 +150,19 @@ export default function AddDeliveryScreen(): React.JSX.Element {
     };
 
     loadData();
-  }, [setSession, setHotels]);
+
+    // Refresh hotels when screen focuses (picks up new assignments from admin)
+    const unsubscribe = navigation.addListener('focus', async () => {
+      try {
+        const refreshedHotels = await loadHotelsForDelivery(authUser?.userId);
+        setHotels(refreshedHotels);
+      } catch (error) {
+        console.error('[AddDeliveryScreen] Failed to refresh hotels:', error);
+      }
+    });
+
+    return unsubscribe;
+  }, [setSession, setHotels, navigation, authUser?.userId]);
 
   /**
    * Updates outstanding cans when delivered or returned changes.
@@ -172,8 +188,6 @@ export default function AddDeliveryScreen(): React.JSX.Element {
 
   /**
    * Shows a toast notification.
-   * @param message - Toast message
-   * @param type - Toast type
    */
   const showToast = useCallback(
     (message: string, type: 'success' | 'error' = 'success') => {
@@ -186,30 +200,25 @@ export default function AddDeliveryScreen(): React.JSX.Element {
 
   /**
    * Handles hotel selection.
-   * @param hotel - Selected hotel option
    */
   const handleHotelSelect = useCallback((hotel: HotelOption) => {
-    // Fetch hotel's current outstanding cans
     const fetchHotelOutstanding = async () => {
       try {
         const { getHotelById } = await import('../../../services/hotelService');
         const hotelData = await getHotelById(hotel.id);
         const previousOutstanding = hotelData?.outstandingCans || 0;
-        
+
         setFormValues((prev) => ({
           ...prev,
           hotelId: hotel.id,
           hotelName: hotel.name,
           ratePerCan: hotel.ratePerCan,
           previousOutstandingCans: previousOutstanding,
-          // Recalculate outstanding with previous value
           outstandingCans: Math.max(0, previousOutstanding + prev.cansDelivered - prev.cansReturned),
-          // Recalculate estAmount with new rate
           estAmount: prev.cansDelivered * hotel.ratePerCan,
         }));
       } catch (error) {
         console.error('Failed to fetch hotel outstanding cans:', error);
-        // Fallback to 0 if fetch fails
         setFormValues((prev) => ({
           ...prev,
           hotelId: hotel.id,
@@ -220,29 +229,16 @@ export default function AddDeliveryScreen(): React.JSX.Element {
         }));
       }
     };
-    
+
     fetchHotelOutstanding();
-    
+
     if (errors.hotelId) {
       setErrors((prev) => ({ ...prev, hotelId: undefined }));
     }
   }, [errors.hotelId]);
 
   /**
-   * Handles loaded cans change.
-   * @param value - String value from input
-   */
-  const handleLoadedCansChange = useCallback((value: string) => {
-    const numValue = parseInt(value.replace(/[^0-9]/g, ''), 10) || 0;
-    setFormValues((prev) => ({ ...prev, loadedCans: numValue }));
-    if (errors.loadedCans) {
-      setErrors((prev) => ({ ...prev, loadedCans: undefined }));
-    }
-  }, [errors.loadedCans]);
-
-  /**
    * Handles cans delivered change.
-   * @param value - String value from input
    */
   const handleCansDeliveredChange = useCallback((value: string) => {
     const numValue = parseInt(value.replace(/[^0-9]/g, ''), 10) || 0;
@@ -254,7 +250,6 @@ export default function AddDeliveryScreen(): React.JSX.Element {
 
   /**
    * Handles cans returned change.
-   * @param value - String value from input
    */
   const handleCansReturnedChange = useCallback((value: string) => {
     const numValue = parseInt(value.replace(/[^0-9]/g, ''), 10) || 0;
@@ -266,7 +261,6 @@ export default function AddDeliveryScreen(): React.JSX.Element {
 
   /**
    * Handles income received change.
-   * @param value - String value from input
    */
   const handleReceivedIncomeChange = useCallback((value: string) => {
     const numValue = parseInt(value.replace(/[^0-9]/g, ''), 10) || 0;
@@ -278,7 +272,6 @@ export default function AddDeliveryScreen(): React.JSX.Element {
 
   /**
    * Handles payment mode change.
-   * @param mode - Selected payment mode
    */
   const handlePaymentModeChange = useCallback((mode: PaymentMode) => {
     setFormValues((prev) => ({ ...prev, paymentMode: mode }));
@@ -286,20 +279,17 @@ export default function AddDeliveryScreen(): React.JSX.Element {
 
   /**
    * Handles expense category change.
-   * @param category - Selected expense category or undefined
    */
   const handleExpenseCategoryChange = useCallback((category: ExpenseCategory | undefined) => {
     setFormValues((prev) => ({
       ...prev,
       expenseCategory: category,
-      // Reset amount if category is cleared
       expenseAmount: category ? prev.expenseAmount : undefined,
     }));
   }, []);
 
   /**
    * Handles expense amount change.
-   * @param value - String value from input
    */
   const handleExpenseAmountChange = useCallback((value: string) => {
     const numValue = parseInt(value.replace(/[^0-9]/g, ''), 10) || 0;
@@ -318,7 +308,6 @@ export default function AddDeliveryScreen(): React.JSX.Element {
 
   /**
    * Validates the form fields.
-   * @returns True if form is valid
    */
   const validateForm = useCallback((): boolean => {
     const newErrors: DeliveryFormErrors = {};
@@ -327,16 +316,18 @@ export default function AddDeliveryScreen(): React.JSX.Element {
       newErrors.hotelId = 'Please select a hotel';
     }
 
-    if (formValues.loadedCans <= 0) {
-      newErrors.loadedCans = 'Loaded cans must be greater than 0';
+    // Validate loaded cans if not yet locked (first delivery)
+    if (!isLoadedCansLocked && totalLoadedCans <= 0) {
+      newErrors.loadedCans = 'Please enter total cans loaded for today';
     }
 
     if (formValues.cansDelivered <= 0) {
       newErrors.cansDelivered = 'Cans delivered must be greater than 0';
     }
 
-    if (formValues.cansDelivered > formValues.loadedCans) {
-      newErrors.cansDelivered = 'Cans delivered cannot exceed loaded cans';
+    // Check against remaining cans (only if loaded cans is locked)
+    if (isLoadedCansLocked && formValues.cansDelivered > (totalLoadedCans - totalDeliveredSoFar)) {
+      newErrors.cansDelivered = `Only ${totalLoadedCans - totalDeliveredSoFar} cans remaining`;
     }
 
     if (formValues.cansReturned < 0) {
@@ -351,14 +342,13 @@ export default function AddDeliveryScreen(): React.JSX.Element {
       newErrors.receivedIncome = 'Income received cannot be negative';
     }
 
-    // Validate expense amount if category is selected
     if (formValues.expenseCategory && (formValues.expenseAmount === undefined || formValues.expenseAmount <= 0)) {
       newErrors.expenseAmount = 'Please enter expense amount';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [formValues]);
+  }, [formValues, isLoadedCansLocked, totalLoadedCans, totalDeliveredSoFar]);
 
   /**
    * Resets form to initial state.
@@ -390,8 +380,23 @@ export default function AddDeliveryScreen(): React.JSX.Element {
     setIsSubmitting(true);
 
     try {
-      // Save the delivery record
-      const savedRecord = await saveDeliveryRecord(formValues);
+      // If this is the first delivery, lock the loaded cans value
+      let effectiveLoadedCans = totalLoadedCans;
+      if (!isLoadedCansLocked) {
+        // Loaded cans was set via the input; lock it now
+        if (totalLoadedCans <= 0) {
+          showToast('Please enter total cans loaded for today', 'error');
+          setIsSubmitting(false);
+          return;
+        }
+        setIsLoadedCansLocked(true);
+      }
+
+      // Save the delivery record (include loadedCans for record keeping)
+      const savedRecord = await saveDeliveryRecord({
+        ...formValues,
+        loadedCans: effectiveLoadedCans,
+      } as any);
 
       // Update store
       addDelivery(savedRecord);
@@ -399,8 +404,8 @@ export default function AddDeliveryScreen(): React.JSX.Element {
       // Show success toast
       showToast('Delivery saved successfully!', 'success');
 
-      // Reset form
-      resetForm();
+      // Reset form (but keep loaded cans locked)
+      setFormValues(INITIAL_FORM_VALUES);
 
       // Navigate to AllDeliveries after a short delay
       setTimeout(() => {
@@ -416,15 +421,15 @@ export default function AddDeliveryScreen(): React.JSX.Element {
     isSessionSubmitted,
     validateForm,
     formValues,
+    totalLoadedCans,
+    isLoadedCansLocked,
     addDelivery,
     showToast,
-    resetForm,
     navigation,
   ]);
 
   return (
     <View style={styles.container} testID="add-delivery-screen">
-
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.kbWrap}
@@ -435,22 +440,86 @@ export default function AddDeliveryScreen(): React.JSX.Element {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{
-          paddingBottom: insets.bottom + spacing.xl + 80,
+            paddingBottom: insets.bottom + spacing.xl + 80,
           }}
-          >
+        >
           {/* Header */}
           <AddDeliveryHeader
             onBackPress={handleBackPress}
             topInset={insets.top}
             testID="add-delivery-header"
           />
-          
-          {/* Session Info Card */}
+
+          {/* Session Info Card - shows loaded/remaining cans */}
           <SessionInfoCard
             session={session}
-            ratePerCan={formValues.ratePerCan}
+            totalLoadedCans={totalLoadedCans}
+            remainingCans={
+              isLoadedCansLocked
+                ? Math.max(0, totalLoadedCans - totalDeliveredSoFar)
+                : undefined
+            }
+            isLoadedCansLocked={isLoadedCansLocked}
             testID="session-info"
           />
+
+          {/* Centralized Loaded Cans Input (shown only before first delivery) */}
+          {!isLoadedCansLocked && !isSessionSubmitted && (
+            <View style={styles.formCard}>
+              <View style={styles.loadedCansSection}>
+                <View style={styles.loadedCansHeader}>
+                  <View style={styles.loadedCansIconBg}>
+                    <Feather name="package" size={22} color={colors.primaryBlue} />
+                  </View>
+                  <View style={styles.loadedCansHeaderText}>
+                    <Text style={styles.loadedCansTitle}>Total Cans Loaded Today</Text>
+                    <Text style={styles.loadedCansSubtitle}>
+                      Enter total cans loaded on vehicle (set once)
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.loadedCansInputContainer}>
+                  <TextInput
+                    value={totalLoadedCans > 0 ? totalLoadedCans.toString() : ''}
+                    onChangeText={(text) => {
+                      const num = parseInt(text.replace(/[^0-9]/g, ''), 10) || 0;
+                      setTotalLoadedCans(num);
+                      if (errors.loadedCans) {
+                        setErrors((prev) => ({ ...prev, loadedCans: undefined }));
+                      }
+                    }}
+                    placeholder="Enter total cans"
+                    placeholderTextColor={colors.textTertiary}
+                    style={styles.loadedCansInput}
+                    keyboardType="numeric"
+                    maxLength={5}
+                    autoFocus={true}
+                    testID="total-loaded-cans-input"
+                  />
+                  <Text style={styles.loadedCansUnit}>Cans</Text>
+                </View>
+                {errors.loadedCans ? (
+                  <Text style={styles.errorText}>{errors.loadedCans}</Text>
+                ) : null}
+                <View style={styles.loadedCansHint}>
+                  <Feather name="info" size={14} color={colors.textTertiary} />
+                  <Text style={styles.loadedCansHintText}>
+                    This will be locked after saving the first delivery
+                  </Text>
+                </View>
+              </View>
+            </View>
+          )}
+
+          {/* Loaded cans locked indicator */}
+          {isLoadedCansLocked && (
+            <View style={styles.lockedBanner}>
+              <Feather name="lock" size={14} color={colors.success} />
+              <Text style={styles.lockedBannerText}>
+                Total Loaded: {totalLoadedCans} cans (locked)
+              </Text>
+            </View>
+          )}
 
           {/* Hotel Selector */}
           <View style={styles.formCard}>
@@ -467,14 +536,13 @@ export default function AddDeliveryScreen(): React.JSX.Element {
           {/* Cans Information Section */}
           <View style={styles.formCard}>
             <CansInformationForm
-              loadedCans={formValues.loadedCans}
               cansDelivered={formValues.cansDelivered}
               cansReturned={formValues.cansReturned}
               outstandingCans={formValues.outstandingCans}
               estAmount={formValues.estAmount}
               ratePerCan={formValues.ratePerCan}
               previousOutstandingCans={(formValues as any).previousOutstandingCans}
-              onLoadedCansChange={handleLoadedCansChange}
+              remainingCans={isLoadedCansLocked ? remainingCans : undefined}
               onCansDeliveredChange={handleCansDeliveredChange}
               onCansReturnedChange={handleCansReturnedChange}
               errors={errors}
@@ -563,5 +631,92 @@ const styles = StyleSheet.create({
   submitContainer: {
     paddingHorizontal: spacing.lg,
     marginTop: spacing.sm,
+  },
+  // Centralized Loaded Cans Section
+  loadedCansSection: {},
+  loadedCansHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  loadedCansIconBg: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.md,
+    backgroundColor: colors.primaryBlueSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadedCansHeaderText: {
+    flex: 1,
+  },
+  loadedCansTitle: {
+    fontSize: fontSize.base,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  loadedCansSubtitle: {
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  loadedCansInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.primaryBlue,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    backgroundColor: colors.surface,
+    minHeight: 56,
+  },
+  loadedCansInput: {
+    flex: 1,
+    fontSize: fontSize.xl,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    paddingVertical: spacing.md,
+    textAlign: 'right',
+  },
+  loadedCansUnit: {
+    fontSize: fontSize.base,
+    color: colors.textSecondary,
+    marginLeft: spacing.sm,
+    minWidth: 40,
+    fontWeight: '600',
+  },
+  loadedCansHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.sm,
+    gap: spacing.xs,
+  },
+  loadedCansHintText: {
+    fontSize: fontSize.xs,
+    color: colors.textTertiary,
+    flex: 1,
+  },
+  errorText: {
+    fontSize: fontSize.sm,
+    color: colors.error,
+    marginTop: spacing.xs,
+  },
+  // Locked indicator
+  lockedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.successSoft,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.sm,
+    gap: spacing.sm,
+  },
+  lockedBannerText: {
+    fontSize: fontSize.sm,
+    color: colors.success,
+    fontWeight: '600',
   },
 });
