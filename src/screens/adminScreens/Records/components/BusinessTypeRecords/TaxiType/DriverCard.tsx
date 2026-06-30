@@ -8,7 +8,6 @@ import { Avatar } from "../../common/Avatar";
 import { StatusBadge } from "../../common/StatusBadge";
 import type { DriverRecord } from "../../../../../../types/taxiRecords";
 
-
 interface DriverCardProps {
   record: DriverRecord;
   onPress: () => void;
@@ -31,7 +30,7 @@ export function DriverCard({ record, onPress, testID, showDate }: DriverCardProp
         <Avatar name={record.driverName} color={record.avatarColor} size={44} />
         <View style={styles.headerContent}>
           <Text style={styles.driverName}>{record.driverName}</Text>
-          <Text style={styles.vehicleName}>{record.vehicleName}</Text>
+          <Text style={styles.vehicleName}>{record.vehicleName} - {record.vehicleNumber}</Text>
           {showDate && (
             <Text style={styles.date}>{record.date}</Text>
           )}
@@ -45,15 +44,28 @@ export function DriverCard({ record, onPress, testID, showDate }: DriverCardProp
         />
       </View>
 
-      {/* Metrics Row 1 */}
+      {/* Metrics Row 1 - Trips & Settled */}
       <View style={styles.metricsRow}>
         <View style={styles.metricItem}>
           <View style={styles.metricHeader}>
             <Feather name="truck" size={16} color={colors.textSecondary} />
-            <Text style={styles.metricLabel}>Trips</Text>
+            <Text style={styles.metricLabel}>Total Trips</Text>
           </View>
           <Text style={styles.metricValue}>{record.trips}</Text>
         </View>
+        <View style={styles.metricItem}>
+          <View style={styles.metricHeader}>
+
+            <Text style={styles.metricLabel}>Total Settled</Text>
+          </View>
+          <Text style={[styles.metricValue, { color: '#FF9800' }]}>
+            {formatCurrency(record.settledToAdmin)}
+          </Text>
+        </View>
+      </View>
+
+      {/* Metrics Row 2 - Income, Expense, Profit */}
+      <View style={styles.metricsRow}>
         <View style={styles.metricItem}>
           <Text style={styles.metricLabel}>Total Income</Text>
           <Text style={[styles.metricValue, styles.incomeValue]}>
@@ -66,12 +78,8 @@ export function DriverCard({ record, onPress, testID, showDate }: DriverCardProp
             {formatCurrency(record.totalExpense)}
           </Text>
         </View>
-      </View>
-
-      {/* Metrics Row 2 */}
-      <View style={styles.metricsRow}>
         <View style={styles.metricItem}>
-          <Text style={styles.metricLabel}>Total Profit</Text>
+          <Text style={styles.metricLabel}>Profit</Text>
           <Text style={[styles.metricValue, styles.profitValue]}>
             {formatCurrency(record.totalProfit)}
           </Text>
@@ -105,12 +113,6 @@ const styles = StyleSheet.create({
     fontSize: fontSize.lg,
     fontWeight: "600",
     color: colors.textPrimary,
-  },
-  vehicleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginTop: 2,
   },
   vehicleName: {
     fontSize: fontSize.sm,

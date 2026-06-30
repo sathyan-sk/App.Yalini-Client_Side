@@ -21,6 +21,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import { colors, spacing, fontSize, radius } from "../../../theme";
 import { useAuthStore } from "../../../store/authStore";
+import { useTripStore } from "../../../store/tripStore";
 import { getGreeting, getDriverHomeData } from "../../../services/driverService";
 import type { DriverHomeData } from "../../../types/driver";
 import type { DriverTabParamList, AllTripsStackParamList } from "../../../types/navigation";
@@ -153,6 +154,19 @@ const handleLogout = () => {
   const businessMode = displayData?.businessMode || 'manual';
   const availableVehicles = displayData?.availableVehicles || [];
 
+  // Populate tripStore session with vehicle info when data loads
+  const { useTripStore } = require('../../../store/tripStore');
+  useEffect(() => {
+    if (displayData?.assignment && displayData.assignment.isAssigned) {
+      useTripStore.getState().updateSession({
+        vehicleId: displayData.assignment.vehicleId,
+        vehicleNumber: displayData.assignment.vehicleNumber,
+        driverName: displayData.driver.name,
+        driverId: displayData.driver.id,
+      });
+    }
+  }, [displayData]);
+
   if (sessionLoading) {
     return (
       <View style={styles.container}>
@@ -207,7 +221,7 @@ const handleLogout = () => {
         <ServiceInfoCard
           businessName={displayData.driver.businessName}
           driverName={displayData.driver.name}
-          vehicleNumber={displayData.assignment?.vehicleNumber || ''}
+          vehicleNumber={displayData.assignment?.vehicleNumber || 'Not Assigned'}
           sessionDate={displayData.sessionDate}
           sessionStartTime={displayData.sessionStartTime}
           sessionStatus={displayData.sessionStatus}

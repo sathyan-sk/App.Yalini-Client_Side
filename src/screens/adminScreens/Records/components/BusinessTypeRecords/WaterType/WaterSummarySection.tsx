@@ -34,7 +34,7 @@ export function WaterSummarySection({ record, testID }: WaterSummarySectionProps
           </View>
         </View>
         
-        {/* Row 2: Outstanding & Income */}
+        {/* Row 2: Outstanding & Total Settled */}
         <View style={styles.row}>
           <View style={styles.gridItem}>
             <WaterSummaryMetricCard
@@ -45,15 +45,22 @@ export function WaterSummarySection({ record, testID }: WaterSummarySectionProps
           </View>
           <View style={styles.gridItem}>
             <WaterSummaryMetricCard
+              type="settled"
+              value={record.totalSettled || 0}
+              label="Total Settled"
+            />
+          </View>
+        </View>
+        
+        {/* Row 3: Income & Expense */}
+        <View style={styles.row}>
+          <View style={styles.gridItem}>
+            <WaterSummaryMetricCard
               type="income"
               value={record.totalIncome}
               label="Total Income"
             />
           </View>
-        </View>
-        
-        {/* Row 3: Expense & Profit */}
-        <View style={styles.row}>
           <View style={styles.gridItem}>
             <WaterSummaryMetricCard
               type="expense"
@@ -61,12 +68,38 @@ export function WaterSummarySection({ record, testID }: WaterSummarySectionProps
               label="Total Expense"
             />
           </View>
+        </View>
+        
+        {/* Row 4: Profit & Cash/Online */}
+        <View style={styles.row}>
           <View style={styles.gridItem}>
             <WaterSummaryMetricCard
               type="profit"
               value={record.totalProfit}
               label="Total Profit"
             />
+          </View>
+          <View style={styles.gridItem}>
+            <WaterSummaryMetricCard
+              type="cash_settled"
+              value={record.totalCashSettled || 0}
+              label="Cash Total"
+            />
+          </View>
+        </View>
+        
+        {/* Row 5: Online Total */}
+        <View style={styles.row}>
+          <View style={styles.gridItem}>
+            <WaterSummaryMetricCard
+              type="online_settled"
+              value={record.totalOnlineSettled || 0}
+              label="Online Total"
+            />
+          </View>
+          <View style={styles.gridItem}>
+            {/* Empty placeholder for alignment */}
+            <View />
           </View>
         </View>
       </View>

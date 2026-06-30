@@ -13,8 +13,8 @@ interface SummaryFooterProps {
   totalIncome: number;
   /** Total expenses */
   totalExpense: number;
-  /** Net amount (income - expense) */
-  netAmount: number;
+  /** Total profit (income - expense) */
+  totalProfit: number;
   /** Whether user can proceed to checkout */
   canProceed: boolean;
   /** Handler for proceed to checkout button */
@@ -24,25 +24,30 @@ interface SummaryFooterProps {
 export function SummaryFooter({
   totalIncome,
   totalExpense,
-  netAmount,
+  totalProfit,
   canProceed,
   onProceedToCheckout,
 }: SummaryFooterProps) {
+  // Ensure all values are numbers
+  const safeIncome = totalIncome || 0;
+  const safeExpense = totalExpense || 0;
+  const safeProfit = totalProfit || 0;
+
   return (
     <View style={styles.container}>
       {/* Summary Row */}
       <View style={styles.summaryRow}>
         <View style={styles.summaryItem}>
           <Text style={styles.summaryLabel}>Total Income</Text>
-          <Text style={styles.incomeValue}>₹{totalIncome.toLocaleString('en-IN')}</Text>
+          <Text style={styles.incomeValue}>₹{safeIncome.toLocaleString('en-IN')}</Text>
         </View>
         <View style={styles.summaryItem}>
           <Text style={styles.summaryLabel}>Total Expense</Text>
-          <Text style={styles.expenseValue}>₹{totalExpense.toLocaleString('en-IN')}</Text>
+          <Text style={styles.expenseValue}>₹{safeExpense.toLocaleString('en-IN')}</Text>
         </View>
         <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>Net Amount</Text>
-          <Text style={styles.netValue}>₹{netAmount.toLocaleString('en-IN')}</Text>
+          <Text style={styles.summaryLabel}>Profit</Text>
+          <Text style={styles.profitValue}>₹{safeProfit.toLocaleString('en-IN')}</Text>
         </View>
       </View>
 
@@ -105,7 +110,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#F44336',
   },
-  netValue: {
+  profitValue: {
     fontSize: fontSize.lg,
     fontWeight: '700',
     color: '#2E7D32',

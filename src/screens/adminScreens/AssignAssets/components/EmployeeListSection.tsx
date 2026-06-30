@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -7,6 +7,7 @@ import type { Employee } from "../../Employees/types";
 import type { Vehicle } from "../../../../types/vehicle";
 import type { Hotel } from "../../Hotels/types";
 import type { AssetType } from "../types";
+import { getAssignedHotelIds } from "../../../../services/hotelService";
 
 interface EmployeeListSectionProps {
   employees: Employee[];
@@ -36,15 +37,30 @@ export function EmployeeListSection({
     return emp.businessType === "water_delivery";
   });
 
+  // Cache for assigned hotels (employeeId -> Hotel[])
+  const [assignedHotelsCache, setAssignedHotelsCache] = useState<Record<string, Hotel[]>>({});
+
   // Get assigned asset for a vehicle employee (1:1)
   const getAssignedVehicle = (employeeId: string) => {
     return vehicles.find((v) => v.assignedEmployeeId === employeeId);
   };
 
-  // Get ALL assigned hotels for a water delivery employee (N:N)
-  const getAssignedHotels = (employeeId: string): Hotel[] => {
-    return hotels.filter((h) => h.assignedEmployeeId === employeeId);
+  // Get ALL assigned hotels for a water delivery employee (N:N) via junction table
+  const getAssignedHotels = async (employeeId: string): Promise<Hotel[]> => {
+    const assignedHotelIds = await getAssignedHotelIds(employeeId);
+    return hotels.filter((h) => assignedHotelIds.includes(h.id));
   };
+
+  // Pre-fetch assigned hotels for all water delivery employees
+  useEffect(() => {
+    if (assetType !== "hotel") return;
+    
+    const waterEmployees = filteredEmployees.filter(e => e.businessType === "water_delivery");
+    waterEmployees.forEach(async (emp) => {
+      const assigned = await getAssignedHotels(emp.id);
+      setAssignedHotelsCache(prev => ({ ...prev, [emp.id]: assigned }));
+    });
+  }, [assetType, filteredEmployees, hotels]);
 
   if (loading) {
     return (
@@ -147,7 +163,7 @@ export function EmployeeListSection({
           // ================================================================
           // HOTEL MODE: Multi-assignment display (N:N) — UPDATED
           // ================================================================
-          const assignedHotels = getAssignedHotels(employee.id);
+          const assignedHotels = assignedHotelsCache[employee.id] || [];
           const hotelCount = assignedHotels.length;
           const tone = hotelCount > 0 ? tones.green : tones.orange;
 

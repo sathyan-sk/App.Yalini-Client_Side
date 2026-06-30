@@ -7,14 +7,13 @@ import { StyleSheet, View, Text, TextInput, TouchableOpacity } from 'react-nativ
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 
 import { colors, spacing, fontSize, radius, cardShadow } from '../../../../theme';
-import type { EditTripFormData, PaymentMode, TripType } from '../../../../types/driver';
+import type { EditTripFormData, TripType } from '../../../../types/driver';
 
 interface EditTripFormProps {
   formData: EditTripFormData;
   onFromChange: (value: string) => void;
   onToChange: (value: string) => void;
   onAmountChange: (value: string) => void;
-  onPaymentModeChange: (mode: PaymentMode) => void;
   onTripTypeChange: (type: TripType) => void;
   onClearFrom: () => void;
   onClearTo: () => void;
@@ -26,7 +25,6 @@ export function EditTripForm({
   onFromChange,
   onToChange,
   onAmountChange,
-  onPaymentModeChange,
   onTripTypeChange,
   onClearFrom,
   onClearTo,
@@ -161,70 +159,6 @@ export function EditTripForm({
               <Feather name="x-circle" size={18} color={colors.textSecondary} />
             </TouchableOpacity>
           )}
-        </View>
-      </View>
-
-      {/* Payment Mode */}
-      <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>Payment Mode</Text>
-        <View style={styles.paymentModeContainer}>
-          {/* Cash Option */}
-          <TouchableOpacity
-            style={[
-              styles.paymentOption,
-              formData.paymentMode === 'cash' && styles.paymentOptionActive,
-            ]}
-            onPress={() => onPaymentModeChange('cash')}
-            activeOpacity={0.7}
-          >
-            <MaterialIcons
-              name="account-balance-wallet"
-              size={20}
-              color={formData.paymentMode === 'cash' ? '#1B5E20' : colors.textSecondary}
-            />
-            <Text
-              style={[
-                styles.paymentOptionText,
-                formData.paymentMode === 'cash' && styles.paymentOptionTextActive,
-              ]}
-            >
-              Cash
-            </Text>
-            {formData.paymentMode === 'cash' && (
-              <View style={styles.checkmarkWrapper}>
-                <Feather name="check" size={14} color={colors.surface} />
-              </View>
-            )}
-          </TouchableOpacity>
-
-          {/* Online Option */}
-          <TouchableOpacity
-            style={[
-              styles.paymentOption,
-              formData.paymentMode === 'online' && styles.paymentOptionActive,
-            ]}
-            onPress={() => onPaymentModeChange('online')}
-            activeOpacity={0.7}
-          >
-            <MaterialIcons
-              name="smartphone"
-              size={20}
-              color={formData.paymentMode === 'online' ? '#1B5E20' : colors.textSecondary}
-            />
-            <Text
-              style={[
-                styles.paymentOptionText,
-                formData.paymentMode === 'online' && styles.paymentOptionTextActive,
-              ]}
-            >
-              Online
-            </Text>
-            {formData.paymentMode === 'online' && (
-              <View style={styles.checkmarkWrapper}>
-                <Feather name="check" size={14} color={colors.surface} />
-              </View>
-            )}
-          </TouchableOpacity>
         </View>
       </View>
     </View>

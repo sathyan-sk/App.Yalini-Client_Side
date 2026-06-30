@@ -12,7 +12,6 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, CompositeNavigationProp } from "@react-navigation/native";
@@ -27,7 +26,7 @@ import {
   InfoNote,
 } from "../AddTrip/components";
 import { useTripStore } from "../../../store/tripStore";
-import type { TripFormData, PaymentMode, TripType } from "../../../types/driver";
+import type { TripFormData, TripType } from "../../../types/driver";
 import type { DriverTabParamList, AllTripsStackParamList } from "../../../types/navigation";
 
 const BACKGROUND_COLOR = colors.surfaceSecondary;
@@ -51,7 +50,6 @@ export default function AddTripScreen() {
     from: "",
     to: "",
     amount: "",
-    paymentMode: "cash",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -74,19 +72,12 @@ export default function AddTripScreen() {
     setFormData((prev) => ({ ...prev, amount: sanitized }));
   }, []);
 
-  const handlePaymentModeChange = useCallback((mode: PaymentMode) => {
-    setFormData((prev) => ({ ...prev, paymentMode: mode }));
-  }, []);
-
   const handleBackPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const handleHelpPress = useCallback(() => {
-    Alert.alert(
-      "Help",
-      "Enter your trip details including pickup location, drop location, fare amount, and payment method. Click Save Trip to record your trip."
-    );
+    // Help functionality removed
   }, []);
 
   const resetForm = useCallback(() => {
@@ -95,22 +86,18 @@ export default function AddTripScreen() {
       from: "",
       to: "",
       amount: "",
-      paymentMode: "cash",
     });
   }, []);
 
   const handleSaveTrip = useCallback(async () => {
     // Validation
     if (!formData.from.trim()) {
-      Alert.alert("Error", "Please enter pickup location");
       return;
     }
     if (!formData.to.trim()) {
-      Alert.alert("Error", "Please enter drop location");
       return;
     }
     if (!formData.amount.trim() || parseFloat(formData.amount) <= 0) {
-      Alert.alert("Error", "Please enter a valid amount");
       return;
     }
 
@@ -123,41 +110,19 @@ export default function AddTripScreen() {
         from: formData.from.trim(),
         to: formData.to.trim(),
         amount: parseFloat(formData.amount),
-        paymentMode: formData.paymentMode,
+        paymentMode: "cash",
       });
 
       // Reset form
       resetForm();
 
-      // Show success with options
-      Alert.alert(
-        "Trip Saved!",
-        "Would you like to add expenses for this trip or continue?",
-        [
-          {
-            text: "Add Expense",
-            onPress: () => {
-              // Navigate to AllTripsStack and then to AddExpenseForTrip
-              navigation.navigate("AllTripsStack", {
-                screen: "AddExpenseForTrip",
-                params: { tripId: newTripId, mode: "add" },
-              } as any);
-            },
-          },
-          {
-            text: "View All Trips",
-            onPress: () => {
-              navigation.navigate("AllTripsStack");
-            },
-          },
-          {
-            text: "Add Another Trip",
-            style: "cancel",
-          },
-        ]
-      );
+      // Navigate directly to AddExpense
+      navigation.navigate("AllTripsStack", {
+        screen: "AddExpenseForTrip",
+        params: { tripId: newTripId, mode: "add" },
+      } as any);
     } catch (error) {
-      Alert.alert("Error", "Failed to save trip. Please try again.");
+      console.error('Failed to save trip:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -201,7 +166,6 @@ export default function AddTripScreen() {
             onFromChange={handleFromChange}
             onToChange={handleToChange}
             onAmountChange={handleAmountChange}
-            onPaymentModeChange={handlePaymentModeChange}
             onSaveTrip={handleSaveTrip}
             isSubmitting={isSubmitting}
           />

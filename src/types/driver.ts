@@ -97,7 +97,6 @@ export interface TripFormData {
   from: string;
   to: string;
   amount: string;
-  paymentMode: PaymentMode;
 }
 
 /**
@@ -111,6 +110,9 @@ export interface Trip {
   to: string;
   amount: number;
   paymentMode: PaymentMode;
+  settledCash?: number;
+  settledOnline?: number;
+  shortage?: number;
   date: string;
   time: string;
   hasExpense: boolean;
@@ -178,6 +180,8 @@ export interface TripExpense {
   food: number;
   other: number;
   notes?: string;
+  settledCash: number;
+  settledOnline: number;
   total: number;
 }
 
@@ -203,7 +207,6 @@ export interface EditTripFormData {
   from: string;
   to: string;
   amount: string;
-  paymentMode: PaymentMode;
 }
 
 export interface AllTripsData {
@@ -228,7 +231,7 @@ export interface SessionSubmissionData {
   totalTrips: number;
   totalIncome: number;
   totalExpenses: number;
-  netAmount: number;
+  profit: number;
   trips: TripWithExpense[];
 }
 

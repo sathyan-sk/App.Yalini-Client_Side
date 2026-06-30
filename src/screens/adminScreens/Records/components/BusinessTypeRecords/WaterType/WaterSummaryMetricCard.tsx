@@ -11,7 +11,10 @@ type WaterSummaryMetricType =
   | "outstanding" 
   | "income" 
   | "expense" 
-  | "profit";
+  | "profit"
+  | "settled"
+  | "cash_settled"
+  | "online_settled";
 
 interface WaterSummaryMetricCardProps {
   type: WaterSummaryMetricType;
@@ -58,6 +61,24 @@ const getIconAndColor = (type: WaterSummaryMetricType) => {
         valueColor: colors.brand,
         bgColor: colors.brandSoft,
       };
+    case "settled":
+      return {
+        icon: <Feather name="dollar-sign" size={20} color="#FF9800" />,
+        valueColor: '#FF9800',
+        bgColor: '#FFF3E0',
+      };
+    case "cash_settled":
+      return {
+        icon: <MaterialCommunityIcons name="cash" size={20} color={colors.successDark} />,
+        valueColor: colors.successDark,
+        bgColor: colors.successSoft,
+      };
+    case "online_settled":
+      return {
+        icon: <Feather name="smartphone" size={20} color={colors.primaryBlue} />,
+        valueColor: colors.primaryBlue,
+        bgColor: colors.primaryBlueSoft,
+      };
     default:
       return {
         icon: <Feather name="info" size={20} color={colors.textSecondary} />,
@@ -69,7 +90,7 @@ const getIconAndColor = (type: WaterSummaryMetricType) => {
 
 export function WaterSummaryMetricCard({ type, value, label, testID }: WaterSummaryMetricCardProps) {
   const { icon, valueColor, bgColor } = getIconAndColor(type);
-  const isCurrency = ["income", "expense", "profit"].includes(type);
+  const isCurrency = ["income", "expense", "profit", "settled", "cash_settled", "online_settled"].includes(type);
   const displayValue = typeof value === "number" 
     ? (isCurrency ? formatCurrency(value) : value.toString()) 
     : value;

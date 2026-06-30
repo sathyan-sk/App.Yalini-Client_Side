@@ -12,7 +12,8 @@ import { colors, spacing, fontSize, radius, cardShadow } from '../../../../theme
 interface SummaryFooterProps {
   totalIncome: number;
   totalExpenses: number;
-  netAmount: number;
+  totalSettlement: number;
+  profit: number;
   canProceed: boolean;
   onProceedToCheckout: () => void;
 }
@@ -20,26 +21,39 @@ interface SummaryFooterProps {
 export function SummaryFooter({
   totalIncome,
   totalExpenses,
-  netAmount,
+  totalSettlement,
+  profit,
   canProceed,
   onProceedToCheckout,
 }: SummaryFooterProps) {
+  // Ensure all values are numbers (defensive - should already be numbers from store)
+  const safeIncome = typeof totalIncome === 'number' ? totalIncome : 0;
+  const safeExpenses = typeof totalExpenses === 'number' ? totalExpenses : 0;
+  const safeSettlement = typeof totalSettlement === 'number' ? totalSettlement : 0;
+  const safeProfit = typeof profit === 'number' ? profit : 0;
+
   return (
     <View style={styles.container}>
       {/* Summary Row */}
       <View style={styles.summaryRow}>
         <View style={styles.summaryItem}>
           <Text style={styles.summaryLabel}>Total Income</Text>
-          <Text style={styles.incomeValue}>₹{totalIncome.toLocaleString('en-IN')}</Text>
+          <Text style={styles.incomeValue}>₹{safeIncome.toLocaleString('en-IN')}</Text>
         </View>
         <View style={styles.summaryItem}>
           <Text style={styles.summaryLabel}>Total Expenses</Text>
-          <Text style={styles.expenseValue}>₹{totalExpenses.toLocaleString('en-IN')}</Text>
+          <Text style={styles.expenseValue}>₹{safeExpenses.toLocaleString('en-IN')}</Text>
         </View>
         <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel}>Net Amount</Text>
-          <Text style={styles.netValue}>₹{netAmount.toLocaleString('en-IN')}</Text>
+          <Text style={styles.summaryLabel}>Settlement</Text>
+          <Text style={styles.settlementValue}>₹{safeSettlement.toLocaleString('en-IN')}</Text>
         </View>
+      </View>
+
+      {/* Profit Row */}
+      <View style={styles.profitRow}>
+        <Text style={styles.profitLabel}>Profit</Text>
+        <Text style={styles.profitValue}>₹{safeProfit.toLocaleString('en-IN')}</Text>
       </View>
 
       {/* Checkout Button */}
@@ -105,6 +119,28 @@ const styles = StyleSheet.create({
     fontSize: fontSize.lg,
     fontWeight: '700',
     color: '#2E7D32',
+  },
+  settlementValue: {
+    fontSize: fontSize.lg,
+    fontWeight: '700',
+    color: '#FF9800',
+  },
+  profitRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: spacing.md,
+    marginBottom: spacing.md,
+  },
+  profitLabel: {
+    fontSize: fontSize.base,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  profitValue: {
+    fontSize: fontSize.xl,
+    fontWeight: '700',
+    color: colors.success,
   },
   checkoutButton: {
     flexDirection: 'row',

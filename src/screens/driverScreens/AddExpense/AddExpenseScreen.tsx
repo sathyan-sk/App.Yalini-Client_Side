@@ -8,21 +8,22 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   StyleSheet,
   View,
+  Text,
+  TextInput,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp, CommonActions } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Feather, FontAwesome5 } from '@expo/vector-icons';
 
-import { colors, spacing } from '../../../theme';
+import { colors, spacing, fontSize, radius, cardShadow } from '../../../theme';
 import {
   AddExpenseHeader,
   TripInfoCard,
   ExpenseDetailsCard,
-  NotesSection,
   ActionButtons,
 } from './components';
 import { EXPENSE_CATEGORIES, INITIAL_EXPENSE_FORM } from './data/mockData';
@@ -48,6 +49,8 @@ export default function AddExpenseScreen() {
 
   // Form state - initialized from trip's existing expense or empty
   const [formData, setFormData] = useState<ExpenseFormData>(INITIAL_EXPENSE_FORM);
+  const [settledCash, setSettledCash] = useState(0);
+  const [settledOnline, setSettledOnline] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Initialize form data from existing expense if editing
@@ -91,10 +94,7 @@ export default function AddExpenseScreen() {
   }, [navigation]);
 
   const handleHelpPress = useCallback(() => {
-    Alert.alert(
-      'Help',
-      'Enter your expense details for this trip. You can add fuel, toll, food, and other expenses. The total will be calculated automatically.'
-    );
+    // Help functionality removed
   }, []);
   /**
    * Navigate to AllTripsScreen (AllTripsList) after saving expense
@@ -126,6 +126,8 @@ export default function AddExpenseScreen() {
         food: parseFloat(formData.food) || 0,
         other: parseFloat(formData.other) || 0,
         notes: formData.notes.trim(),
+        settledCash,
+        settledOnline,
       };
 
       if (mode === 'edit' && trip?.hasExpense) {
@@ -136,38 +138,18 @@ export default function AddExpenseScreen() {
         addExpense(tripId, expenseData);
       }
 
-      Alert.alert('Success', 'Expense saved successfully!', [
-        {
-          text: 'OK',
-          onPress: () => navigateToAllTrips(),
-        },
-      ]);
+      // Navigate directly without alert
+      navigateToAllTrips();
     } catch (error) {
-      Alert.alert('Error', 'Failed to save expense. Please try again.');
+      console.error('Failed to save expense:', error);
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, navigation, tripId, mode, trip?.hasExpense, addExpense, updateExpense, navigateToAllTrips]);
+  }, [formData, settledCash, settledOnline, navigation, tripId, mode, trip?.hasExpense, addExpense, updateExpense, navigateToAllTrips]);
 
-  const handleSkipExpense = useCallback(() => {
-    Alert.alert(
-      'Skip Expense',
-      'Are you sure you want to skip adding expenses? You can add them later from All Trips.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Skip',
-          onPress: () => navigateToAllTrips(),
-        },
-      ]
-    );
-  }, [navigateToAllTrips]);
-
-  // If trip not found, show error
+  // If trip not found, go back
   if (!trip) {
-    Alert.alert('Error', 'Trip not found', [
-      { text: 'OK', onPress: () => navigation.goBack() }
-    ]);
+    navigation.goBack();
     return null;
   }
 
@@ -214,16 +196,78 @@ export default function AddExpenseScreen() {
             totalExpense={totalExpense}
           />
 
-          {/* Notes Section */}
-          <NotesSection
-            notes={formData.notes}
-            onNotesChange={handleNotesChange}
-          />
+          {/* Profit Section (auto-calculated) */}
+          <View style={styles.profitSection}>
+            <View style={styles.profitRow}>
+              <View style={styles.profitInfo}>
+                <View style={styles.profitIconBg}>
+                  <Feather name="trending-up" size={18} color={colors.success} />
+                </View>
+                <View>
+                  <Text style={styles.profitLabel}>Profit</Text>
+                  <Text style={styles.profitSubtitle}>Trip Amount − Expense</Text>
+                </View>
+              </View>
+              <Text style={styles.profitValue}>₹{Math.max(0, trip.amount - totalExpense)}</Text>
+            </View>
+          </View>
+
+          {/* Settlement Section - based on PROFIT */}
+          <View style={styles.settlementSection}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Settlement to Owner <Text style={styles.required}>*</Text></Text>
+              <Text style={styles.sectionSubtitle}>Amount to settle: ₹{Math.max(0, trip.amount - totalExpense)} (= Profit)</Text>
+            </View>
+            <View style={styles.settlementRow}>
+              <View style={styles.settlementField}>
+                <Text style={styles.inputLabel}>Settled via Cash</Text>
+                <View style={styles.inputContainer}>
+                  <FontAwesome5 name="money-bill-wave" size={16} color={colors.success} />
+                  <TextInput
+                    style={styles.input}
+                    value={settledCash.toString()}
+                    onChangeText={(value) => setSettledCash(parseInt(value) || 0)}
+                    keyboardType="numeric"
+                    placeholder="0"
+                    placeholderTextColor={colors.textTertiary}
+                  />
+                </View>
+              </View>
+              <View style={styles.settlementField}>
+                <Text style={styles.inputLabel}>Settled via Online</Text>
+                <View style={styles.inputContainer}>
+                  <Feather name="smartphone" size={18} color={colors.primaryBlue} />
+                  <TextInput
+                    style={styles.input}
+                    value={settledOnline.toString()}
+                    onChangeText={(value) => setSettledOnline(parseInt(value) || 0)}
+                    keyboardType="numeric"
+                    placeholder="0"
+                    placeholderTextColor={colors.textTertiary}
+                  />
+                </View>
+              </View>
+            </View>
+            <View style={[
+              styles.shortageRow,
+              (settledCash + settledOnline) === Math.max(0, trip.amount - totalExpense) 
+                ? styles.shortageOk 
+                : styles.shortageDue
+            ]}>
+              <Feather 
+                name={(settledCash + settledOnline) === Math.max(0, trip.amount - totalExpense) ? 'check-circle' : 'alert-circle'} 
+                size={16} 
+                color={(settledCash + settledOnline) === Math.max(0, trip.amount - totalExpense) ? colors.success : colors.error} 
+              />
+              <Text style={styles.shortageText}>
+                Settled: ₹{settledCash + settledOnline} | Shortage: ₹{Math.max(0, Math.max(0, trip.amount - totalExpense) - (settledCash + settledOnline))}
+              </Text>
+            </View>
+          </View>
 
           {/* Action Buttons */}
           <ActionButtons
             onSaveExpense={handleSaveExpense}
-            onSkipExpense={handleSkipExpense}
             isSubmitting={isSubmitting}
           />
         </ScrollView>
@@ -247,5 +291,154 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
+  },
+  settlementSection: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+    ...cardShadow,
+  },
+  sectionTitle: {
+    fontSize: fontSize.lg,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: spacing.md,
+  },
+  settlementRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginBottom: spacing.md,
+  },
+  settlementField: {
+    flex: 1,
+  },
+  inputLabel: {
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    paddingHorizontal: spacing.md,
+    height: 48,
+  },
+  input: {
+    flex: 1,
+    fontSize: fontSize.base,
+    color: colors.textPrimary,
+    marginLeft: spacing.sm,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  summaryItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  summaryLabel: {
+    fontSize: fontSize.xs,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+  },
+  summaryValue: {
+    fontSize: fontSize.base,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  expenseValue: {
+    fontSize: fontSize.base,
+    fontWeight: '600',
+    color: colors.error,
+  },
+  settledValue: {
+    fontSize: fontSize.base,
+    fontWeight: '600',
+    color: colors.success,
+  },
+  profitSection: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+    ...cardShadow,
+  },
+  profitRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  profitInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  profitIconBg: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.sm,
+    backgroundColor: colors.successSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  profitLabel: {
+    fontSize: fontSize.base,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  profitSubtitle: {
+    fontSize: fontSize.xs,
+    color: colors.textSecondary,
+    marginTop: 1,
+  },
+  profitValue: {
+    fontSize: fontSize.xl,
+    fontWeight: '700',
+    color: colors.success,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.md,
+  },
+  sectionSubtitle: {
+    fontSize: fontSize.xs,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  required: {
+    color: colors.error,
+    fontWeight: '700',
+  },
+  shortageRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.sm,
+    gap: spacing.sm,
+    marginTop: spacing.md,
+  },
+  shortageOk: {
+    backgroundColor: colors.successSoft,
+  },
+  shortageDue: {
+    backgroundColor: colors.errorSoft,
+  },
+  shortageText: {
+    fontSize: fontSize.sm,
+    fontWeight: '600',
+    color: colors.textPrimary,
+    flex: 1,
   },
 });

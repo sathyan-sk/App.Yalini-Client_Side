@@ -75,18 +75,23 @@ export function TripCard({ trip, onPress, onAddExpense }: TripCardProps) {
       <View style={styles.rightSection}>
         {/* Amount */}
         <View style={styles.amountRow}>
-          <Text style={styles.amountText}>₹{trip.amount.toLocaleString('en-IN')}</Text>
+          <Text style={styles.amountText}>₹{(trip.amount || 0).toLocaleString('en-IN')}</Text>
           <Feather name="chevron-right" size={20} color={colors.textTertiary} />
         </View>
 
-        {/* Expense Status */}
-        {trip.hasExpense ? (
+        {/* Expense & Settlement Status */}
+        {trip.hasExpense && trip.expense ? (
           <View style={styles.expenseAddedContainer}>
             <View style={styles.expenseAddedBadge}>
               <Feather name="check-circle" size={14} color="#2E7D32" />
               <Text style={styles.expenseAddedText}>Expense Added</Text>
             </View>
-            <Text style={styles.expenseAmountText}>Total Expense: ₹{trip.totalExpense}</Text>
+            <Text style={styles.expenseAmountText}>Expense: ₹{trip.totalExpense}</Text>
+            {(trip.expense.settledCash > 0 || trip.expense.settledOnline > 0) && (
+              <Text style={styles.settlementText}>
+                Settled: ₹{trip.expense.settledCash + trip.expense.settledOnline}
+              </Text>
+            )}
           </View>
         ) : (
           <TouchableOpacity
@@ -239,6 +244,12 @@ const styles = StyleSheet.create({
   expenseAmountText: {
     fontSize: fontSize.xs,
     color: colors.textSecondary,
+  },
+  settlementText: {
+    fontSize: fontSize.xs,
+    color: colors.success,
+    fontWeight: '600',
+    marginTop: 2,
   },
   addExpenseButton: {
     alignItems: 'flex-end',

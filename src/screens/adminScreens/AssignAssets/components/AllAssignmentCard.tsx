@@ -53,9 +53,7 @@ export function AssignmentCard({ employee, assetType, asset, isAssigned, onEdit,
     <View style={styles.container} testID={testID}>
       {/* Employee Section */}
       <View style={styles.employeeSection}>
-        <View style={styles.avatarContainer}>
-          <Ionicons name="person" size={24} color={tones.orange.accent} />
-        </View>
+
         <View style={styles.employeeInfo}>
           <Text style={styles.employeeName} numberOfLines={1}>
             {employee.fullName}
@@ -141,16 +139,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flex: 1.2,
   },
-  avatarContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: tones.orange.cardBg,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: tones.orange.iconBg,
-  },
+
   employeeInfo: {
     marginLeft: spacing.sm,
     flex: 1,

@@ -11,6 +11,7 @@ export interface HotelDelivery {
   id: string;
   hotelName: string;
   location: string;
+  ratePerCan: number;
   totalCans: number;
   deliveredCans: number;
   returnedCans: number;
@@ -18,6 +19,9 @@ export interface HotelDelivery {
   income: number;
   expense: number;
   profit: number;
+  settledCash: number;
+  settledOnline: number;
+  shortage: number;
 }
 
 /**
@@ -26,8 +30,8 @@ export interface HotelDelivery {
 export interface WaterDeliveryRecord {
   id: string;
   deliveryPersonName: string;
-  employeeId: string; // Reference to employee in storage
-  date: string; // ISO date string (YYYY-MM-DD)
+  employeeId: string;
+  date: string;
   status: RecordStatus;
   avatarColor: string;
   // Summary metrics
@@ -36,6 +40,9 @@ export interface WaterDeliveryRecord {
   totalDelivered: number;
   totalReturned: number;
   totalOutstanding: number;
+  totalSettled: number;
+  totalCashSettled: number;
+  totalOnlineSettled: number;
   totalIncome: number;
   totalExpense: number;
   totalProfit: number;

@@ -80,6 +80,12 @@ export function HotelDeliveryCard({ hotel, index, testID }: HotelDeliveryCardPro
             <Ionicons name="location-outline" size={12} color={colors.textTertiary} />
             <Text style={styles.location} numberOfLines={1}>{hotel.location}</Text>
           </View>
+          {hotel.ratePerCan && (
+            <View style={styles.rateRow}>
+              <MaterialCommunityIcons name="tag-outline" size={12} color={colors.textSecondary} />
+              <Text style={styles.rateText}>₹{hotel.ratePerCan}/can</Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.headerRight}>
@@ -97,11 +103,11 @@ export function HotelDeliveryCard({ hotel, index, testID }: HotelDeliveryCardPro
       <Animated.View style={[styles.expandableContent, contentStyle]}>
         <View style={styles.divider} />
         
-        {/* Cans Details Row */}
+        {/* Settlement Details Row */}
         <View style={styles.metricsRow}>
           <View style={styles.metricItem}>
-            <Text style={styles.metricLabel}>Total Cans</Text>
-            <Text style={styles.metricValue}>{hotel.totalCans}</Text>
+            <Text style={styles.metricLabel}>Outstanding</Text>
+            <Text style={[styles.metricValue, styles.outstandingValue]}>{hotel.outstandingCans}</Text>
           </View>
           <View style={styles.metricItem}>
             <Text style={styles.metricLabel}>Delivered</Text>
@@ -111,9 +117,11 @@ export function HotelDeliveryCard({ hotel, index, testID }: HotelDeliveryCardPro
             <Text style={styles.metricLabel}>Returned</Text>
             <Text style={[styles.metricValue, styles.returnedValue]}>{hotel.returnedCans}</Text>
           </View>
-          <View style={styles.metricItem}>
-            <Text style={styles.metricLabel}>Outstanding</Text>
-            <Text style={[styles.metricValue, styles.outstandingValue]}>{hotel.outstandingCans}</Text>
+            <View style={styles.metricItem}>
+            <Text style={styles.metricLabel}>Settled Amount</Text>
+            <Text style={[styles.metricValue, { color: '#FF9800' }]}>
+            {formatCurrency(hotel.settledCash + hotel.settledOnline)}
+            </Text>
           </View>
         </View>
 
@@ -149,6 +157,43 @@ export function HotelDeliveryCard({ hotel, index, testID }: HotelDeliveryCardPro
               <Text style={styles.financialLabel}>Profit</Text>
               <Text style={[styles.financialValue, styles.profitValue]}>
                 {formatCurrency(hotel.profit)}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Settlement Details Row */}
+        <View style={styles.settlementRow}>
+          <View style={styles.settlementItem}>
+            <View style={[styles.settlementIcon, { backgroundColor: '#E8F5E9' }]}>
+              <MaterialCommunityIcons name="cash" size={14} color={colors.successDark} />
+            </View>
+            <View>
+              <Text style={styles.settlementLabel}>Cash</Text>
+              <Text style={[styles.settlementValue, { color: colors.successDark }]}>
+                {formatCurrency(hotel.settledCash)}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.settlementItem}>
+            <View style={[styles.settlementIcon, { backgroundColor: colors.primaryBlueSoft }]}>
+              <Feather name="smartphone" size={14} color={colors.primaryBlue} />
+            </View>
+            <View>
+              <Text style={styles.settlementLabel}>Online</Text>
+              <Text style={[styles.settlementValue, { color: colors.primaryBlue }]}>
+                {formatCurrency(hotel.settledOnline)}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.settlementItem}>
+            <View style={[styles.settlementIcon, { backgroundColor: '#FFEBEE' }]}>
+              <Feather name="alert-circle" size={14} color={colors.error} />
+            </View>
+            <View>
+              <Text style={styles.settlementLabel}>Shortage</Text>
+              <Text style={[styles.settlementValue, { color: colors.error }]}>
+                {formatCurrency(hotel.shortage)}
               </Text>
             </View>
           </View>
@@ -208,6 +253,17 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xs,
     color: colors.textTertiary,
     flex: 1,
+  },
+  rateRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 2,
+  },
+  rateText: {
+    fontSize: fontSize.xs,
+    color: colors.textSecondary,
+    fontWeight: "500",
   },
   headerRight: {
     flexDirection: "row",
@@ -299,5 +355,32 @@ const styles = StyleSheet.create({
   },
   profitValue: {
     color: colors.brand,
+  },
+  settlementRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.md,
+  },
+  settlementItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  settlementIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: radius.sm,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  settlementLabel: {
+    fontSize: fontSize.xs,
+    color: colors.textSecondary,
+  },
+  settlementValue: {
+    fontSize: fontSize.sm,
+    fontWeight: "700",
   },
 });

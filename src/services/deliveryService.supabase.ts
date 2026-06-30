@@ -179,20 +179,22 @@ export async function updateSessionStatus(status: SessionStatus): Promise<void> 
  * and batch-submitted when the staff checks out.
  */
 export async function saveDeliveryRecord(
-  formValues: DeliveryFormValues
+  formValues: DeliveryFormValues & { loadedCans?: number }
 ): Promise<DeliveryRecord> {
   const newRecord: DeliveryRecord = {
     id: `delivery_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
     hotelId: formValues.hotelId,
     hotelName: formValues.hotelName,
     ratePerCan: formValues.ratePerCan,
-    loadedCans: formValues.loadedCans,
+    loadedCans: formValues.loadedCans || 0,
     cansDelivered: formValues.cansDelivered,
     cansReturned: formValues.cansReturned,
     outstandingCans: formValues.outstandingCans,
     estAmount: formValues.estAmount,
     receivedIncome: formValues.receivedIncome,
-    paymentMode: formValues.paymentMode,
+    settledCash: formValues.settledCash || 0,
+    settledOnline: formValues.settledOnline || 0,
+    shortage: formValues.shortage || 0,
     expenseCategory: formValues.expenseCategory,
     expenseAmount: formValues.expenseAmount,
     createdAt: new Date().toISOString(),
@@ -259,7 +261,8 @@ export interface StaffSessionSubmissionData {
   deliveries: DeliveryRecord[];
   totalIncome: number;
   totalExpense: number;
-  netAmount: number;
+  profit: number;
+  totalSettlement?: number;
 }
 
 /**
@@ -300,17 +303,6 @@ export async function submitStaffSession(
 
     const today = getTodayDate();
     const avatarColor = getRandomAvatarColor();
-
-
-    // FIX 3: Compute dominant payment mode from individual deliveries so that
-    // water_delivery_records stores the real payment mode instead of always 'cash'.
-    const paymentModes = data.deliveries.map(d => (d.paymentMode ?? 'CASH').toUpperCase());
-    const cashCount = paymentModes.filter(m => m === 'CASH').length;
-    const onlineCount = paymentModes.filter(m => m === 'ONLINE').length;
-    const dominantPaymentMode =
-      cashCount > 0 && onlineCount === 0 ? 'cash'
-      : onlineCount > 0 && cashCount === 0 ? 'online'
-      : 'mixed';
 
 
     // Group deliveries by hotel and aggregate
@@ -364,6 +356,9 @@ export async function submitStaffSession(
     });
 
     const totalProfit = totalIncome - totalExpense;
+    const totalSettled = data.deliveries.reduce((sum, d) => sum + (d.settledCash || 0) + (d.settledOnline || 0), 0);
+    const totalCashSettled = data.deliveries.reduce((sum, d) => sum + (d.settledCash || 0), 0);
+    const totalOnlineSettled = data.deliveries.reduce((sum, d) => sum + (d.settledOnline || 0), 0);
 
     // Check if a record already exists for this employee on this date
     const { data: existingRecord } = await supabase
@@ -389,10 +384,12 @@ export async function submitStaffSession(
           total_delivered: totalDelivered,
           total_returned: totalReturned,
           total_outstanding: totalOutstanding,
+          total_settled: totalSettled,
+          total_cash_settled: totalCashSettled,
+          total_online_settled: totalOnlineSettled,
           total_income: totalIncome,
           total_expense: totalExpense,
           total_profit: totalProfit,
-          payment_mode: dominantPaymentMode,
         })
         .eq('id', waterRecordId);
 
@@ -417,10 +414,12 @@ export async function submitStaffSession(
         total_delivered: totalDelivered,
         total_returned: totalReturned,
         total_outstanding: totalOutstanding,
+        total_settled: totalSettled,
+        total_cash_settled: totalCashSettled,
+        total_online_settled: totalOnlineSettled,
         total_income: totalIncome,
         total_expense: totalExpense,
         total_profit: totalProfit,
-        payment_mode: dominantPaymentMode,
       };
 
       const { data: newRecord, error: insertError } = await supabase
@@ -448,18 +447,32 @@ export async function submitStaffSession(
     hotelMap.forEach((hotel, hotelId) => {
       const hotelName = data.deliveries.find(d => d.hotelId === hotelId)?.hotelName || 'Unknown Hotel';
       const location = hotelLocationMap.get(hotelId) || '';
+      const ratePerCan = data.deliveries.find(d => d.hotelId === hotelId)?.ratePerCan || 0;
+      const hotelSettledCash = data.deliveries
+        .filter(d => d.hotelId === hotelId)
+        .reduce((sum, d) => sum + (d.settledCash || 0), 0);
+      const hotelSettledOnline = data.deliveries
+        .filter(d => d.hotelId === hotelId)
+        .reduce((sum, d) => sum + (d.settledOnline || 0), 0);
+      const hotelProfit = hotel.income - hotel.expense;
+      const hotelShortage = hotelProfit - (hotelSettledCash + hotelSettledOnline);
+      
       hotelDeliveries.push({
         id: generateId('hd'),
         water_delivery_record_id: waterRecordId,
         hotel_name: hotelName,
         location,
+        rate_per_can: ratePerCan,
         total_cans: hotel.totalCans,
         delivered_cans: hotel.deliveredCans,
         returned_cans: hotel.returnedCans,
         outstanding_cans: hotel.outstandingCans,
         income: hotel.income,
         expense: hotel.expense,
-        profit: hotel.income - hotel.expense,
+        profit: hotelProfit,
+        settled_cash: hotelSettledCash,
+        settled_online: hotelSettledOnline,
+        shortage: hotelShortage,
       });
     });
 

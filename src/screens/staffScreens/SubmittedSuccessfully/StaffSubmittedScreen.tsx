@@ -229,14 +229,14 @@ export default function StaffSubmittedScreen() {
               <View style={styles.financialItem}>
                 <Text style={styles.financialLabel}>Income</Text>
                 <Text style={[styles.financialValue, { color: colors.successDark }]}>
-                  ₹{summary.totalIncome.toLocaleString()}
+                  ₹{(summary.totalIncome || 0).toLocaleString()}
                 </Text>
               </View>
               <View style={styles.financialDivider} />
               <View style={styles.financialItem}>
                 <Text style={styles.financialLabel}>Expenses</Text>
                 <Text style={[styles.financialValue, { color: colors.error }]}>
-                  ₹{summary.totalExpense.toLocaleString()}
+                  ₹{(summary.totalExpense || 0).toLocaleString()}
                 </Text>
               </View>
             </View>
@@ -246,10 +246,10 @@ export default function StaffSubmittedScreen() {
               <Text
                 style={[
                   styles.netAmountValue,
-                  { color: summary.netAmount >= 0 ? colors.successDark : colors.error },
+                  { color: (summary.netAmount || 0) >= 0 ? colors.successDark : colors.error },
                 ]}
               >
-                ₹{summary.netAmount.toLocaleString()}
+                ₹{(summary.netAmount || 0).toLocaleString()}
               </Text>
             </View>
           </View>

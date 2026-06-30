@@ -31,15 +31,13 @@ import type { StaffStackParamList } from '../../../types/navigation';
 
 type CheckoutNavigationProp = NativeStackNavigationProp<StaffStackParamList>;
 
-// Type for hotel-wise grouped deliveries
+// Type for hotel-wise grouped deliveries (minimal)
 interface HotelDeliverySummary {
   hotelId: string;
   hotelName: string;
-  deliveryCount: number;
-  cansDelivered: number;
-  cansReturned: number;
   totalIncome: number;
   totalExpense: number;
+  totalProfit: number;
 }
 
 export default function StaffCheckoutScreen() {
@@ -48,27 +46,26 @@ export default function StaffCheckoutScreen() {
   const { session, deliveries, updateSessionStatus, reset } = useDeliveryStore();
   const authUser = useAuthStore((state) => state.user);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // Group deliveries by hotel and calculate summary
+  // Group deliveries by hotel and calculate summary (minimal: income, expense, profit)
   const hotelSummaries = useMemo(() => {
     const hotelMap = new Map<string, HotelDeliverySummary>();
 
     deliveries.forEach((delivery) => {
       const existing = hotelMap.get(delivery.hotelId);
+      const income = delivery.receivedIncome || 0;
+      const expense = delivery.expenseAmount || 0;
+      const profit = income - expense;
       if (existing) {
-        existing.deliveryCount += 1;
-        existing.cansDelivered += delivery.cansDelivered;
-        existing.cansReturned += delivery.cansReturned;
-        existing.totalIncome += delivery.receivedIncome;
-        existing.totalExpense += delivery.expenseAmount || 0;
+        existing.totalIncome += income;
+        existing.totalExpense += expense;
+        existing.totalProfit += profit;
       } else {
         hotelMap.set(delivery.hotelId, {
           hotelId: delivery.hotelId,
           hotelName: delivery.hotelName,
-          deliveryCount: 1,
-          cansDelivered: delivery.cansDelivered,
-          cansReturned: delivery.cansReturned,
-          totalIncome: delivery.receivedIncome,
-          totalExpense: delivery.expenseAmount || 0,
+          totalIncome: income,
+          totalExpense: expense,
+          totalProfit: profit,
         });
       }
     });
@@ -79,11 +76,11 @@ export default function StaffCheckoutScreen() {
   // Calculate grand total
   const grandTotal = useMemo(() => {
     const totalDeliveries = deliveries.length;
-    const totalCansDelivered = deliveries.reduce((sum, d) => sum + d.cansDelivered, 0);
-    const totalCansReturned = deliveries.reduce((sum, d) => sum + d.cansReturned, 0);
-    const totalIncome = deliveries.reduce((sum, d) => sum + d.receivedIncome, 0);
+    const totalCansDelivered = deliveries.reduce((sum, d) => sum + (d.cansDelivered || 0), 0);
+    const totalCansReturned = deliveries.reduce((sum, d) => sum + (d.cansReturned || 0), 0);
+    const totalIncome = deliveries.reduce((sum, d) => sum + (d.receivedIncome || 0), 0);
     const totalExpense = deliveries.reduce((sum, d) => sum + (d.expenseAmount || 0), 0);
-    const netAmount = totalIncome - totalExpense;
+    const profit = totalIncome - totalExpense;
 
     return {
       totalDeliveries,
@@ -91,7 +88,7 @@ export default function StaffCheckoutScreen() {
       totalCansReturned,
       totalIncome,
       totalExpense,
-      netAmount,
+      profit,
     };
   }, [deliveries]);
 
@@ -124,7 +121,7 @@ export default function StaffCheckoutScreen() {
                 deliveries: deliveries,
                 totalIncome: grandTotal.totalIncome,
                 totalExpense: grandTotal.totalExpense,
-                netAmount: grandTotal.netAmount,
+                totalProfit: grandTotal.profit,
               });
 
               if (result.success) {
@@ -190,13 +187,12 @@ export default function StaffCheckoutScreen() {
         <View style={[styles.card, cardShadow]}>
           <Text style={styles.sectionTitle}>Hotel-wise Deliveries</Text>
 
-          {/* Table Header */}
+          {/* Table Header - minimal: Hotel, Income, Expense, Profit */}
           <View style={styles.tableHeader}>
             <Text style={[styles.tableHeaderCell, styles.hotelColumn]}>Hotel</Text>
-            <Text style={[styles.tableHeaderCell, styles.numColumn]}>Del.</Text>
-            <Text style={[styles.tableHeaderCell, styles.numColumn]}>Out</Text>
-            <Text style={[styles.tableHeaderCell, styles.numColumn]}>In</Text>
-            <Text style={[styles.tableHeaderCell, styles.amountColumn]}>Amount</Text>
+            <Text style={[styles.tableHeaderCell, styles.amountColumn]}>Income</Text>
+            <Text style={[styles.tableHeaderCell, styles.amountColumn]}>Expense</Text>
+            <Text style={[styles.tableHeaderCell, styles.amountColumn]}>Profit</Text>
           </View>
 
           {/* Table Body */}
@@ -209,22 +205,19 @@ export default function StaffCheckoutScreen() {
                   index % 2 === 0 && styles.tableRowEven,
                 ]}
               >
-                <View style={[styles.tableRowEven, styles.hotelColumn]}>
+                <View style={styles.hotelColumn}>
                   <Text style={styles.hotelName} numberOfLines={1}>
                     {hotel.hotelName}
                   </Text>
                 </View>
-                <Text style={[styles.tableCell, styles.numColumn, styles.cellValue]}>
-                  {hotel.deliveryCount}
-                </Text>
-                <Text style={[styles.tableCell, styles.numColumn, styles.cellValue]}>
-                  {hotel.cansDelivered}
-                </Text>
-                <Text style={[styles.tableCell, styles.numColumn, styles.cellValue]}>
-                  {hotel.cansReturned}
-                </Text>
-                <Text style={[styles.tableCell, styles.amountColumn, styles.amountValue]}>
+                <Text style={[styles.tableCell, styles.amountColumn, styles.incomeValue]}>
                   ₹{hotel.totalIncome.toLocaleString()}
+                </Text>
+                <Text style={[styles.tableCell, styles.amountColumn, styles.expenseValue]}>
+                  ₹{hotel.totalExpense.toLocaleString()}
+                </Text>
+                <Text style={[styles.tableCell, styles.amountColumn, styles.profitValue]}>
+                  ₹{hotel.totalProfit.toLocaleString()}
                 </Text>
               </View>
             ))
@@ -248,17 +241,14 @@ export default function StaffCheckoutScreen() {
               <Text style={[styles.tableFooterCell, styles.hotelColumn, styles.totalLabel]}>
                 Grand Total
               </Text>
-              <Text style={[styles.tableFooterCell, styles.numColumn, styles.totalValue]}>
-                {grandTotal.totalDeliveries}
+              <Text style={[styles.tableFooterCell, styles.amountColumn, styles.totalValue]}>
+                ₹{grandTotal.totalIncome.toLocaleString()}
               </Text>
-              <Text style={[styles.tableFooterCell, styles.numColumn, styles.totalValue]}>
-                {grandTotal.totalCansDelivered}
-              </Text>
-              <Text style={[styles.tableFooterCell, styles.numColumn, styles.totalValue]}>
-                {grandTotal.totalCansReturned}
+              <Text style={[styles.tableFooterCell, styles.amountColumn, styles.totalValue]}>
+                ₹{grandTotal.totalExpense.toLocaleString()}
               </Text>
               <Text style={[styles.tableFooterCell, styles.amountColumn, styles.totalAmount]}>
-                ₹{grandTotal.totalIncome.toLocaleString()}
+                ₹{grandTotal.profit.toLocaleString()}
               </Text>
             </View>
           )}
@@ -295,14 +285,14 @@ export default function StaffCheckoutScreen() {
             </View>
 
             <View style={styles.netContainer}>
-              <Text style={styles.netLabel}>Net Amount</Text>
+              <Text style={styles.netLabel}>Profit</Text>
               <Text
                 style={[
                   styles.netValue,
-                  { color: grandTotal.netAmount >= 0 ? '#4CAF50' : colors.error },
+                  { color: grandTotal.profit >= 0 ? '#4CAF50' : colors.error },
                 ]}
               >
-                ₹{grandTotal.netAmount.toLocaleString()}
+                ₹{grandTotal.profit.toLocaleString()}
               </Text>
             </View>
           </View>
@@ -477,10 +467,20 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
     color: colors.textPrimary,
   },
-  amountValue: {
+  incomeValue: {
     fontSize: fontSize.sm,
     fontWeight: '600',
     color: colors.successDark,
+  },
+  expenseValue: {
+    fontSize: fontSize.sm,
+    fontWeight: '600',
+    color: colors.error,
+  },
+  profitValue: {
+    fontSize: fontSize.sm,
+    fontWeight: '600',
+    color: colors.primaryBlue,
   },
   tableFooter: {
     flexDirection: 'row',

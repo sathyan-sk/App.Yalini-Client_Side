@@ -39,7 +39,7 @@ export function DeliveryPersonInfoHeader({ record, testID }: DeliveryPersonInfoH
         <View style={styles.metricItem}>
           <View style={styles.metricIconRow}>
             <Ionicons name="water" size={18} color={colors.textSecondary} />
-            <Text style={styles.metricLabel}>Total Cans</Text>
+            <Text style={styles.metricLabel}>Loaded Cans</Text>
           </View>
           <Text style={styles.metricValue}>{record.totalCans}</Text>
         </View>

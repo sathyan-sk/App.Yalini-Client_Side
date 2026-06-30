@@ -50,7 +50,7 @@ export function DeliveryPersonCard({ record, onPress, testID, showDate }: Delive
         />
       </View>
 
-      {/* Metrics Row 1 - Delivery Stats */}
+      {/* Metrics Row 1 - Delivery Stats (Hotels, Delivered, Settled) */}
       <View style={styles.metricsRow}>
         <View style={styles.metricItem}>
           <View style={styles.metricHeader}>
@@ -61,24 +61,25 @@ export function DeliveryPersonCard({ record, onPress, testID, showDate }: Delive
         </View>
         <View style={styles.metricItem}>
           <View style={styles.metricHeader}>
-            <Ionicons name="water-outline" size={14} color={colors.textSecondary} />
-            <Text style={styles.metricLabel}>Total Cans</Text>
+            <Feather name="check-circle" size={14} color={colors.textSecondary} />
+            <Text style={styles.metricLabel}>Total Delivered</Text>
           </View>
-          <Text style={styles.metricValue}>{record.totalCans}</Text>
+          <Text style={[styles.metricValue, styles.deliveredValue]}>{record.totalDelivered}</Text>
         </View>
         <View style={styles.metricItem}>
           <View style={styles.metricHeader}>
-            <Feather name="check-circle" size={14} color={colors.textSecondary} />
-            <Text style={styles.metricLabel}>Delivered</Text>
+            <Text style={styles.metricLabel}>Total Settled</Text>
           </View>
-          <Text style={[styles.metricValue, styles.deliveredValue]}>{record.totalDelivered}</Text>
+          <Text style={[styles.metricValue, styles.settledValue]}>
+            {formatCurrency(record.totalSettled || 0)}
+          </Text>
         </View>
       </View>
 
       {/* Divider */}
       <View style={styles.divider} />
 
-      {/* Metrics Row 2 - Financial Stats */}
+      {/* Metrics Row 2 - Financial Stats (Income, Expense, Profit) */}
       <View style={styles.metricsRow}>
         <View style={styles.metricItem}>
           <Text style={styles.metricLabel}>Total Income</Text>
@@ -171,6 +172,9 @@ const styles = StyleSheet.create({
   },
   deliveredValue: {
     color: colors.primaryBlue,
+  },
+  settledValue: {
+    color: '#FF9800',
   },
   incomeValue: {
     color: colors.successDark,

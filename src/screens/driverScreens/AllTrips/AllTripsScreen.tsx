@@ -43,8 +43,21 @@ export default function AllTripsScreen() {
     totalTrips,
     totalIncome,
     totalExpenses,
-    netAmount,
   } = useTripStore();
+
+  // Calculate total settlement and profit
+  const totalSettlement = useMemo(() => {
+    return trips.reduce((sum, trip) => {
+      if (trip.expense) {
+        return sum + (trip.expense.settledCash || 0) + (trip.expense.settledOnline || 0);
+      }
+      return sum;
+    }, 0);
+  }, [trips]);
+
+  const profit = useMemo(() => {
+    return totalIncome - totalExpenses;
+  }, [totalIncome, totalExpenses]);
 
   // Check if all trips have expenses added
   const allExpensesAdded = useMemo(() => {
@@ -141,9 +154,10 @@ export default function AllTripsScreen() {
 
         {/* Summary Footer */}
         <SummaryFooter
-          totalIncome={totalIncome}
-          totalExpenses={totalExpenses}
-          netAmount={netAmount}
+          totalIncome={totalIncome || 0}
+          totalExpenses={totalExpenses || 0}
+          totalSettlement={totalSettlement || 0}
+          profit={profit || 0}
           canProceed={allExpensesAdded}
           onProceedToCheckout={handleProceedToCheckout}
         />

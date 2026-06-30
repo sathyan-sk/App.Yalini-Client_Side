@@ -21,9 +21,15 @@ export function DriverInfoHeader({ record, testID }: DriverInfoHeaderProps) {
         <Avatar name={record.driverName} color={record.avatarColor} size={48} />
         <View style={styles.driverInfo}>
           <Text style={styles.driverName}>{record.driverName}</Text>
+          <View style={styles.assetRow}>
+            <Feather name="truck" size={14} color={colors.textSecondary} />
+            <Text style={styles.assetText}>{record.vehicleName} - {record.vehicleNumber}</Text>
+          </View>
+        </View>
+        <View style={styles.statusRight}>
+          <StatusBadge status={record.status} />
           <Text style={styles.date}>{formatDisplayDate(record.date)}</Text>
         </View>
-        <StatusBadge status={record.status} />
       </View>
 
       {/* Key Metrics Row */}
@@ -39,9 +45,9 @@ export function DriverInfoHeader({ record, testID }: DriverInfoHeaderProps) {
         <View style={styles.metricItem}>
           <View style={styles.metricIconRow}>
             <MaterialCommunityIcons name="currency-inr" size={18} color={colors.textSecondary} />
-            <Text style={styles.metricLabel}>Per Km Rate</Text>
+            <Text style={styles.metricLabel}>Settled to Admin</Text>
           </View>
-          <Text style={styles.metricValue}>{formatCurrency(record.perKmRate)}</Text>
+          <Text style={styles.metricValue}>{formatCurrency(record.settledToAdmin)}</Text>
         </View>
       </View>
     </View>
@@ -70,10 +76,23 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: colors.textPrimary,
   },
-  date: {
+  assetRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 4,
+  },
+  assetText: {
     fontSize: fontSize.sm,
     color: colors.textSecondary,
-    marginTop: 2,
+  },
+  statusRight: {
+    alignItems: "flex-end",
+    gap: spacing.xs,
+  },
+  date: {
+    fontSize: fontSize.xs,
+    color: colors.textTertiary,
   },
   metricsRow: {
     flexDirection: "row",

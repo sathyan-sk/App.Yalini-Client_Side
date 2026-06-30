@@ -7,11 +7,11 @@ export type RecordStatus = "submitted" | "pending";
 export interface DriverRecord {
   id: string;
   driverName: string;
-  employeeId: string; // Reference to employee in storage
-  vehicleId: string; // Reference to vehicle in storage
-  vehicleName: string; // Vehicle name for display
-  vehicleNumber: string; // Vehicle registration number
-  date: string; // ISO date string (YYYY-MM-DD)
+  employeeId: string;
+  vehicleId: string;
+  vehicleName: string;
+  vehicleNumber: string;
+  date: string;
   status: RecordStatus;
   avatarColor: string;
   trips: number;
@@ -20,9 +20,9 @@ export interface DriverRecord {
   settledToAdmin: number;
   balanceShortage: number;
   totalProfit: number;
-  perKmRate: number;
+  totalCashSettled: number;
+  totalOnlineSettled: number;
   tripDetails: TripDetail[];
-  fuelExpense: number;
 }
 
 export interface TripDetail {
@@ -31,10 +31,12 @@ export interface TripDetail {
   destination: string;
   tripType: "vendor" | "private";
   paymentMode: "cash" | "online";
-  distance: number; // in km
+  distance: number;
   income: number;
   expense: number;
-  profit: number; // income - expense
+  profit: number;
+  settledCash: number;
+  settledOnline: number;
   expenseCategories: {
     fuel: number;
     toll: number;

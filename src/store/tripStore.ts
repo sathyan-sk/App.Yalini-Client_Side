@@ -7,7 +7,7 @@
  */
 
 import { create } from 'zustand';
-import type { Trip, SessionSubmissionData } from '../types/driver';
+import type { Trip, SessionSubmissionData, PaymentMode } from '../types/driver';
 import { useAuthStore } from './authStore';
 import { submitDriverSession } from '../services/driverService';
 
@@ -17,6 +17,8 @@ export interface TripExpense {
   food: number;
   other: number;
   notes: string;
+  settledCash: number;
+  settledOnline: number;
   total: number;
 }
 
@@ -48,7 +50,8 @@ interface TripStore {
   totalTrips: number;
   totalIncome: number;
   totalExpenses: number;
-  netAmount: number;
+  totalSettlement: number;
+  profit: number;
   
   // Submission state
   isSubmitting: boolean;
@@ -61,7 +64,7 @@ interface TripStore {
   submitSession: () => Promise<{ success: boolean; error?: string }>;
   
   // Trip actions
-  addTrip: (trip: Omit<Trip, 'id' | 'tripNumber' | 'date' | 'time' | 'hasExpense' | 'totalExpense'>) => string;
+  addTrip: (trip: Omit<Trip, 'id' | 'tripNumber' | 'date' | 'time' | 'hasExpense' | 'totalExpense'> & { paymentMode: PaymentMode }) => string;
   updateTrip: (tripId: string, updates: Partial<Trip>) => void;
   deleteTrip: (tripId: string) => void;
   getTripById: (tripId: string) => TripWithExpense | undefined;
@@ -119,11 +122,19 @@ const initialTrips: TripWithExpense[] = [];
 const calculateTotals = (trips: TripWithExpense[]) => {
   const totalIncome = trips.reduce((sum, trip) => sum + trip.amount, 0);
   const totalExpenses = trips.reduce((sum, trip) => sum + trip.totalExpense, 0);
+  const totalSettlement = trips.reduce((sum, trip) => {
+    if (trip.expense) {
+      return sum + (trip.expense.settledCash || 0) + (trip.expense.settledOnline || 0);
+    }
+    return sum;
+  }, 0);
+  const profit = totalIncome - totalExpenses;
   return {
     totalTrips: trips.length,
     totalIncome,
     totalExpenses,
-    netAmount: totalIncome - totalExpenses,
+    totalSettlement,
+    profit,
   };
 };
 
@@ -133,7 +144,11 @@ export const useTripStore = create<TripStore>((set, get) => ({
   // Initial state
   session: initialSession,
   trips: initialTrips,
-  ...initialTotals,
+  totalTrips: 0,
+  totalIncome: 0,
+  totalExpenses: 0,
+  totalSettlement: 0,
+  profit: 0,
   isSubmitting: false,
   submissionError: null,
   lastSubmissionId: null,
@@ -152,6 +167,15 @@ export const useTripStore = create<TripStore>((set, get) => ({
     });
   },
 
+  updateSession: (updates: Partial<SessionInfo>) => {
+    set({
+      session: {
+        ...get().session,
+        ...updates,
+      },
+    });
+  },
+
   endSession: () => {
     set({
       session: {
@@ -165,10 +189,10 @@ export const useTripStore = create<TripStore>((set, get) => ({
   submitSession: async () => {
     const state = get();
     
-    // Check if all trips have expenses
+    // Check if all trips have expenses (MANDATORY)
     const tripsWithoutExpenses = state.trips.filter(trip => !trip.hasExpense);
     if (tripsWithoutExpenses.length > 0) {
-      const error = `Please add expenses for all ${tripsWithoutExpenses.length} remaining trip(s)`;
+      const error = `Please add expenses for all trips before submitting`;
       set({ submissionError: error });
       return { success: false, error };
     }
@@ -191,7 +215,7 @@ export const useTripStore = create<TripStore>((set, get) => ({
         totalTrips: state.totalTrips,
         totalIncome: state.totalIncome,
         totalExpenses: state.totalExpenses,
-        netAmount: state.netAmount,
+        profit: state.profit,
         trips: state.trips.map(t => ({
           ...t,
           expense: t.expense ? {
@@ -200,6 +224,8 @@ export const useTripStore = create<TripStore>((set, get) => ({
             food: t.expense.food,
             other: t.expense.other,
             notes: t.expense.notes,
+            settledCash: t.expense.settledCash,
+            settledOnline: t.expense.settledOnline,
             total: t.expense.total,
           } : undefined,
         })),
@@ -248,6 +274,9 @@ export const useTripStore = create<TripStore>((set, get) => ({
       to: tripData.to,
       amount: tripData.amount,
       paymentMode: tripData.paymentMode,
+      settledCash: tripData.settledCash,
+      settledOnline: tripData.settledOnline,
+      shortage: tripData.shortage,
       date: getCurrentDate(),
       time: getCurrentTime(),
       hasExpense: false,
@@ -312,7 +341,13 @@ export const useTripStore = create<TripStore>((set, get) => ({
           hasExpense: true,
           totalExpense: total,
           expense: {
-            ...expense,
+            fuel: expense.fuel,
+            toll: expense.toll,
+            food: expense.food,
+            other: expense.other,
+            notes: expense.notes,
+            settledCash: expense.settledCash || 0,
+            settledOnline: expense.settledOnline || 0,
             total,
           },
         };
@@ -331,7 +366,12 @@ export const useTripStore = create<TripStore>((set, get) => ({
   updateExpense: (tripId, expenseUpdates) => {
     const trips = get().trips.map((trip) => {
       if (trip.id === tripId && trip.expense) {
-        const updatedExpense = { ...trip.expense, ...expenseUpdates };
+        const updatedExpense = { 
+          ...trip.expense, 
+          ...expenseUpdates,
+          settledCash: expenseUpdates.settledCash ?? trip.expense.settledCash,
+          settledOnline: expenseUpdates.settledOnline ?? trip.expense.settledOnline,
+        };
         const total = updatedExpense.fuel + updatedExpense.toll + updatedExpense.food + updatedExpense.other;
         return {
           ...trip,
@@ -370,7 +410,8 @@ export const useTripStore = create<TripStore>((set, get) => ({
       totalTrips: 0,
       totalIncome: 0,
       totalExpenses: 0,
-      netAmount: 0,
+      totalSettlement: 0,
+      profit: 0,
       isSubmitting: false,
       submissionError: null,
       lastSubmissionId: null,

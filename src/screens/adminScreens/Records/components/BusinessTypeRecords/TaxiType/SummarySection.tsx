@@ -19,21 +19,11 @@ export function SummarySection({ record, testID }: SummarySectionProps) {
         <View style={styles.row}>
           <View style={styles.gridItem}>
             <SummaryMetricCard
-              type="trips"
-              value={record.trips}
-              label="Total Trips"
-            />
-          </View>
-          <View style={styles.gridItem}>
-            <SummaryMetricCard
               type="income"
               value={record.totalIncome}
               label="Total Income"
             />
           </View>
-        </View>
-        
-        <View style={styles.row}>
           <View style={styles.gridItem}>
             <SummaryMetricCard
               type="expense"
@@ -41,21 +31,38 @@ export function SummarySection({ record, testID }: SummarySectionProps) {
               label="Total Expense"
             />
           </View>
+        </View>
+        
+        <View style={styles.row}>
           <View style={styles.gridItem}>
             <SummaryMetricCard
-              type="balance"
-              value={record.balanceShortage}
-              label="Balance / Shortage"
+              type="profit"
+              value={record.totalProfit}
+              label="Total Profit"
+            />
+          </View>
+          <View style={styles.gridItem}>
+            <SummaryMetricCard
+              type="settledCash"
+              value={record.totalCashSettled}
+              label="Total Settled (Cash)"
             />
           </View>
         </View>
         
         <View style={styles.row}>
-          <View style={styles.gridItemFull}>
+          <View style={styles.gridItem}>
             <SummaryMetricCard
-              type="profit"
-              value={record.totalProfit}
-              label="Total Profit"
+              type="settledOnline"
+              value={record.totalOnlineSettled}
+              label="Total Settled (Online)"
+            />
+          </View>
+          <View style={styles.gridItem}>
+            <SummaryMetricCard
+              type="shortage"
+              value={record.balanceShortage}
+              label="Shortage"
             />
           </View>
         </View>

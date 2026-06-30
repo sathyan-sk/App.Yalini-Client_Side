@@ -64,10 +64,10 @@ export async function getDriverInfo(employeeId: string): Promise<DriverHomeData 
     throw new Error('Supabase is not configured');
   }
 
-  // Fetch employee with business mode
+  // Fetch employee
   const { data: employee, error: empError } = await supabase
     .from('employees')
-    .select('*, businesses!inner(mode)')
+    .select('*')
     .eq('id', employeeId)
     .single();
 
@@ -75,8 +75,14 @@ export async function getDriverInfo(employeeId: string): Promise<DriverHomeData 
     return null;
   }
 
-  // Get business mode (auto or manual)
-  const businessMode = (employee.businesses as any)?.mode || 'manual';
+  // Fetch business separately to get mode
+  const { data: business } = await supabase
+    .from('businesses')
+    .select('mode')
+    .eq('id', employee.business_id)
+    .single();
+
+  const businessMode = business?.mode || 'manual';
 
   // Find assigned vehicle
   const { data: vehicles } = await supabase
@@ -254,7 +260,23 @@ export async function submitDriverSession(
     // Calculate totals from trips
     const totalIncome = data.trips.reduce((sum, trip) => sum + trip.amount, 0);
     const totalExpense = data.trips.reduce((sum, trip) => sum + (trip.totalExpense || 0), 0);
+    const totalSettlement = data.trips.reduce((sum, trip) => {
+      if (trip.expense) {
+        return sum + (trip.expense.settledCash || 0) + (trip.expense.settledOnline || 0);
+      }
+      return sum;
+    }, 0);
     const totalProfit = totalIncome - totalExpense;
+    const settledToAdmin = totalSettlement;
+    const balanceShortage = totalProfit - totalSettlement;
+    const totalCashSettled = data.trips.reduce((sum, trip) => {
+      if (trip.expense) return sum + (trip.expense.settledCash || 0);
+      return sum;
+    }, 0);
+    const totalOnlineSettled = data.trips.reduce((sum, trip) => {
+      if (trip.expense) return sum + (trip.expense.settledOnline || 0);
+      return sum;
+    }, 0);
 
     // Check if a record already exists for this employee on this date
     const { data: existingRecord } = await supabase
@@ -281,10 +303,10 @@ export async function submitDriverSession(
           total_income: totalIncome,
           total_expense: totalExpense,
           total_profit: totalProfit,
-          settled_to_admin: Math.floor(totalIncome * 0.7),
-          balance_shortage: Math.floor(totalIncome * 0.3) - totalExpense,
-          per_km_rate: 16,
-          fuel_expense: Math.floor(totalExpense * 0.6),
+          settled_to_admin: settledToAdmin,
+          balance_shortage: balanceShortage,
+          total_cash_settled: totalCashSettled,
+          total_online_settled: totalOnlineSettled,
         })
         .eq('id', driverRecordId);
 
@@ -332,10 +354,8 @@ export async function submitDriverSession(
         total_income: totalIncome,
         total_expense: totalExpense,
         total_profit: totalProfit,
-        settled_to_admin: Math.floor(totalIncome * 0.7),
-        balance_shortage: Math.floor(totalIncome * 0.3) - totalExpense,
-        per_km_rate: 16,
-        fuel_expense: Math.floor(totalExpense * 0.6),
+        settled_to_admin: settledToAdmin,
+        balance_shortage: balanceShortage,
       };
 
       const { data: newRecord, error: insertError } = await supabase
@@ -348,11 +368,13 @@ export async function submitDriverSession(
       driverRecordId = newRecord.id;
     }
 
-    // Insert trip details with per-trip profit and expense categories
+    // Insert trip details with per-trip profit and settlement data
     const tripDetails: TripDetailInsert[] = data.trips.map((trip: TripWithExpense, index: number) => {
       const tripIncome = trip.amount;
       const tripExpense = trip.totalExpense || 0;
       const tripProfit = tripIncome - tripExpense;
+      const tripSettledCash = trip.expense ? (trip.expense.settledCash || 0) : 0;
+      const tripSettledOnline = trip.expense ? (trip.expense.settledOnline || 0) : 0;
       
       // Use actual expense categories from trip data if available
       const expenseCategories = trip.expense ? {
@@ -378,6 +400,9 @@ export async function submitDriverSession(
         distance: 10 + Math.random() * 20, // Simulated distance
         income: tripIncome,
         expense: tripExpense,
+        profit: tripProfit,
+        settled_cash: tripSettledCash,
+        settled_online: tripSettledOnline,
         expense_categories: expenseCategories,
       };
     });
@@ -512,10 +537,10 @@ export async function getStartDayData(employeeId?: string): Promise<StartDayData
     };
   }
 
-  // Fetch driver data with business mode from Supabase
+  // Fetch driver data from Supabase
   const { data: employee } = await supabase
     .from('employees')
-    .select('*, businesses!inner(mode)')
+    .select('*')
     .eq('id', employeeId)
     .single();
   
@@ -534,8 +559,14 @@ export async function getStartDayData(employeeId?: string): Promise<StartDayData
     };
   }
 
-  // Get business mode
-  const businessMode = (employee.businesses as any)?.mode || 'manual';
+  // Fetch business mode separately
+  const { data: business } = await supabase
+    .from('businesses')
+    .select('mode')
+    .eq('id', employee.business_id)
+    .single();
+
+  const businessMode = business?.mode || 'manual';
 
   // Find assigned vehicle
   const { data: vehicles } = await supabase

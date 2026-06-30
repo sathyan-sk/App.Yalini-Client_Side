@@ -28,7 +28,7 @@ import {
 } from './components';
 import { useDeliveryStore } from '../../../store/deliveryStore';
 import type { AllDeliveriesStackParamList } from '../../../types/navigation';
-import type { PaymentMode, ExpenseCategory } from '../AddDelivery/types';
+import type { ExpenseCategory } from '../AddDelivery/types';
 import type { EditDeliveryFormData, EditDeliveryFormErrors } from './types';
 
 const BACKGROUND_COLOR = colors.surfaceSecondary;
@@ -57,7 +57,9 @@ export default function EditPreviewScreen() {
     outstandingCans: 0,
     estAmount: 0,
     receivedIncome: 0,
-    paymentMode: 'CASH',
+    settledCash: 0,
+    settledOnline: 0,
+    shortage: 0,
     expenseCategory: undefined,
     expenseAmount: undefined,
   });
@@ -85,7 +87,9 @@ export default function EditPreviewScreen() {
         outstandingCans: delivery.outstandingCans,
         estAmount: delivery.estAmount,
         receivedIncome: delivery.receivedIncome,
-        paymentMode: delivery.paymentMode,
+        settledCash: delivery.settledCash,
+        settledOnline: delivery.settledOnline,
+        shortage: delivery.shortage,
         expenseCategory: delivery.expenseCategory,
         expenseAmount: delivery.expenseAmount,
       });
@@ -145,9 +149,33 @@ export default function EditPreviewScreen() {
     }
   }, [errors.receivedIncome]);
 
-  const handlePaymentModeChange = useCallback((mode: PaymentMode) => {
-    setFormData((prev) => ({ ...prev, paymentMode: mode }));
-  }, []);
+  const handleSettledCashChange = useCallback((value: string) => {
+    const numValue = parseInt(value.replace(/[^0-9]/g, ''), 10) || 0;
+    const expense = formData.expenseAmount || 0;
+    const profit = formData.receivedIncome - expense;
+    setFormData((prev) => ({
+      ...prev,
+      settledCash: numValue,
+      shortage: Math.max(0, profit - numValue - prev.settledOnline),
+    }));
+    if (errors.settledCash) {
+      setErrors((prev) => ({ ...prev, settledCash: undefined }));
+    }
+  }, [errors.settledCash, formData.expenseAmount, formData.receivedIncome]);
+
+  const handleSettledOnlineChange = useCallback((value: string) => {
+    const numValue = parseInt(value.replace(/[^0-9]/g, ''), 10) || 0;
+    const expense = formData.expenseAmount || 0;
+    const profit = formData.receivedIncome - expense;
+    setFormData((prev) => ({
+      ...prev,
+      settledOnline: numValue,
+      shortage: Math.max(0, profit - prev.settledCash - numValue),
+    }));
+    if (errors.settledOnline) {
+      setErrors((prev) => ({ ...prev, settledOnline: undefined }));
+    }
+  }, [errors.settledOnline, formData.expenseAmount, formData.receivedIncome]);
 
   const handleExpenseCategoryChange = useCallback((category: ExpenseCategory | undefined) => {
     setFormData((prev) => ({
@@ -223,7 +251,9 @@ export default function EditPreviewScreen() {
         outstandingCans: formData.outstandingCans,
         estAmount: formData.estAmount,
         receivedIncome: formData.receivedIncome,
-        paymentMode: formData.paymentMode,
+        settledCash: formData.settledCash,
+        settledOnline: formData.settledOnline,
+        shortage: formData.shortage,
         expenseCategory: formData.expenseCategory,
         expenseAmount: formData.expenseAmount,
       });
@@ -314,7 +344,8 @@ export default function EditPreviewScreen() {
             cansDelivered={formData.cansDelivered}
             cansReturned={formData.cansReturned}
             receivedIncome={formData.receivedIncome}
-            paymentMode={formData.paymentMode}
+            settledCash={formData.settledCash}
+            settledOnline={formData.settledOnline}
             expenseCategory={formData.expenseCategory}
             expenseAmount={formData.expenseAmount}
             errors={errors}
@@ -322,7 +353,8 @@ export default function EditPreviewScreen() {
             onCansDeliveredChange={handleCansDeliveredChange}
             onCansReturnedChange={handleCansReturnedChange}
             onReceivedIncomeChange={handleReceivedIncomeChange}
-            onPaymentModeChange={handlePaymentModeChange}
+            onSettledCashChange={handleSettledCashChange}
+            onSettledOnlineChange={handleSettledOnlineChange}
             onExpenseCategoryChange={handleExpenseCategoryChange}
             onExpenseAmountChange={handleExpenseAmountChange}
           />

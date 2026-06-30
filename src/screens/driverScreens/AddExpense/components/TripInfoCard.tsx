@@ -57,18 +57,14 @@ export function TripInfoCard({ tripData }: TripInfoCardProps) {
             <Feather name="clock" size={12} color={colors.textSecondary} />
             <Text style={styles.detailText}>{tripData.time}</Text>
           </View>
-          <View style={styles.divider} />
-          <View style={styles.detailItem}>
-            <MaterialIcons name="account-balance-wallet" size={12} color={colors.textSecondary} />
-            <Text style={styles.detailText}>{tripData.paymentMode}</Text>
-          </View>
         </View>
       </View>
 
-      {/* Right Section - Trip Amount */}
+      {/* Right Section - Trip Amount & ID */}
       <View style={styles.amountSection}>
         <Text style={styles.amountLabel}>Trip Amount</Text>
         <Text style={styles.amountValue}>₹{tripData.amount}</Text>
+        <Text style={styles.tripIdText}>ID: ...{tripData.tripId.slice(-6)}</Text>
       </View>
     </View>
   );
@@ -203,5 +199,10 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xxl,
     fontWeight: '700',
     color: colors.primaryBlue,
+  },
+  tripIdText: {
+    fontSize: fontSize.xs,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
 });

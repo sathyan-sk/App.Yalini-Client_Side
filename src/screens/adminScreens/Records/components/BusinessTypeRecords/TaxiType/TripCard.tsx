@@ -36,20 +36,21 @@ export function TripCard({ trip, onPress, testID }: TripCardProps) {
           <Text style={styles.tripNumber}>{trip.tripNumber}</Text>
         </View>
         <Text style={styles.destination}>{trip.destination}</Text>
-      </View>
-
-      {/* Metrics Row */}
-      <View style={styles.metricsRow}>
-        <View style={styles.metricItem}>
-          <Text style={styles.metricLabel}>Trip Type</Text>
-          <Text style={[styles.metricValue, styles.typeValue]}>
-            {trip.tripType === 'vendor' ? '🏢 Vendor' : '👤 Private'}
+        
+        {/* Trip Type Badge in right corner */}
+        <View style={[styles.typeBadge, { backgroundColor: trip.tripType === 'vendor' ? '#E8F5E9' : '#FFF3E0' }]}>
+          <Text style={[styles.typeBadgeText, { color: trip.tripType === 'vendor' ? colors.successDark : '#F57C00' }]}>
+            {trip.tripType === 'vendor' ? 'Vendor' : 'Private'}
           </Text>
         </View>
+      </View>
+
+      {/* Metrics Row - Income, Profit, Settled */}
+      <View style={styles.metricsRow}>
         <View style={styles.metricItem}>
-          <Text style={styles.metricLabel}>Payment</Text>
-          <Text style={[styles.metricValue, styles.paymentValue]}>
-            {trip.paymentMode === 'cash' ? '💵 Cash' : '📱 Online'}
+          <Text style={styles.metricLabel}>Income</Text>
+          <Text style={[styles.metricValue, styles.incomeValue]}>
+            {formatCurrency(trip.income)}
           </Text>
         </View>
         <View style={styles.metricItem}>
@@ -58,19 +59,33 @@ export function TripCard({ trip, onPress, testID }: TripCardProps) {
             {formatCurrency(trip.profit)}
           </Text>
         </View>
+        <View style={styles.metricItem}>
+          <Text style={styles.metricLabel}>Settled</Text>
+          <Text style={[styles.metricValue, { color: '#FF9800' }]}>
+            {formatCurrency(trip.settledCash + trip.settledOnline)}
+          </Text>
+        </View>
       </View>
 
-      {/* Income & Expense Row with Expand Toggle */}
+      {/* Expand Toggle Row - Settled Cash, Settled Online, Expense */}
       <Pressable 
         onPress={() => setIsExpanded(!isExpanded)}
         style={styles.financeRow}
       >
         <View style={styles.financeItem}>
-          <Text style={styles.financeLabel}>Income:</Text>
-          <Text style={[styles.financeValue, styles.incomeValue]}>
-            {formatCurrency(trip.income)}
+          <Text style={styles.financeLabel}>Cash:</Text>
+          <Text style={[styles.financeValue, { color: colors.successDark }]}>
+            {formatCurrency(trip.settledCash)}
           </Text>
         </View>
+        <View style={styles.dividerLine} />
+        <View style={styles.financeItem}>
+          <Text style={styles.financeLabel}>Online:</Text>
+          <Text style={[styles.financeValue, { color: colors.primaryBlue }]}>
+            {formatCurrency(trip.settledOnline)}
+          </Text>
+        </View>
+        <View style={styles.dividerLine} />
         <View style={styles.financeItem}>
           <Text style={styles.financeLabel}>Expense:</Text>
           <Text style={[styles.financeValue, styles.expenseValue]}>
@@ -90,20 +105,25 @@ export function TripCard({ trip, onPress, testID }: TripCardProps) {
       {isExpanded && hasExpenseBreakdown && (
         <View style={styles.expenseBreakdown}>
           <View style={styles.breakdownRow}>
-            <Text style={styles.breakdownLabel}>Fuel:</Text>
-            <Text style={styles.breakdownValue}>{formatCurrency(trip.expenseCategories.fuel)}</Text>
-          </View>
-          <View style={styles.breakdownRow}>
-            <Text style={styles.breakdownLabel}>Toll:</Text>
-            <Text style={styles.breakdownValue}>{formatCurrency(trip.expenseCategories.toll)}</Text>
-          </View>
-          <View style={styles.breakdownRow}>
-            <Text style={styles.breakdownLabel}>Food:</Text>
-            <Text style={styles.breakdownValue}>{formatCurrency(trip.expenseCategories.food)}</Text>
-          </View>
-          <View style={styles.breakdownRow}>
-            <Text style={styles.breakdownLabel}>Other:</Text>
-            <Text style={styles.breakdownValue}>{formatCurrency(trip.expenseCategories.other)}</Text>
+            <View style={styles.breakdownItem}>
+              <Text style={styles.breakdownLabel}>Fuel</Text>
+              <Text style={styles.breakdownValue}>{formatCurrency(trip.expenseCategories.fuel)}</Text>
+            </View>
+            <View style={styles.breakdownDivider} />
+            <View style={styles.breakdownItem}>
+              <Text style={styles.breakdownLabel}>Toll</Text>
+              <Text style={styles.breakdownValue}>{formatCurrency(trip.expenseCategories.toll)}</Text>
+            </View>
+            <View style={styles.breakdownDivider} />
+            <View style={styles.breakdownItem}>
+              <Text style={styles.breakdownLabel}>Food</Text>
+              <Text style={styles.breakdownValue}>{formatCurrency(trip.expenseCategories.food)}</Text>
+            </View>
+            <View style={styles.breakdownDivider} />
+            <View style={styles.breakdownItem}>
+              <Text style={styles.breakdownLabel}>Other</Text>
+              <Text style={styles.breakdownValue}>{formatCurrency(trip.expenseCategories.other)}</Text>
+            </View>
           </View>
           {trip.expenseCategories.notes && (
             <View style={styles.notesRow}>
@@ -155,6 +175,16 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: colors.textPrimary,
   },
+  typeBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.sm,
+    marginLeft: spacing.sm,
+  },
+  typeBadgeText: {
+    fontSize: fontSize.xs,
+    fontWeight: "600",
+  },
   metricsRow: {
     flexDirection: "row",
   },
@@ -174,15 +204,16 @@ const styles = StyleSheet.create({
   profitValue: {
     color: colors.brand,
   },
-  typeValue: {
-    color: colors.primaryBlue,
+  incomeValue: {
+    color: colors.successDark,
   },
-  paymentValue: {
-    color: colors.brand,
+  expenseValue: {
+    color: colors.error,
   },
   financeRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     marginTop: spacing.sm,
     paddingTop: spacing.sm,
     borderTopWidth: 1,
@@ -193,19 +224,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xs,
   },
+  dividerLine: {
+    width: 1,
+    height: 20,
+    backgroundColor: colors.borderLight,
+  },
   financeLabel: {
     fontSize: fontSize.sm,
     color: colors.textSecondary,
   },
   financeValue: {
-    fontSize: fontSize.base,
+    fontSize: fontSize.sm,
     fontWeight: '600',
-  },
-  incomeValue: {
-    color: colors.successDark,
-  },
-  expenseValue: {
-    color: colors.error,
   },
   expandIconContainer: {
     marginLeft: spacing.sm,
@@ -220,12 +250,21 @@ const styles = StyleSheet.create({
   },
   breakdownRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: spacing.xs,
+    justifyContent: 'space-around',
+  },
+  breakdownItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  breakdownDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: colors.borderLight,
   },
   breakdownLabel: {
-    fontSize: fontSize.sm,
+    fontSize: fontSize.xs,
     color: colors.textSecondary,
+    marginBottom: 2,
   },
   breakdownValue: {
     fontSize: fontSize.sm,

@@ -11,13 +11,11 @@ import { colors, spacing, fontSize, radius } from '../../../../theme';
 
 interface ActionButtonsProps {
   onSaveExpense: () => void;
-  onSkipExpense: () => void;
   isSubmitting: boolean;
 }
 
 export function ActionButtons({
   onSaveExpense,
-  onSkipExpense,
   isSubmitting,
 }: ActionButtonsProps) {
   return (
@@ -38,19 +36,6 @@ export function ActionButtons({
           </>
         )}
       </TouchableOpacity>
-
-      {/* Skip Expense Link */}
-      <TouchableOpacity
-        style={styles.skipButton}
-        onPress={onSkipExpense}
-        activeOpacity={0.7}
-      >
-        <Feather name="arrow-left" size={16} color={colors.primaryBlue} />
-        <Text style={styles.skipButtonText}>Skip Expense</Text>
-      </TouchableOpacity>
-
-      {/* Info Text */}
-      <Text style={styles.infoText}>You can add or edit expenses from All Trips</Text>
     </View>
   );
 }

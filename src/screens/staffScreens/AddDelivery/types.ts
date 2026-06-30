@@ -1,7 +1,6 @@
 /**
  * Type definitions for Add Delivery Screen
  * Defines all types used in the delivery recording flow.
- * These types serve as the single source of truth for the staff module.
  */
 
 /**
@@ -10,8 +9,8 @@
 export type HotelStatusId = 'enabled' | 'disabled';
 
 /**
- * Payment mode options for delivery transactions.
- * Strictly limited to CASH or ONLINE per requirements.
+ * Payment mode is now replaced by settlement split (cash/online per delivery).
+ * Kept as type for backward compat with trips but not used in staff forms.
  */
 export type PaymentMode = 'CASH' | 'ONLINE';
 
@@ -22,30 +21,23 @@ export type ExpenseCategory = 'FUEL' | 'OTHERS';
 
 /**
  * Session status indicating if the day's work has been submitted.
- * Used to control form editability.
  */
 export type SessionStatus = 'PENDING' | 'ACTIVE' | 'SUBMITTED';
 
 /**
  * Hotel item from the master list for dropdown selection.
- * Used consistently across service and store layers.
  */
 export interface HotelOption {
-  /** Unique identifier */
   id: string;
-  /** Hotel display name */
   name: string;
-  /** Rate per water can in rupees */
   ratePerCan: number;
-  /** Optional location for display */
   location?: string;
-  /** Hotel status */
   status: HotelStatusId;
 }
 
 /**
  * Form values for recording a delivery.
- * loadedCans is now centralized at session level (set on first delivery).
+ * Settlement is split into cash/online per delivery instead of single paymentMode.
  */
 export interface DeliveryFormValues {
   /** Selected hotel ID */
@@ -64,8 +56,12 @@ export interface DeliveryFormValues {
   estAmount: number;
   /** Money received from hotel (Income Received) */
   receivedIncome: number;
-  /** Payment mode: CASH or ONLINE */
-  paymentMode: PaymentMode;
+  /** Amount settled via CASH (new - replaces paymentMode) */
+  settledCash: number;
+  /** Amount settled via ONLINE (new - replaces paymentMode) */
+  settledOnline: number;
+  /** Auto-calculated: estAmount - (settledCash + settledOnline) */
+  shortage: number;
   /** Optional expense category */
   expenseCategory?: ExpenseCategory;
   /** Optional expense amount */
@@ -81,63 +77,46 @@ export interface DeliveryFormErrors {
   cansDelivered?: string;
   cansReturned?: string;
   receivedIncome?: string;
+  settledCash?: string;
+  settledOnline?: string;
   expenseAmount?: string;
 }
 
 /**
  * Session data for the current delivery session.
- * Consistent session status types across the app.
  */
 export interface DeliverySessionData {
-  /** Session ID */
   id: string;
-  /** Staff member name */
   staffName: string;
-  /** Business/service name */
   serviceName: string;
-  /** Staff employee ID for database operations */
   staffId: string;
-  /** Current session date */
   sessionDate: string;
-  /** Session start time */
   sessionTime: string;
-  /** Session status - supports PENDING, ACTIVE, SUBMITTED */
   sessionStatus: SessionStatus;
 }
 
 /**
  * A single saved delivery record.
- * Uses createdAt consistently (not timestamp).
  */
 export interface DeliveryRecord {
-  /** Unique delivery ID */
   id: string;
-  /** Hotel ID */
   hotelId: string;
-  /** Hotel name */
   hotelName: string;
-  /** Rate per can at time of delivery */
   ratePerCan: number;
-  /** Cans loaded */
   loadedCans: number;
-  /** Cans delivered */
   cansDelivered: number;
-  /** Cans returned */
   cansReturned: number;
-  /** Outstanding cans */
   outstandingCans: number;
-  /** Estimated amount (auto-calculated) */
   estAmount: number;
-  /** Income received */
   receivedIncome: number;
-  /** Payment mode */
-  paymentMode: PaymentMode;
-  /** Optional expense category */
+  /** Amount settled via CASH */
+  settledCash: number;
+  /** Amount settled via ONLINE */
+  settledOnline: number;
+  /** Auto-calculated: estAmount - (settledCash + settledOnline) */
+  shortage: number;
   expenseCategory?: ExpenseCategory;
-  /** Optional expense amount */
   expenseAmount?: number;
-  /** Timestamp of delivery - ISO string */
   createdAt: string;
-  /** Optional notes */
   notes?: string;
 }

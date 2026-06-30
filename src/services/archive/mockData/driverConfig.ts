@@ -67,6 +67,8 @@ export const DEFAULT_EXPENSE = {
   food: 0,
   other: 0,
   notes: '',
+  settledCash: 0,
+  settledOnline: 0,
   total: 0,
 } as const;
 

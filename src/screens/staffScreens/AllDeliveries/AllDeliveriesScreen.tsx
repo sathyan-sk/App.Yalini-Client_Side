@@ -40,20 +40,16 @@ export default function AllDeliveriesScreen() {
   // Get data from deliveryStore
   const { session, deliveries } = useDeliveryStore();
 
-  // Calculate summary statistics
+  // Calculate summary statistics (minimal: only financial totals)
   const summary = useMemo(() => {
-    const totalDeliveries = deliveries.length;
-    const totalCansDelivered = deliveries.reduce((sum, d) => sum + d.cansDelivered, 0);
-    const totalIncome = deliveries.reduce((sum, d) => sum + d.receivedIncome, 0);
+    const totalIncome = deliveries.reduce((sum, d) => sum + (d.receivedIncome || 0), 0);
     const totalExpense = deliveries.reduce((sum, d) => sum + (d.expenseAmount || 0), 0);
-    const netAmount = totalIncome - totalExpense;
+    const totalProfit = totalIncome - totalExpense;
 
     return {
-      totalDeliveries,
-      totalCansDelivered,
       totalIncome,
       totalExpense,
-      netAmount,
+      totalProfit,
     };
   }, [deliveries]);
 
@@ -128,12 +124,6 @@ export default function AllDeliveriesScreen() {
         {/* Service Info Card */}
         <SessionInfoCard sessionInfo={session} />
 
-        {/* Summary Stats Row */}
-        <SummaryStatsRow
-          totalDeliveries={summary.totalDeliveries}
-          totalCansDelivered={summary.totalCansDelivered}
-        />
-
         {/* Deliveries List */}
         <DeliveriesList
           deliveries={deliveries}
@@ -144,11 +134,11 @@ export default function AllDeliveriesScreen() {
         {/* Info Banner */}
         <InfoBanner message="Review your deliveries and proceed to checkout when ready." />
 
-        {/* Summary Footer */}
+        {/* Summary Footer - minimal financial totals */}
         <SummaryFooter
           totalIncome={summary.totalIncome}
           totalExpense={summary.totalExpense}
-          netAmount={summary.netAmount}
+          totalProfit={summary.totalProfit}
           canProceed={canProceed}
           onProceedToCheckout={handleProceedToCheckout}
         />

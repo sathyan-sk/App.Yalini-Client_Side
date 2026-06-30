@@ -23,7 +23,6 @@ interface TripDetailsFormProps {
   onFromChange: (value: string) => void;
   onToChange: (value: string) => void;
   onAmountChange: (value: string) => void;
-  onPaymentModeChange: (mode: PaymentMode) => void;
   onSaveTrip: () => void;
   isSubmitting: boolean;
 }
@@ -34,7 +33,6 @@ export function TripDetailsForm({
   onFromChange,
   onToChange,
   onAmountChange,
-  onPaymentModeChange,
   onSaveTrip,
   isSubmitting,
 }: TripDetailsFormProps) {
@@ -162,67 +160,6 @@ export function TripDetailsForm({
             onChangeText={onAmountChange}
             keyboardType="decimal-pad"
           />
-        </View>
-      </View>
-
-      {/* Payment Mode */}
-      <View style={styles.inputGroup}>
-        <View style={styles.labelRow}>
-          <Text style={styles.label}>Payment Mode</Text>
-          <Text style={styles.required}>*</Text>
-        </View>
-        <View style={styles.paymentModeContainer}>
-          {/* Cash Button */}
-          <TouchableOpacity
-            style={[
-              styles.paymentButton,
-              formData.paymentMode === "cash" && styles.paymentButtonActive,
-            ]}
-            onPress={() => onPaymentModeChange("cash")}
-            activeOpacity={0.7}
-          >
-            <View style={styles.paymentIconContainer}>
-              <FontAwesome5
-                name="money-bill-wave"
-                size={16}
-                color={formData.paymentMode === "cash" ? colors.primaryBlue : colors.textTertiary}
-              />
-            </View>
-            <Text
-              style={[
-                styles.paymentButtonText,
-                formData.paymentMode === "cash" && styles.paymentButtonTextActive,
-              ]}
-            >
-              Cash
-            </Text>
-          </TouchableOpacity>
-
-          {/* Online Button */}
-          <TouchableOpacity
-            style={[
-              styles.paymentButton,
-              formData.paymentMode === "online" && styles.paymentButtonActive,
-            ]}
-            onPress={() => onPaymentModeChange("online")}
-            activeOpacity={0.7}
-          >
-            <View style={styles.paymentIconContainer}>
-              <Feather
-                name="smartphone"
-                size={18}
-                color={formData.paymentMode === "online" ? colors.primaryBlue : colors.textTertiary}
-              />
-            </View>
-            <Text
-              style={[
-                styles.paymentButtonText,
-                formData.paymentMode === "online" && styles.paymentButtonTextActive,
-              ]}
-            >
-              Online
-            </Text>
-          </TouchableOpacity>
         </View>
       </View>
 
@@ -412,5 +349,17 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
     backgroundColor: "#FF9800",
+  },
+  settlementRow: {
+    flexDirection: "row",
+    gap: spacing.md,
+  },
+  settlementField: {
+    flex: 1,
+  },
+  inputLabel: {
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
   },
 });

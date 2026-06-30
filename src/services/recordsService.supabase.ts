@@ -45,8 +45,8 @@ const fromDriverRecordRow = (
     settledToAdmin: row.settled_to_admin,
     balanceShortage: row.balance_shortage,
     totalProfit: row.total_profit,
-    perKmRate: row.per_km_rate,
-    fuelExpense: row.fuel_expense,
+    totalCashSettled: row.total_cash_settled || 0,
+    totalOnlineSettled: row.total_online_settled || 0,
     tripDetails: tripDetails.map(td => ({
       id: td.id,
       tripNumber: td.trip_number,
@@ -56,7 +56,9 @@ const fromDriverRecordRow = (
       distance: td.distance,
       income: td.income,
       expense: td.expense,
-      profit: td.income - td.expense,
+      profit: td.profit,
+      settledCash: td.settled_cash || 0,
+      settledOnline: td.settled_online || 0,
       expenseCategories: (td.expense_categories as {
         fuel: number;
         toll: number;
@@ -95,6 +97,9 @@ const fromWaterRecordRow = (
     totalDelivered: row.total_delivered,
     totalReturned: row.total_returned,
     totalOutstanding: row.total_outstanding,
+    totalSettled: row.total_settled || 0,
+    totalCashSettled: row.total_cash_settled || 0,
+    totalOnlineSettled: row.total_online_settled || 0,
     totalIncome: row.total_income,
     totalExpense: row.total_expense,
     totalProfit: row.total_profit,
@@ -102,6 +107,7 @@ const fromWaterRecordRow = (
       id: hd.id,
       hotelName: hd.hotel_name,
       location: hd.location,
+      ratePerCan: hd.rate_per_can,
       totalCans: hd.total_cans,
       deliveredCans: hd.delivered_cans,
       returnedCans: hd.returned_cans,
@@ -109,6 +115,9 @@ const fromWaterRecordRow = (
       income: hd.income,
       expense: hd.expense,
       profit: hd.profit,
+      settledCash: hd.settled_cash || 0,
+      settledOnline: hd.settled_online || 0,
+      shortage: hd.shortage || 0,
     })),
   };
 };

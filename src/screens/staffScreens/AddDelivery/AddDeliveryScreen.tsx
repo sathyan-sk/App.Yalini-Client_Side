@@ -49,11 +49,9 @@ import {
   HotelSelector,
   SessionInfoCard,
   CansInformationForm,
-  IncomeInput,
-  PaymentModeToggle,
+  PaymentInfoSection,
   SaveButton,
   FormToast,
-  ExpenseSection,
 } from './components';
 
 /** Navigation prop type for AddDelivery screen */
@@ -69,7 +67,9 @@ const INITIAL_FORM_VALUES: DeliveryFormValues = {
   outstandingCans: 0,
   estAmount: 0,
   receivedIncome: 0,
-  paymentMode: 'CASH',
+  settledCash: 0,
+  settledOnline: 0,
+  shortage: 0,
   expenseCategory: undefined,
   expenseAmount: undefined,
 };
@@ -271,11 +271,38 @@ export default function AddDeliveryScreen(): React.JSX.Element {
   }, [errors.receivedIncome]);
 
   /**
-   * Handles payment mode change.
+   * Handles settled cash change.
    */
-  const handlePaymentModeChange = useCallback((mode: PaymentMode) => {
-    setFormValues((prev) => ({ ...prev, paymentMode: mode }));
-  }, []);
+  const handleSettledCashChange = useCallback((value: string) => {
+    const numValue = parseInt(value.replace(/[^0-9]/g, ''), 10) || 0;
+    const expense = formValues.expenseAmount || 0;
+    const profit = formValues.receivedIncome - expense;
+    setFormValues((prev) => ({
+      ...prev,
+      settledCash: numValue,
+      shortage: Math.max(0, profit - numValue - prev.settledOnline),
+    }));
+    if (errors.settledCash) {
+      setErrors((prev) => ({ ...prev, settledCash: undefined }));
+    }
+  }, [errors.settledCash, formValues.expenseAmount, formValues.receivedIncome]);
+
+  /**
+   * Handles settled online change.
+   */
+  const handleSettledOnlineChange = useCallback((value: string) => {
+    const numValue = parseInt(value.replace(/[^0-9]/g, ''), 10) || 0;
+    const expense = formValues.expenseAmount || 0;
+    const profit = formValues.receivedIncome - expense;
+    setFormValues((prev) => ({
+      ...prev,
+      settledOnline: numValue,
+      shortage: Math.max(0, profit - prev.settledCash - numValue),
+    }));
+    if (errors.settledOnline) {
+      setErrors((prev) => ({ ...prev, settledOnline: undefined }));
+    }
+  }, [errors.settledOnline, formValues.expenseAmount, formValues.receivedIncome]);
 
   /**
    * Handles expense category change.
@@ -551,38 +578,25 @@ export default function AddDeliveryScreen(): React.JSX.Element {
             />
           </View>
 
-          {/* Income Received Section */}
-          <View style={styles.formCard}>
-            <IncomeInput
-              value={formValues.receivedIncome}
-              onChange={handleReceivedIncomeChange}
-              error={errors.receivedIncome}
-              disabled={isSessionSubmitted}
-              testID="income-input"
-            />
-          </View>
-
-          {/* Payment Mode Section */}
-          <View style={styles.formCard}>
-            <PaymentModeToggle
-              value={formValues.paymentMode}
-              onChange={handlePaymentModeChange}
-              disabled={isSessionSubmitted}
-              testID="payment-mode"
-            />
-          </View>
-
-          {/* Expense Section - Only visible when hotel is selected */}
+          {/* Payment Info Section - Income → Expense → Profit → Settlement */}
           {isHotelSelected && (
             <View style={styles.formCard}>
-              <ExpenseSection
-                category={formValues.expenseCategory}
-                amount={formValues.expenseAmount || 0}
-                onCategoryChange={handleExpenseCategoryChange}
-                onAmountChange={handleExpenseAmountChange}
-                amountError={errors.expenseAmount}
+              <PaymentInfoSection
+                income={formValues.receivedIncome}
+                expenseCategory={formValues.expenseCategory}
+                expenseAmount={formValues.expenseAmount || 0}
+                profit={formValues.receivedIncome - (formValues.expenseAmount || 0)}
+                settledCash={formValues.settledCash}
+                settledOnline={formValues.settledOnline}
+                shortage={formValues.shortage}
+                onIncomeChange={handleReceivedIncomeChange}
+                onExpenseCategoryChange={handleExpenseCategoryChange}
+                onExpenseAmountChange={handleExpenseAmountChange}
+                onCashChange={handleSettledCashChange}
+                onOnlineChange={handleSettledOnlineChange}
+                errors={errors}
                 disabled={isSessionSubmitted}
-                testID="expense-section"
+                testID="payment-info-section"
               />
             </View>
           )}

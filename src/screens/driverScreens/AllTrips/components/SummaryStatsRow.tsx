@@ -36,7 +36,7 @@ export function SummaryStatsRow({ totalTrips, totalIncome }: SummaryStatsRowProp
         <View style={styles.statContent}>
           <Text style={styles.statLabel}>Total Income</Text>
           <Text style={[styles.statValue, styles.incomeValue]}>
-            ₹{totalIncome.toLocaleString('en-IN')}
+            ₹{(totalIncome || 0).toLocaleString('en-IN')}
           </Text>
         </View>
       </View>

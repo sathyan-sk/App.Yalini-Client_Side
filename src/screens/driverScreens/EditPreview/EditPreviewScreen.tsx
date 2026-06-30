@@ -29,7 +29,7 @@ import {
 } from './components';
 import { useTripStore, TripWithExpense } from '../../../store/tripStore';
 import type { AllTripsStackParamList } from '../../../types/navigation';
-import type { EditTripFormData, PaymentMode } from '../../../types/driver';
+import type { EditTripFormData } from '../../../types/driver';
 import { DEFAULT_EXPENSE } from '../../../services/archive/mockData/driverConfig';
 
 
@@ -56,7 +56,6 @@ export default function EditPreviewScreen() {
     from: '',
     to: '',
     amount: '',
-    paymentMode: 'cash',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tripNotFound, setTripNotFound] = useState(false);
@@ -79,13 +78,12 @@ export default function EditPreviewScreen() {
         from: trip.from,
         to: trip.to,
         amount: trip.amount.toString(),
-        paymentMode: trip.paymentMode,
       });
     }
   }, [trip?.id]); // Only re-initialize when tripId changes
 
-  // Get expense data (use default if no expense)
-  const expenseData = trip?.expense || DEFAULT_EXPENSE;
+  // Get expense data (use trip expense if exists, otherwise default)
+  const expenseData = trip?.hasExpense && trip?.expense ? trip.expense : DEFAULT_EXPENSE;
 
   // Form handlers
   const handleFromChange = useCallback((value: string) => {
@@ -99,10 +97,6 @@ export default function EditPreviewScreen() {
   const handleAmountChange = useCallback((value: string) => {
     const sanitized = value.replace(/[^0-9.]/g, '');
     setFormData((prev) => ({ ...prev, amount: sanitized }));
-  }, []);
-
-  const handlePaymentModeChange = useCallback((mode: PaymentMode) => {
-    setFormData((prev) => ({ ...prev, paymentMode: mode }));
   }, []);
 
   const handleTripTypeChange = useCallback((type: 'vendor' | 'private') => {
@@ -156,7 +150,6 @@ export default function EditPreviewScreen() {
         from: formData.from.trim(),
         to: formData.to.trim(),
         amount: parseFloat(formData.amount),
-        paymentMode: formData.paymentMode,
       });
 
       Alert.alert('Success', 'Trip updated successfully!', [
@@ -215,7 +208,6 @@ export default function EditPreviewScreen() {
     from: formData.from || trip.from,
     to: formData.to || trip.to,
     amount: parseFloat(formData.amount) || trip.amount,
-    paymentMode: formData.paymentMode,
   };
 
   return (
@@ -246,7 +238,6 @@ export default function EditPreviewScreen() {
             onFromChange={handleFromChange}
             onToChange={handleToChange}
             onAmountChange={handleAmountChange}
-            onPaymentModeChange={handlePaymentModeChange}
             onClearFrom={handleClearFrom}
             onClearTo={handleClearTo}
             onClearAmount={handleClearAmount}

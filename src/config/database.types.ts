@@ -191,9 +191,8 @@ export interface Database {
           settled_to_admin: number
           balance_shortage: number
           total_profit: number
-          per_km_rate: number
-          fuel_expense: number
-          payment_mode: string | null
+          total_cash_settled: number
+          total_online_settled: number
         }
         Insert: {
           id?: string
@@ -211,8 +210,8 @@ export interface Database {
           settled_to_admin: number
           balance_shortage: number
           total_profit: number
-          per_km_rate: number
-          fuel_expense: number
+          total_cash_settled?: number
+          total_online_settled?: number
         }
         Update: {
           id?: string
@@ -230,8 +229,8 @@ export interface Database {
           settled_to_admin?: number
           balance_shortage?: number
           total_profit?: number
-          per_km_rate?: number
-          fuel_expense?: number
+          total_cash_settled?: number
+          total_online_settled?: number
         }
       }
       trip_details: {
@@ -246,6 +245,8 @@ export interface Database {
           income: number
           expense: number
           profit: number
+          settled_cash: number
+          settled_online: number
           expense_categories: Json
         }
         Insert: {
@@ -259,6 +260,8 @@ export interface Database {
           income: number
           expense: number
           profit?: number
+          settled_cash?: number
+          settled_online?: number
           expense_categories?: Json
         }
         Update: {
@@ -272,6 +275,8 @@ export interface Database {
           income?: number
           expense?: number
           profit?: number
+          settled_cash?: number
+          settled_online?: number
           expense_categories?: Json
         }
       }
@@ -288,10 +293,12 @@ export interface Database {
           total_delivered: number
           total_returned: number
           total_outstanding: number
+          total_settled: number
+          total_cash_settled: number
+          total_online_settled: number
           total_income: number
           total_expense: number
           total_profit: number
-          payment_mode: string | null
         }
         Insert: {
           id?: string
@@ -305,10 +312,12 @@ export interface Database {
           total_delivered: number
           total_returned: number
           total_outstanding: number
+          total_settled?: number
+          total_cash_settled?: number
+          total_online_settled?: number
           total_income: number
           total_expense: number
           total_profit: number
-          payment_mode: string | null
         }
         Update: {
           id?: string
@@ -322,10 +331,12 @@ export interface Database {
           total_delivered?: number
           total_returned?: number
           total_outstanding?: number
+          total_settled?: number
+          total_cash_settled?: number
+          total_online_settled?: number
           total_income?: number
           total_expense?: number
           total_profit?: number
-          payment_mode?: string | null
         }
       }
       hotel_deliveries: {
@@ -334,6 +345,7 @@ export interface Database {
           water_delivery_record_id: string
           hotel_name: string
           location: string
+          rate_per_can: number
           total_cans: number
           delivered_cans: number
           returned_cans: number
@@ -341,12 +353,16 @@ export interface Database {
           income: number
           expense: number
           profit: number
+          settled_cash: number
+          settled_online: number
+          shortage: number
         }
         Insert: {
           id?: string
           water_delivery_record_id: string
           hotel_name: string
           location: string
+          rate_per_can: number
           total_cans: number
           delivered_cans: number
           returned_cans: number
@@ -354,12 +370,16 @@ export interface Database {
           income: number
           expense: number
           profit: number
+          settled_cash?: number
+          settled_online?: number
+          shortage?: number
         }
         Update: {
           id?: string
           water_delivery_record_id?: string
           hotel_name?: string
           location?: string
+          rate_per_can?: number
           total_cans?: number
           delivered_cans?: number
           returned_cans?: number
@@ -367,6 +387,9 @@ export interface Database {
           income?: number
           expense?: number
           profit?: number
+          settled_cash?: number
+          settled_online?: number
+          shortage?: number
         }
       }
     }

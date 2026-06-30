@@ -7,7 +7,7 @@ import React from 'react';
 import { StyleSheet, View, Text, TextInput } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors, spacing, fontSize, radius, cardShadow } from '../../../../theme';
-import type { PaymentMode, ExpenseCategory } from '../../AddDelivery/types';
+import type { ExpenseCategory } from '../../AddDelivery/types';
 import type { EditDeliveryFormErrors } from '../types';
 
 interface EditDeliveryFormProps {
@@ -19,8 +19,10 @@ interface EditDeliveryFormProps {
   cansReturned: number;
   /** Income received value */
   receivedIncome: number;
-  /** Payment mode */
-  paymentMode: PaymentMode;
+  /** Amount settled via CASH */
+  settledCash: number;
+  /** Amount settled via ONLINE */
+  settledOnline: number;
   /** Expense category */
   expenseCategory?: ExpenseCategory;
   /** Expense amount */
@@ -34,7 +36,8 @@ interface EditDeliveryFormProps {
   onCansDeliveredChange: (value: string) => void;
   onCansReturnedChange: (value: string) => void;
   onReceivedIncomeChange: (value: string) => void;
-  onPaymentModeChange: (mode: PaymentMode) => void;
+  onSettledCashChange: (value: string) => void;
+  onSettledOnlineChange: (value: string) => void;
   onExpenseCategoryChange: (category: ExpenseCategory | undefined) => void;
   onExpenseAmountChange: (value: string) => void;
 }
@@ -44,7 +47,8 @@ export function EditDeliveryForm({
   cansDelivered,
   cansReturned,
   receivedIncome,
-  paymentMode,
+  settledCash,
+  settledOnline,
   expenseCategory,
   expenseAmount,
   errors,
@@ -53,7 +57,8 @@ export function EditDeliveryForm({
   onCansDeliveredChange,
   onCansReturnedChange,
   onReceivedIncomeChange,
-  onPaymentModeChange,
+  onSettledCashChange,
+  onSettledOnlineChange,
   onExpenseCategoryChange,
   onExpenseAmountChange,
 }: EditDeliveryFormProps) {
@@ -135,51 +140,39 @@ export function EditDeliveryForm({
         {errors.receivedIncome && <Text style={styles.errorText}>{errors.receivedIncome}</Text>}
       </View>
 
-      {/* Payment Mode Section */}
+      {/* Settlement Split Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Payment Mode</Text>
-        <View style={styles.paymentModeRow}>
-          <View
-            style={[
-              styles.paymentOption,
-              paymentMode === 'CASH' && styles.paymentOptionActive,
-            ]}
-            onTouchEnd={() => !disabled && onPaymentModeChange('CASH')}
-          >
-            <Feather
-              name="dollar-sign"
-              size={18}
-              color={paymentMode === 'CASH' ? colors.surface : colors.textSecondary}
-            />
-            <Text
-              style={[
-                styles.paymentOptionText,
-                paymentMode === 'CASH' && styles.paymentOptionTextActive,
-              ]}
-            >
-              Cash
-            </Text>
+        <Text style={styles.sectionTitle}>Settlement to Owner</Text>
+        <View style={styles.settlementRow}>
+          <View style={styles.settlementField}>
+            <Text style={styles.inputLabel}>Settled via Cash</Text>
+            <View style={styles.inputContainer}>
+              <Feather name="dollar-sign" size={18} color={colors.success} />
+              <TextInput
+                style={styles.input}
+                value={settledCash.toString()}
+                onChangeText={onSettledCashChange}
+                keyboardType="numeric"
+                editable={!disabled}
+                placeholder="0"
+                placeholderTextColor={colors.textTertiary}
+              />
+            </View>
           </View>
-          <View
-            style={[
-              styles.paymentOption,
-              paymentMode === 'ONLINE' && styles.paymentOptionActive,
-            ]}
-            onTouchEnd={() => !disabled && onPaymentModeChange('ONLINE')}
-          >
-            <Feather
-              name="smartphone"
-              size={18}
-              color={paymentMode === 'ONLINE' ? colors.surface : colors.textSecondary}
-            />
-            <Text
-              style={[
-                styles.paymentOptionText,
-                paymentMode === 'ONLINE' && styles.paymentOptionTextActive,
-              ]}
-            >
-              Online
-            </Text>
+          <View style={styles.settlementField}>
+            <Text style={styles.inputLabel}>Settled via Online</Text>
+            <View style={styles.inputContainer}>
+              <Feather name="smartphone" size={18} color={colors.primaryBlue} />
+              <TextInput
+                style={styles.input}
+                value={settledOnline.toString()}
+                onChangeText={onSettledOnlineChange}
+                keyboardType="numeric"
+                editable={!disabled}
+                placeholder="0"
+                placeholderTextColor={colors.textTertiary}
+              />
+            </View>
           </View>
         </View>
       </View>
@@ -381,5 +374,12 @@ const styles = StyleSheet.create({
   },
   expenseAmountContainer: {
     marginTop: spacing.sm,
+  },
+  settlementRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  settlementField: {
+    flex: 1,
   },
 });

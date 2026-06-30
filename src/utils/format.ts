@@ -29,8 +29,9 @@ export function formatDisplayDate(isoDate: string): string {
 /**
  * Format currency amount with rupee symbol
  */
-export function formatCurrency(amount: number): string {
-  return `\u20B9 ${amount.toLocaleString("en-IN")}`;
+export function formatCurrency(amount: number | undefined | null): string {
+  const safeAmount = amount || 0;
+  return `\u20B9 ${safeAmount.toLocaleString("en-IN")}`;
 }
 
 /**
