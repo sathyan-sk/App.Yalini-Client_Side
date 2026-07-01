@@ -112,6 +112,7 @@ const fromWaterRecordRow = (
       deliveredCans: hd.delivered_cans,
       returnedCans: hd.returned_cans,
       outstandingCans: hd.outstanding_cans,
+      remainingCansAtDelivery: hd.remaining_cans_at_delivery || 0,
       income: hd.income,
       expense: hd.expense,
       profit: hd.profit,

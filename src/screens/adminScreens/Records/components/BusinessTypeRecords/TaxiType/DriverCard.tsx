@@ -63,6 +63,7 @@ export function DriverCard({ record, onPress, testID, showDate }: DriverCardProp
           </Text>
         </View>
       </View>
+      <View style={styles.divider} />
 
       {/* Metrics Row 2 - Income, Expense, Profit */}
       <View style={styles.metricsRow}>
@@ -157,5 +158,10 @@ const styles = StyleSheet.create({
   },
   profitValue: {
     color: colors.brand,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.borderLight,
+    marginVertical: spacing.md,
   },
 });

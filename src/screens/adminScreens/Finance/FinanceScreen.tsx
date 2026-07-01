@@ -73,12 +73,15 @@ function buildHTMLReport(
     <tr>
       <td>${r.date}</td>
       <td>${r.employeeName}</td>
-      <td>${r.businessName}</td>
-      <td>${r.assetName}</td>
-      <td style=\"color:#059669\">₹${r.income.toLocaleString('en-IN')}</td>
-      <td style=\"color:#DC2626\">₹${r.expense.toLocaleString('en-IN')}</td>
-      <td style=\"color:#7C3AED\">₹${r.profit.toLocaleString('en-IN')}</td>
-      <td>${r.paymentType}</td>
+      <td>${r.businessTypeLabel}</td>
+      <td>${r.assetInfo}</td>
+      <td style=\"color:#059669\">₹${r.totalIncome.toLocaleString('en-IN')}</td>
+      <td style=\"color:#DC2626\">₹${r.totalExpense.toLocaleString('en-IN')}</td>
+      <td style=\"color:#7C3AED\">₹${r.totalProfit.toLocaleString('en-IN')}</td>
+      <td style=\"color:#FF9800\">₹${r.totalSettled.toLocaleString('en-IN')}</td>
+      <td style=\"color:#FF9800\">₹${r.totalSettledCash.toLocaleString('en-IN')}</td>
+      <td style=\"color:#1E88E5\">₹${r.totalSettledOnline.toLocaleString('en-IN')}</td>
+      <td style=\"color:#DC2626\">₹${r.totalShortage.toLocaleString('en-IN')}</td>
     </tr>
   `).join('');
 
@@ -116,12 +119,15 @@ function buildHTMLReport(
           <tr>
             <th>Date</th>
             <th>Employee</th>
-            <th>Business</th>
+            <th>Business Type</th>
             <th>Asset</th>
             <th>Income</th>
             <th>Expense</th>
             <th>Profit</th>
-            <th>Payment</th>
+            <th>Settled Total</th>
+            <th>Cash</th>
+            <th>Online</th>
+            <th>Shortage</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
@@ -226,9 +232,9 @@ export default function FinanceScreen() {
           });
         }
       } else if (format === 'excel') {
-        const header = 'Date,Employee,Business,Asset,Income,Expense,Profit,Payment Type';
+        const header = 'Date,Employee,Business Type,Asset,Income,Expense,Profit,Settled Total,Cash,Online,Shortage';
         const csvRows = allData.records.map(r =>
-          `${r.date},\"${r.employeeName}\",\"${r.businessName}\",\"${r.assetName}\",${r.income},${r.expense},${r.profit},${r.paymentType}`
+          `${r.date},\"${r.employeeName}\",\"${r.businessTypeLabel}\",\"${r.assetInfo}\",${r.totalIncome},${r.totalExpense},${r.totalProfit},${r.totalSettled},${r.totalSettledCash},${r.totalSettledOnline},${r.totalShortage}`
         ).join('\n');
         const csvContent = header + '\n' + csvRows;
 

@@ -41,9 +41,11 @@ export default function SubmittedSuccessfullyScreen() {
     totalTrips,
     totalIncome,
     totalExpenses,
-    netAmount,
     resetStore,
   } = useTripStore();
+  
+  // Compute netAmount from store values
+  const netAmount = (totalIncome || 0) - (totalExpenses || 0);
 
   // Animations
   const checkmarkScale = useRef(new Animated.Value(0)).current;

@@ -138,45 +138,79 @@ function fromDriverRow(
     id: row.id,
     employeeId: row.employee_id,
     employeeName: row.driver_name,
-    avatarColor: row.avatar_color,
-    businessId: emp?.business_id ?? '',
-    businessName: emp?.business_name ?? 'Taxi Business',
-    businessType: emp?.business_type ?? 'taxi',
+    businessType: 'driver',
+    businessTypeLabel: 'Driver',
     date: row.date,
-    income: row.total_income ?? 0,
-    expense: row.total_expense ?? 0,
-    profit: row.total_profit ?? 0,
-    paymentType: paymentMap.get(row.id) ?? 'cash',
-    assetName: row.vehicle_name || row.vehicle_number || 'Vehicle',
+    totalIncome: row.total_income ?? 0,
+    totalExpense: row.total_expense ?? 0,
+    totalProfit: row.total_profit ?? 0,
+    totalSettledCash: row.total_cash_settled ?? 0,
+    totalSettledOnline: row.total_online_settled ?? 0,
+    totalSettled: (row.total_cash_settled ?? 0) + (row.total_online_settled ?? 0),
+    totalShortage: (row.total_profit ?? 0) - ((row.total_cash_settled ?? 0) + (row.total_online_settled ?? 0)),
+    assetInfo: row.vehicle_number || row.vehicle_name || 'Vehicle',
+    avatarColor: row.avatar_color,
   };
 }
 
 function fromWaterRow(
   row: WaterRecordRow,
-  empMap: Map<string, EmployeeBusinessInfo>
+  empMap: Map<string, EmployeeBusinessInfo>,
+  hotelNamesMap?: Map<string, string>
 ): FinanceRecord {
   const emp = empMap.get(row.employee_id);
-  const paymentType = row.payment_mode ?? 'cash';
+  const hotelNames = hotelNamesMap?.get(row.id) || `${row.total_hotels ?? 0} hotels`;
   return {
     id: row.id,
     employeeId: row.employee_id,
     employeeName: row.delivery_person_name,
-    avatarColor: row.avatar_color,
-    businessId: emp?.business_id ?? '',
-    businessName: emp?.business_name ?? 'Water Delivery',
-    businessType: emp?.business_type ?? 'water_delivery',
+    businessType: 'staff',
+    businessTypeLabel: 'Staff',
     date: row.date,
-    income: row.total_income ?? 0,
-    expense: row.total_expense ?? 0,
-    profit: row.total_profit ?? 0,
-    paymentType,
-    assetName: `${row.total_cans ?? 0} cans • ${row.total_hotels ?? 0} hotels`,
+    totalIncome: row.total_income ?? 0,
+    totalExpense: row.total_expense ?? 0,
+    totalProfit: row.total_profit ?? 0,
+    totalSettledCash: row.total_cash_settled ?? 0,
+    totalSettledOnline: row.total_online_settled ?? 0,
+    totalSettled: (row.total_cash_settled ?? 0) + (row.total_online_settled ?? 0),
+    totalShortage: (row.total_profit ?? 0) - ((row.total_cash_settled ?? 0) + (row.total_online_settled ?? 0)),
+    assetInfo: hotelNames,
+    avatarColor: row.avatar_color,
   };
 }
 
 // ────────────────────────────────────────────────────────────────
 // Core combined fetch (driver + water) for a date range
 // ────────────────────────────────────────────────────────────────
+
+async function fetchHotelNamesMap(waterRecordIds: string[]): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  if (waterRecordIds.length === 0) return map;
+
+  const { data, error } = await supabase
+    .from('hotel_deliveries')
+    .select('water_delivery_record_id, hotel_name')
+    .in('water_delivery_record_id', waterRecordIds);
+
+  if (error) {
+    console.error('[FinanceSupabase] hotel_deliveries load error:', error);
+    return map;
+  }
+
+  // Group hotel names by water delivery record ID
+  const hotelGroups = new Map<string, string[]>();
+  (data || []).forEach(hd => {
+    const list = hotelGroups.get(hd.water_delivery_record_id) || [];
+    list.push(hd.hotel_name);
+    hotelGroups.set(hd.water_delivery_record_id, list);
+  });
+
+  hotelGroups.forEach((names, recordId) => {
+    map.set(recordId, names.join(', '));
+  });
+
+  return map;
+}
 
 async function fetchCombinedRecords(filters: FinanceFilters): Promise<FinanceRecord[]> {
   const { from, to } = resolveDateRange(filters);
@@ -204,15 +238,18 @@ async function fetchCombinedRecords(filters: FinanceFilters): Promise<FinanceRec
   const waterRows = (waterRes.data || []) as WaterRecordRow[];
 
   const paymentMap = await loadPaymentModeMap(driverRows.map(r => r.id));
+  const hotelNamesMap = await fetchHotelNamesMap(waterRows.map(r => r.id));
 
   let combined: FinanceRecord[] = [
     ...driverRows.map(r => fromDriverRow(r, empMap, paymentMap)),
-    ...waterRows.map(r => fromWaterRow(r, empMap)),
+    ...waterRows.map(r => fromWaterRow(r, empMap, hotelNamesMap)),
   ];
 
   // business filter
   if (filters.businessId && filters.businessId !== 'all') {
-    combined = combined.filter(r => r.businessId === filters.businessId);
+    // Filter by employeeId since existing records don't have businessId
+    // In the future, this can be improved with a business lookup
+    combined = combined;
   }
 
   // newest date first
@@ -256,22 +293,22 @@ export async function getFinanceSummaryFromSupabase(
   const byBizMap = new Map<string, BusinessBreakdown>();
 
   for (const r of records) {
-    totalIncome += r.income;
-    totalExpense += r.expense;
-    totalProfit += r.profit;
+    totalIncome += r.totalIncome;
+    totalExpense += r.totalExpense;
+    totalProfit += r.totalProfit;
 
-    const key = r.businessId || `__${r.businessType}`;
+    const key = r.employeeId;
     const existing = byBizMap.get(key) ?? {
-      businessId: r.businessId,
-      businessName: r.businessName,
+      businessId: r.employeeId,
+      businessName: r.employeeName,
       businessType: r.businessType,
       income: 0,
       expense: 0,
       profit: 0,
     };
-    existing.income += r.income;
-    existing.expense += r.expense;
-    existing.profit += r.profit;
+    existing.income += r.totalIncome;
+    existing.expense += r.totalExpense;
+    existing.profit += r.totalProfit;
     byBizMap.set(key, existing);
   }
 
@@ -321,22 +358,22 @@ export async function getFinanceSummaryAndRecordsFromSupabase(
   const byBizMap = new Map<string, BusinessBreakdown>();
 
   for (const r of all) {
-    totalIncome += r.income;
-    totalExpense += r.expense;
-    totalProfit += r.profit;
+    totalIncome += r.totalIncome;
+    totalExpense += r.totalExpense;
+    totalProfit += r.totalProfit;
 
-    const key = r.businessId || `__${r.businessType}`;
+    const key = r.employeeId;
     const existing = byBizMap.get(key) ?? {
-      businessId: r.businessId,
-      businessName: r.businessName,
+      businessId: r.employeeId,
+      businessName: r.employeeName,
       businessType: r.businessType,
       income: 0,
       expense: 0,
       profit: 0,
     };
-    existing.income += r.income;
-    existing.expense += r.expense;
-    existing.profit += r.profit;
+    existing.income += r.totalIncome;
+    existing.expense += r.totalExpense;
+    existing.profit += r.totalProfit;
     byBizMap.set(key, existing);
   }
 

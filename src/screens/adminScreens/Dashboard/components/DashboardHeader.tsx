@@ -5,22 +5,13 @@ import { Feather } from "@expo/vector-icons";
 import { colors, fontSize, spacing } from "../../../../theme";
 
 interface DashboardHeaderProps {
-  onMenuPress: () => void;
+  onMenuPress?: () => void;
   onBellPress: () => void;
 }
 
-export function DashboardHeader({ onMenuPress, onBellPress }: DashboardHeaderProps) {
+export function DashboardHeader({ onBellPress }: DashboardHeaderProps) {
   return (
     <View style={styles.row} testID="dashboard-header">
-      <Pressable
-        testID="dashboard-menu-button"
-        onPress={onMenuPress}
-        hitSlop={8}
-        style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}
-      >
-        <Feather name="menu" size={24} color={colors.textPrimary} />
-      </Pressable>
-
       <View style={styles.titleBlock}>
         <Text style={styles.title} testID="dashboard-title">
           Dashboard
@@ -49,7 +40,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
     paddingBottom: spacing.sm,
-    gap: spacing.md,
+    justifyContent: "space-between",
   },
   iconButton: {
     width: 44,

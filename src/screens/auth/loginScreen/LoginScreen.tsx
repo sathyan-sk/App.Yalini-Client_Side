@@ -50,10 +50,8 @@ export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const { height: screenHeight } = useWindowDimensions();
 
-
   const isSubmitting = useAuthStore((s) => s.isSubmitting);
   const signIn = useAuthStore((s) => s.signIn);
-  
 
   const [mobile, setMobile] = useState("");
   const [pin, setPin] = useState("");
@@ -112,17 +110,19 @@ export default function LoginScreen() {
         <ScrollView
           contentContainerStyle={[
             styles.scrollContent,
-            { 
-            paddingTop: insets.top + 8,
-            minHeight: minContentHeight,
+            {
+              paddingTop: insets.top + 8,
+              minHeight: minContentHeight,
             },
           ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           bounces={true}
-          alwaysBounceVertical={true}        >
+          alwaysBounceVertical={true}
+          contentInsetAdjustmentBehavior="automatic"
+        >
           {/* Brand hero on white */}
-          <LoginHero />
+          <LoginHero topPadding={insets.top} />
 
           {/* Curved cream container holding welcome + form */}
           <View style={styles.creamShell}>
@@ -154,42 +154,6 @@ export default function LoginScreen() {
                   disabled={!canSubmit && !isSubmitting}
                 />
               </View>
-
-              <View style={styles.hintRow}>
-                <Pressable
-                  testID="login-fill-admin"
-                  onPress={() => {
-                    setMobile("7598326133");
-                    setPin("0000");
-                  }}
-                  hitSlop={8}
-                  style={styles.hintChip}
-                >
-                  <Text style={styles.hintText}>Demo Admin</Text>
-                </Pressable>
-                <Pressable
-                  testID="login-fill-driver"
-                  onPress={() => {
-                    setMobile("9988776655");
-                    setPin("1111");
-                  }}
-                  hitSlop={8}
-                  style={styles.hintChip}
-                >
-                  <Text style={styles.hintText}>Demo Driver</Text>
-                </Pressable>
-                <Pressable
-                  testID="login-fill-staff"
-                  onPress={() => {
-                    setMobile("8877665544");
-                    setPin("2222");
-                  }}
-                  hitSlop={8}
-                  style={styles.hintChip}
-                >
-                  <Text style={styles.hintText}>Demo Staff</Text>
-                </Pressable>
-              </View>
             </View>
           </View>
         </ScrollView>
@@ -211,11 +175,11 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingBottom: 24,
+    justifyContent: 'center',
   },
 
   // Cream curved area below hero
   creamShell: {
-    flex: 1,
     backgroundColor: authColors.cream,
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
@@ -223,6 +187,7 @@ const styles = StyleSheet.create({
     paddingTop: 28,
     paddingHorizontal: 20,
     paddingBottom: 32,
+    alignSelf: 'stretch',
   },
   welcome: {
     textAlign: "center",
@@ -257,23 +222,4 @@ const styles = StyleSheet.create({
     marginTop: 22,
   },
 
-  hintRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    flexWrap: "wrap",
-    gap: 10,
-    marginTop: 14,
-  },
-  hintChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 14,
-    backgroundColor: authColors.yellowSoft,
-  },
-  hintText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: authColors.heading,
-    letterSpacing: 0.2,
-  },
 });

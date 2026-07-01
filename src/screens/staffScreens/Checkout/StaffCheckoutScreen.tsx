@@ -121,7 +121,7 @@ export default function StaffCheckoutScreen() {
                 deliveries: deliveries,
                 totalIncome: grandTotal.totalIncome,
                 totalExpense: grandTotal.totalExpense,
-                totalProfit: grandTotal.profit,
+                profit: grandTotal.profit,
               });
 
               if (result.success) {

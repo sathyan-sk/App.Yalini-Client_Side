@@ -16,6 +16,7 @@ export interface HotelDelivery {
   deliveredCans: number;
   returnedCans: number;
   outstandingCans: number;
+  remainingCansAtDelivery: number; // Track remaining cans when this delivery was made
   income: number;
   expense: number;
   profit: number;

@@ -76,11 +76,7 @@ export default function DashboardScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Sticky header area */}
       <View style={styles.stickyHeader}>
-        <DashboardHeader onMenuPress={noop} onBellPress={noop} />
-        <DateSelectorPill
-          isoDate={selectedDate}
-          onPress={() => setCalendarVisible(true)}
-        />
+        <DashboardHeader onBellPress={noop} />
       </View>
 
       {loading ? (
@@ -113,23 +109,26 @@ export default function DashboardScreen() {
             />
           }
         >
-          {/* Stat cards */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.statRow}
-            testID="dashboard-stat-cards"
-          >
+          {/* Stat cards - single row, no scroll */}
+          <View style={styles.statRow} testID="dashboard-stat-cards">
             {STAT_CARDS.map((card) => (
-              <StatCard key={card.key} config={card} value={card.pick(data.stats)} />
+              <View key={card.key} style={styles.statCardWrapper}>
+                <StatCard config={card} value={card.pick(data.stats)} />
+              </View>
             ))}
-          </ScrollView>
+          </View>
 
-          {/* Business overview */}
+          {/* Business overview with date selector in header */}
           <SectionHeader
-            title="Business Overview (Today)"
-            onViewAll={noop}
+            title="Business Overview"
             testID="business-overview-header"
+            rightElement={
+              <DateSelectorPill
+                isoDate={selectedDate}
+                onPress={() => setCalendarVisible(true)}
+                compact
+              />
+            }
           />
           {data.businesses.map((business) => (
             <BusinessOverviewCard
@@ -187,10 +186,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceSecondary,
   },
   statRow: {
-    gap: spacing.md,
+    flexDirection: "row",
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xs,
     paddingBottom: spacing.xs,
+    gap: spacing.sm,
+  },
+  statCardWrapper: {
+    flex: 1,
   },
   submissionsCard: {
     backgroundColor: colors.surface,

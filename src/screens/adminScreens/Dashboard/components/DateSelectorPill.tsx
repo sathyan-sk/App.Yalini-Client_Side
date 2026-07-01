@@ -8,20 +8,21 @@ import { formatDisplayDate } from "../../../../utils/format";
 interface DateSelectorPillProps {
   isoDate: string;
   onPress: () => void;
+  compact?: boolean;
 }
 
-export function DateSelectorPill({ isoDate, onPress }: DateSelectorPillProps) {
+export function DateSelectorPill({ isoDate, onPress, compact }: DateSelectorPillProps) {
   return (
     <Pressable
       testID="dashboard-date-selector"
       onPress={onPress}
-      style={({ pressed }) => [styles.pill, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.pill, compact && styles.compactPill, pressed && styles.pressed]}
     >
-      <Feather name="calendar" size={18} color={colors.textSecondary} />
-      <Text style={styles.dateText} testID="dashboard-selected-date">
+      <Feather name="calendar" size={compact ? 14 : 18} color={colors.textSecondary} />
+      <Text style={[styles.dateText, compact && styles.compactDateText]} testID="dashboard-selected-date">
         {formatDisplayDate(isoDate)}
       </Text>
-      <Feather name="chevron-down" size={18} color={colors.textSecondary} />
+      {!compact && <Feather name="chevron-down" size={18} color={colors.textSecondary} />}
     </Pressable>
   );
 }
@@ -49,5 +50,21 @@ const styles = StyleSheet.create({
     fontSize: fontSize.base,
     fontWeight: "500",
     color: colors.textPrimary,
+  },
+  compactPill: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    marginHorizontal: 0,
+    marginBottom: 0,
+    minHeight: 32,
+    borderRadius: radius.sm,
+    borderWidth: 0,
+    backgroundColor: colors.primaryBlueSoft,
+    ...cardShadow,
+  },
+  compactDateText: {
+    fontSize: fontSize.xs,
+    fontWeight: "600",
+    color: colors.primaryBlue,
   },
 });

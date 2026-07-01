@@ -16,7 +16,7 @@ import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 
 import { authColors } from "../../theme";
 
-function CityscapeBackdrop() {
+function CityscapeBackdrop({ topOffset = 0 }: { topOffset?: number }) {
   // Hand-tuned silhouette using flex blocks — keeps the file dependency-free.
   const BUILDINGS = [
     { w: 22, h: 38 },
@@ -47,10 +47,10 @@ function CityscapeBackdrop() {
   );
 }
 
-export function LoginHero() {
+export function LoginHero({ topPadding = 0 }: { topPadding?: number }) {
   return (
-    <View style={styles.wrap} testID="login-hero">
-      <CityscapeBackdrop />
+    <View style={[styles.wrap, { paddingTop: topPadding }]} testID="login-hero">
+      <CityscapeBackdrop topOffset={topPadding} />
 
       {/* Wordmark */}
       <View style={styles.wordmark}>
@@ -97,7 +97,6 @@ const styles = StyleSheet.create({
   wrap: {
     backgroundColor: authColors.heroBg,
     paddingHorizontal: 24,
-    paddingTop: 8,
     paddingBottom: 18,
   },
 

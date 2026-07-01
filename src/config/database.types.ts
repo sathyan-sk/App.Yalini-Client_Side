@@ -350,6 +350,7 @@ export interface Database {
           delivered_cans: number
           returned_cans: number
           outstanding_cans: number
+          remaining_cans_at_delivery: number
           income: number
           expense: number
           profit: number
@@ -367,6 +368,7 @@ export interface Database {
           delivered_cans: number
           returned_cans: number
           outstanding_cans: number
+          remaining_cans_at_delivery?: number
           income: number
           expense: number
           profit: number
@@ -384,6 +386,7 @@ export interface Database {
           delivered_cans?: number
           returned_cans?: number
           outstanding_cans?: number
+          remaining_cans_at_delivery?: number
           income?: number
           expense?: number
           profit?: number

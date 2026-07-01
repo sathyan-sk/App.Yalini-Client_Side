@@ -111,7 +111,7 @@ export interface StaffSessionSubmissionData {
   deliveries: DeliveryRecord[];
   totalIncome: number;
   totalExpense: number;
-  netAmount: number;
+  profit: number;
 }
 
 /**

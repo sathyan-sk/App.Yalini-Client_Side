@@ -43,27 +43,27 @@ export function StatCard({ config, value }: StatCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    width: 148,
-    flexShrink: 0,
+    flex: 1,
     borderRadius: radius.md,
-    padding: spacing.lg,
-    gap: spacing.sm,
+    padding: spacing.md,
+    gap: spacing.xs,
+    alignItems: "center",
   },
   iconCircle: {
-    width: 44,
-    height: 44,
+    width: 36,
+    height: 36,
     borderRadius: radius.pill,
     alignItems: "center",
     justifyContent: "center",
   },
   value: {
-    fontSize: fontSize.xxl,
+    fontSize: fontSize.xl,
     fontWeight: "700",
     color: colors.textPrimary,
-    marginTop: spacing.xs,
   },
   label: {
-    fontSize: fontSize.sm,
+    fontSize: fontSize.xs,
     color: colors.textSecondary,
+    textAlign: "center",
   },
 });

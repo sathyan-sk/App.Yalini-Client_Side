@@ -305,7 +305,7 @@ export async function submitStaffSession(
     const avatarColor = getRandomAvatarColor();
 
 
-    // Group deliveries by hotel and aggregate
+    // Group deliveries by hotel and track remaining cans at each delivery point
     const hotelMap = new Map<string, {
       totalCans: number;
       deliveredCans: number;
@@ -313,10 +313,27 @@ export async function submitStaffSession(
       outstandingCans: number;
       income: number;
       expense: number;
+      remainingCansAtDelivery: number; // Track remaining cans for each delivery
     }>();
 
-    data.deliveries.forEach((delivery) => {
+    // Sort deliveries by creation time to process in order
+    const sortedDeliveries = [...data.deliveries].sort((a, b) => 
+      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
+
+    // Track remaining cans per hotel as we process deliveries
+    const hotelRemainingCans = new Map<string, number>();
+
+    sortedDeliveries.forEach((delivery) => {
       const existing = hotelMap.get(delivery.hotelId);
+      
+      // Calculate remaining cans before this delivery
+      const previousRemaining = hotelRemainingCans.get(delivery.hotelId) || delivery.loadedCans;
+      const remainingAfterDelivery = Math.max(0, previousRemaining - delivery.cansDelivered);
+      
+      // Update the remaining cans tracker
+      hotelRemainingCans.set(delivery.hotelId, remainingAfterDelivery);
+      
       if (existing) {
         existing.totalCans += delivery.loadedCans;
         existing.deliveredCans += delivery.cansDelivered;
@@ -324,6 +341,8 @@ export async function submitStaffSession(
         existing.outstandingCans += delivery.outstandingCans;
         existing.income += delivery.receivedIncome;
         existing.expense += delivery.expenseAmount || 0;
+        // For aggregated view, use the last remaining cans value
+        existing.remainingCansAtDelivery = remainingAfterDelivery;
       } else {
         hotelMap.set(delivery.hotelId, {
           totalCans: delivery.loadedCans,
@@ -332,6 +351,7 @@ export async function submitStaffSession(
           outstandingCans: delivery.outstandingCans,
           income: delivery.receivedIncome,
           expense: delivery.expenseAmount || 0,
+          remainingCansAtDelivery: remainingAfterDelivery,
         });
       }
     });
@@ -467,6 +487,7 @@ export async function submitStaffSession(
         delivered_cans: hotel.deliveredCans,
         returned_cans: hotel.returnedCans,
         outstanding_cans: hotel.outstandingCans,
+        remaining_cans_at_delivery: hotel.remainingCansAtDelivery,
         income: hotel.income,
         expense: hotel.expense,
         profit: hotelProfit,

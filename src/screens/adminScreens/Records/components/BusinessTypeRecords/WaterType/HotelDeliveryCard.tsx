@@ -91,7 +91,14 @@ export function HotelDeliveryCard({ hotel, index, testID }: HotelDeliveryCardPro
         <View style={styles.headerRight}>
           <View style={styles.cansPreview}>
             <Ionicons name="water" size={14} color={colors.primaryBlue} />
-            <Text style={styles.cansPreviewText}>{hotel.deliveredCans}/{hotel.totalCans}</Text>
+            <Text style={styles.cansPreviewText}>
+              {hotel.deliveredCans}/{hotel.totalCans}
+            </Text>
+            {hotel.remainingCansAtDelivery !== undefined && hotel.remainingCansAtDelivery > 0 && (
+              <Text style={styles.remainingCansText}>
+                (rem: {hotel.remainingCansAtDelivery})
+              </Text>
+            )}
           </View>
           <Animated.View style={chevronStyle}>
             <Feather name="chevron-down" size={20} color={colors.textSecondary} />
@@ -283,6 +290,11 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
     fontWeight: "600",
     color: colors.primaryBlue,
+  },
+  remainingCansText: {
+    fontSize: fontSize.xs,
+    color: colors.textSecondary,
+    marginLeft: 4,
   },
   expandableContent: {
     overflow: "hidden",

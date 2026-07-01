@@ -8,13 +8,14 @@ interface SectionHeaderProps {
   title: string;
   onViewAll?: () => void;
   testID: string;
+  rightElement?: React.ReactNode;
 }
 
-export function SectionHeader({ title, onViewAll, testID }: SectionHeaderProps) {
+export function SectionHeader({ title, onViewAll, testID, rightElement }: SectionHeaderProps) {
   return (
     <View style={styles.row} testID={testID}>
       <Text style={styles.title}>{title}</Text>
-      {onViewAll ? (
+      {rightElement || (onViewAll ? (
         <Pressable
           testID={`${testID}-view-all`}
           onPress={onViewAll}
@@ -24,7 +25,7 @@ export function SectionHeader({ title, onViewAll, testID }: SectionHeaderProps) 
           <Text style={styles.viewAllText}>View All</Text>
           <Feather name="chevron-right" size={16} color={colors.brand} />
         </Pressable>
-      ) : null}
+      ) : null)}
     </View>
   );
 }

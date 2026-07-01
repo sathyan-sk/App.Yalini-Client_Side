@@ -27,7 +27,7 @@ export function DaySummaryCard({
   driverName,
   vehicleNumber,
 }: DaySummaryCardProps) {
-  const formatCurrency = (amount: number) => `\u20B9${amount.toLocaleString('en-IN')}`;
+  const formatCurrency = (amount: number | undefined) => `\u20B9${(amount || 0).toLocaleString('en-IN')}`;
 
   return (
     <View style={styles.card}>
@@ -35,7 +35,7 @@ export function DaySummaryCard({
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Feather name="calendar" size={20} color={colors.primaryBlue} />
-          <Text style={styles.dateText}>{sessionDate}</Text>
+          <Text style={styles.dateText}>{sessionDate || ''}</Text>
         </View>
         <View style={styles.completedBadge}>
           <Text style={styles.completedText}>Completed</Text>
@@ -46,11 +46,11 @@ export function DaySummaryCard({
       <View style={styles.driverInfo}>
         <View style={styles.infoRow}>
           <Feather name="user" size={16} color={colors.textSecondary} />
-          <Text style={styles.infoText}>{driverName}</Text>
+          <Text style={styles.infoText}>{driverName || ''}</Text>
         </View>
         <View style={styles.infoRow}>
           <Feather name="truck" size={16} color={colors.textSecondary} />
-          <Text style={styles.infoText}>{vehicleNumber}</Text>
+          <Text style={styles.infoText}>{vehicleNumber || ''}</Text>
         </View>
       </View>
 
@@ -62,7 +62,7 @@ export function DaySummaryCard({
           <View style={[styles.statIconContainer, styles.tripsIconBg]}>
             <Feather name="navigation" size={18} color={colors.primaryBlue} />
           </View>
-          <Text style={styles.statValue}>{totalTrips}</Text>
+          <Text style={styles.statValue}>{totalTrips || 0}</Text>
           <Text style={styles.statLabel}>Trips</Text>
         </View>
 
@@ -92,7 +92,7 @@ export function DaySummaryCard({
       {/* Net Amount */}
       <View style={styles.netAmountContainer}>
         <Text style={styles.netLabel}>Net Earnings</Text>
-        <Text style={[styles.netAmount, netAmount >= 0 ? styles.positiveNet : styles.negativeNet]}>
+        <Text style={[styles.netAmount, (netAmount || 0) >= 0 ? styles.positiveNet : styles.negativeNet]}>
           {formatCurrency(netAmount)}
         </Text>
       </View>

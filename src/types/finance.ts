@@ -30,20 +30,19 @@ export interface FinanceRecord {
   id: string;
   employeeId: string;
   employeeName: string;
-  avatarColor: string;
-  businessId: string;
-  businessName: string;
-  businessType: string;
+  businessType: 'driver' | 'staff';
+  businessTypeLabel: string; // "Driver" or "Staff" for display
   date: string;
-  income: number;
-  profit: number;
-  expense: number;
-  paymentType: string;
-  assetName: string;
-    // Extra details for display
-  trips?: number; // for taxi
-  totalCans?: number; // for water
-  totalHotels?: number; // for water
+  totalIncome: number;
+  totalExpense: number;
+  totalProfit: number;
+  totalSettledCash: number;
+  totalSettledOnline: number;
+  totalSettled: number; // cash + online combined
+  totalShortage: number; // profit - settled
+  // Vehicle/Hotel info for display below employee name
+  assetInfo: string; // e.g., "TN 01 AB 1234" or "Hotel Taj"
+  avatarColor: string;
 }
 
 export interface PaginatedRecords {

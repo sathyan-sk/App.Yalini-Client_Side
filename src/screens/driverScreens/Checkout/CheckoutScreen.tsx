@@ -54,11 +54,13 @@ export default function CheckoutScreen() {
     totalTrips,
     totalIncome,
     totalExpenses,
-    netAmount,
     submitSession,
     isSubmitting,
     clearSubmissionError,
   } = useTripStore();
+  
+  // Compute profit locally from available store values
+  const profit = (totalIncome || 0) - (totalExpenses || 0);
 
   // Transform trips to summary rows
   const tripSummaries: TripSummaryRow[] = useMemo(() => {
@@ -68,7 +70,7 @@ export default function CheckoutScreen() {
       route: `${trip.from} → ${trip.to}`,
       tripType: trip.tripType === 'vendor' ? 'Vendor' : 'Private',
       paymentMode: trip.paymentMode === 'cash' ? 'Cash' : 'Online',
-      income: trip.amount,
+      income: trip.amount || 0,
       expense: trip.totalExpense || 0,
       hasExpense: trip.hasExpense,
     }));
@@ -84,52 +86,24 @@ export default function CheckoutScreen() {
   const handleSubmitSession = async () => {
     if (!canSubmit) {
       if (totalTrips === 0) {
-        Alert.alert(
-          'Cannot Submit',
-          'Please add at least one trip before submitting.'
-        );
+        Alert.alert('Cannot Submit', 'Please add at least one trip before submitting.');
       } else if (!allExpensesAdded) {
         const missingCount = trips.filter((t) => !t.hasExpense).length;
-        Alert.alert(
-          'Cannot Submit',
-          `${missingCount} trip(s) are missing expenses. Please add expenses for all trips.`
-        );
+        Alert.alert('Cannot Submit', `${missingCount} trip(s) are missing expenses. Please add expenses for all trips.`);
       }
       return;
     }
 
-    Alert.alert(
-      'Submit Session',
-      `Are you sure you want to submit your day?
-
-Total Trips: ${totalTrips}
-Net Earnings: ₹${netAmount.toLocaleString('en-IN')}`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Submit',
-          style: 'default',
-          onPress: async () => {
-            const result = await submitSession();
-            
-            if (result.success) {
-              // Navigate to success screen using parent navigator
-              navigation.getParent()?.dispatch(
-                CommonActions.navigate({
-                  name: 'SubmittedSuccessfully',
-                })
-              );
-            } else {
-              Alert.alert(
-                'Submission Failed',
-                result.error || 'Something went wrong. Please try again.',
-                [{ text: 'OK', onPress: clearSubmissionError }]
-              );
-            }
-          },
-        },
-      ]
-    );
+    try {
+      const result = await submitSession();
+      if (result.success) {
+        navigation.navigate('SubmittedSuccessfully');
+      } else {
+        Alert.alert('Submission Failed', result.error || 'Something went wrong. Please try again.');
+      }
+    } catch (error) {
+      Alert.alert('Error', error instanceof Error ? error.message : 'An unexpected error occurred');
+    }
   };
 
   // Get status info for the banner
@@ -187,18 +161,18 @@ Net Earnings: ₹${netAmount.toLocaleString('en-IN')}`,
               <Feather name="user" size={20} color={colors.primaryBlue} />
             </View>
             <View style={styles.cardHeaderText}>
-              <Text style={styles.cardTitle}>{session.driverName}</Text>
-              <Text style={styles.cardSubtitle}>{session.serviceName}</Text>
+              <Text style={styles.cardTitle}>{session.driverName || 'Driver'}</Text>
+              <Text style={styles.cardSubtitle}>{session.serviceName || ''}</Text>
             </View>
           </View>
           <View style={styles.sessionDetails}>
             <View style={styles.detailRow}>
               <Feather name="calendar" size={14} color={colors.textSecondary} />
-              <Text style={styles.detailText}>{session.sessionDate}</Text>
+              <Text style={styles.detailText}>{session.sessionDate || ''}</Text>
             </View>
             <View style={styles.detailRow}>
               <Feather name="truck" size={14} color={colors.textSecondary} />
-              <Text style={styles.detailText}>{session.vehicleNumber}</Text>
+              <Text style={styles.detailText}>{session.vehicleNumber || ''}</Text>
             </View>
           </View>
         </View>
@@ -265,14 +239,14 @@ Net Earnings: ₹${netAmount.toLocaleString('en-IN')}`,
                   )}
                 </View>
                 <Text style={[styles.tableCell, styles.amountColumn, styles.incomeValue]}>
-                  ₹{trip.income.toLocaleString()}
+                  ₹{(trip.income || 0).toLocaleString('en-IN')}
                 </Text>
                 <Text style={[
                   styles.tableCell, 
                   styles.expenseColumn, 
                   trip.hasExpense ? styles.expenseValue : styles.noExpenseValue
                 ]}>
-                  {trip.hasExpense ? `₹${trip.expense.toLocaleString()}` : '-'}
+                  {trip.hasExpense ? `₹${(trip.expense || 0).toLocaleString('en-IN')}` : '-'}
                 </Text>
               </View>
             ))
@@ -299,10 +273,10 @@ Net Earnings: ₹${netAmount.toLocaleString('en-IN')}`,
               </Text>
               <Text style={[styles.tableFooterCell, styles.typeColumn]}></Text>
               <Text style={[styles.tableFooterCell, styles.amountColumn, styles.totalIncome]}>
-                ₹{totalIncome.toLocaleString()}
+                ₹{(totalIncome || 0).toLocaleString('en-IN')}
               </Text>
               <Text style={[styles.tableFooterCell, styles.expenseColumn, styles.totalExpense]}>
-                ₹{totalExpenses.toLocaleString()}
+                ₹{(totalExpenses || 0).toLocaleString('en-IN')}
               </Text>
             </View>
           )}
@@ -321,7 +295,7 @@ Net Earnings: ₹${netAmount.toLocaleString('en-IN')}`,
                 <View>
                   <Text style={styles.finLabel}>Total Income</Text>
                   <Text style={[styles.finValue, { color: '#4CAF50' }]}>
-                    ₹{totalIncome.toLocaleString()}
+                    ₹{(totalIncome || 0).toLocaleString('en-IN')}
                   </Text>
                 </View>
               </View>
@@ -332,7 +306,7 @@ Net Earnings: ₹${netAmount.toLocaleString('en-IN')}`,
                 <View>
                   <Text style={styles.finLabel}>Total Expense</Text>
                   <Text style={[styles.finValue, { color: colors.error }]}>
-                    ₹{totalExpenses.toLocaleString()}
+                    ₹{(totalExpenses || 0).toLocaleString('en-IN')}
                   </Text>
                 </View>
               </View>
@@ -343,10 +317,10 @@ Net Earnings: ₹${netAmount.toLocaleString('en-IN')}`,
               <Text
                 style={[
                   styles.netValue,
-                  { color: netAmount >= 0 ? '#4CAF50' : colors.error },
+                  { color: (profit || 0) >= 0 ? '#4CAF50' : colors.error },
                 ]}
               >
-                ₹{netAmount.toLocaleString()}
+                ₹{(profit || 0).toLocaleString('en-IN')}
               </Text>
             </View>
           </View>

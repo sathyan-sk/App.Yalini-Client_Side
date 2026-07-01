@@ -25,26 +25,16 @@ function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
-function formatDate(dateStr: string): string {
+function formatDay(dateStr: string): string {
   const date = new Date(dateStr);
-  return date.toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-  });
+  return date.toLocaleDateString('en-IN', { day: '2-digit' });
 }
 
-
-function paymentTypeBadge({ type }: { type: string }) {
-  const isTaxi = type === 'taxi';
-  const tone = isTaxi ? tones.purple : tones.cyan;
-  const icon = isTaxi ? 'car-outline' : 'water-outline';
-  
-  return (
-    <View style={[styles.typeBadge, { backgroundColor: tone.iconBg }]}>
-      <Ionicons name={icon as any} size={12} color={tone.accent} />
-    </View>
-  );
+function formatMonth(dateStr: string): string {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-IN', { month: 'short' });
 }
+
 
 interface TableRowProps {
   record: FinanceRecord;
@@ -53,7 +43,7 @@ interface TableRowProps {
 }
 
 function TableRow({ record, index, onPress }: TableRowProps) {
-  const profitColor = record.profit >= 0 ? tones.green.accent : tones.red.accent;
+  const profitColor = record.totalProfit >= 0 ? tones.green.accent : tones.red.accent;
   
   return (
     <Pressable
@@ -64,55 +54,56 @@ function TableRow({ record, index, onPress }: TableRowProps) {
       ]}
       onPress={onPress}
     >
-      {/* Row Number */}
-      <View style={styles.cellNo}>
-        <Text style={styles.rowNumber}>{index + 1}</Text>
-      </View>
-      
-      {/* Date */}
+      {/* Date with month subtitle */}
       <View style={styles.cellDate}>
-        <Text style={styles.cellText}>{formatDate(record.date)}</Text>
+        <Text style={styles.cellText}>{formatDay(record.date)}</Text>
+        <Text style={styles.dateMonthText}>{formatMonth(record.date)}</Text>
       </View>
       
-      {/* Employee */}
+      {/* Employee with business type subtitle */}
       <View style={styles.cellEmployee}>
-        <View style={styles.employeeInfo}>
-          <View style={styles.employeeText}>
-            <Text style={styles.employeeName} numberOfLines={1}>
-              {record.employeeName}
-            </Text>
-            <Text style={styles.assetName} numberOfLines={1}>
-              {record.assetName}
-            </Text>
-          </View>
-        </View>
+        <Text style={styles.employeeName} numberOfLines={1}>
+          {record.employeeName}
+        </Text>
+        <Text style={styles.assetName} numberOfLines={1}>
+          {record.businessTypeLabel}
+        </Text>
       </View>
       
-      {/* Income */}
+      {/* Total Income */}
       <View style={styles.cellAmount}>
         <Text style={[styles.amountText, { color: tones.green.accent }]}>
-          {formatCurrency(record.income)}
+          {formatCurrency(record.totalIncome)}
         </Text>
       </View>
       
-      {/* Expense */}
+      {/* Total Expense */}
       <View style={styles.cellAmount}>
         <Text style={[styles.amountText, { color: tones.red.accent }]}>
-          {formatCurrency(record.expense)}
+          {formatCurrency(record.totalExpense)}
         </Text>
       </View>
       
-      {/* Profit */}
+      {/* Total Profit */}
       <View style={styles.cellAmount}>
         <Text style={[styles.amountText, { color: profitColor }]}>
-          {formatCurrency(record.profit)}
+          {formatCurrency(record.totalProfit)}
         </Text>
       </View>
-      
-      { /*Payment Type */}
-        <View style={styles.cellAmount}>
-          <Text style={styles.typeText}>{record.paymentType}</Text>
-        </View>
+
+      {/* Total Cash */}
+      <View style={styles.cellAmount}>
+        <Text style={[styles.amountText, { color: '#FF9800' }]}>
+          {formatCurrency(record.totalSettledCash)}
+        </Text>
+      </View>
+
+      {/* Total Online */}
+      <View style={styles.cellAmount}>
+        <Text style={[styles.amountText, { color: '#1E88E5' }]}>
+          {formatCurrency(record.totalSettledOnline)}
+        </Text>
+      </View>
     </Pressable>
   );
 }
@@ -134,7 +125,6 @@ export function FinanceTable({
   if (records.length === 0) {
     return (
       <View style={[styles.container, styles.emptyContainer]} testID={testID}>
-        <Ionicons name="document-text-outline" size={48} color={colors.textTertiary} />
         <Text style={styles.emptyTitle}>No Records Found</Text>
         <Text style={styles.emptySubtitle}>Try adjusting your filters or date range</Text>
       </View>
@@ -145,9 +135,6 @@ export function FinanceTable({
     <View style={styles.container} testID={testID}>
       {/* Table Header */}
       <View style={styles.headerow}>
-        <View style={styles.cellNo}>
-          <Text style={styles.headerText}>No</Text>
-        </View>
         <View style={styles.cellDate}>
           <Text style={styles.headerText}>Date</Text>
         </View>
@@ -164,7 +151,10 @@ export function FinanceTable({
           <Text style={styles.headerText}>Profit</Text>
         </View>
         <View style={styles.cellAmount}>
-          <Text style={styles.headerText}>Payment</Text>
+          <Text style={styles.headerText}>Cash</Text>
+        </View>
+        <View style={styles.cellAmount}>
+          <Text style={styles.headerText}>Online</Text>
         </View>
       </View>
 
@@ -257,17 +247,14 @@ const styles = StyleSheet.create({
   rowPressed: {
     backgroundColor: colors.brandSoft,
   },
-  rowNumber: {
-    fontSize: fontSize.xs,
-    fontWeight: '500',
-    color: colors.textTertiary,
-  },
-  cellNo: {
-    width: 25,
-    alignItems: 'center',
-  },
   cellDate: {
     width: 40,
+    alignItems: 'center',
+  },
+  dateMonthText: {
+    fontSize: 8,
+    color: colors.textTertiary,
+    marginTop: 1,
   },
   cellEmployee: {
     flex: 0.5,
@@ -278,17 +265,13 @@ const styles = StyleSheet.create({
     width: 60,
     alignItems: 'baseline',
   },
+  cellSettled: {
+    width: 50,
+    alignItems: 'baseline',
+  },
   cellText: {
     fontSize: fontSize.xs,
     color: colors.textPrimary,
-  },
-  employeeInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  employeeText: {
-    flex: 1,
   },
   employeeName: {
     fontSize: fontSize.xs,
@@ -305,17 +288,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   statusText: {
-    fontSize: 9,
-    fontWeight: '600',
-  },
-  typeBadge: {
-    width: 22,
-    height: 22,
-    borderRadius: radius.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  typeText: {
     fontSize: 9,
     fontWeight: '600',
   },

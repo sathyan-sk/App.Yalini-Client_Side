@@ -60,11 +60,12 @@ interface TripStore {
   
   // Actions
   startSession: () => void;
+  updateSession: (updates: Partial<SessionInfo>) => void;
   endSession: () => void;
   submitSession: () => Promise<{ success: boolean; error?: string }>;
   
   // Trip actions
-  addTrip: (trip: Omit<Trip, 'id' | 'tripNumber' | 'date' | 'time' | 'hasExpense' | 'totalExpense'> & { paymentMode: PaymentMode }) => string;
+  addTrip: (trip: Omit<Trip, 'id' | 'tripNumber' | 'date' | 'time' | 'hasExpense' | 'totalExpense' | 'settledCash' | 'settledOnline' | 'shortage'> & { paymentMode: PaymentMode }) => string;
   updateTrip: (tripId: string, updates: Partial<Trip>) => void;
   deleteTrip: (tripId: string) => void;
   getTripById: (tripId: string) => TripWithExpense | undefined;
@@ -274,9 +275,6 @@ export const useTripStore = create<TripStore>((set, get) => ({
       to: tripData.to,
       amount: tripData.amount,
       paymentMode: tripData.paymentMode,
-      settledCash: tripData.settledCash,
-      settledOnline: tripData.settledOnline,
-      shortage: tripData.shortage,
       date: getCurrentDate(),
       time: getCurrentTime(),
       hasExpense: false,
