@@ -11,79 +11,30 @@
  * raster asset is required — keeps the screen pixel-stable across devices.
  */
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
+import { StyleSheet, Text, View, Image } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+const BrandLogo = require("../../../../../assets/BrandLogo.png");
 
 import { authColors } from "../../theme";
 
-function CityscapeBackdrop({ topOffset = 0 }: { topOffset?: number }) {
-  // Hand-tuned silhouette using flex blocks — keeps the file dependency-free.
-  const BUILDINGS = [
-    { w: 22, h: 38 },
-    { w: 32, h: 56 },
-    { w: 18, h: 30 },
-    { w: 28, h: 64 },
-    { w: 26, h: 46 },
-    { w: 36, h: 72 },
-    { w: 20, h: 34 },
-    { w: 30, h: 58 },
-    { w: 24, h: 42 },
-    { w: 34, h: 60 },
-    { w: 22, h: 32 },
-    { w: 28, h: 50 },
-  ];
-  return (
-    <View pointerEvents="none" style={styles.cityRow}>
-      {BUILDINGS.map((b, i) => (
-        <View
-          key={i}
-          style={[
-            styles.building,
-            { width: b.w, height: b.h, marginRight: i % 2 === 0 ? 2 : 6 },
-          ]}
-        />
-      ))}
-    </View>
-  );
-}
+export function LoginHero() {
+  const insets = useSafeAreaInsets();
 
-export function LoginHero({ topPadding = 0 }: { topPadding?: number }) {
   return (
-    <View style={[styles.wrap, { paddingTop: topPadding }]} testID="login-hero">
-      <CityscapeBackdrop topOffset={topPadding} />
-
-      {/* Wordmark */}
+    <View style={[styles.wrap, { paddingTop: insets.top + 16 }]} testID="login-hero">
+      {/* Wordmark / Logo */}
       <View style={styles.wordmark}>
-        <View style={styles.badge}>
-          <View style={styles.badgeInner}>
-            <Ionicons name="car" size={26} color="#0B1F3F" />
-            <View style={styles.pin}>
-              <Ionicons name="location-sharp" size={10} color="#0B1F3F" />
-            </View>
-          </View>
-        </View>
+        <Image source={BrandLogo} style={styles.logoImage} resizeMode="contain" />
         <View style={styles.wordmarkText}>
           <Text style={styles.brandLine}>
-            <Text style={styles.brandDark}>Yalini </Text>
-            <Text style={styles.brandYellow}>App</Text>
+            <Text style={styles.brandPrimary}>Yalini </Text>
+            <Text style={styles.brandAccent}>Group</Text>
           </Text>
-          <Text style={styles.brandSub}>Enterprises Business</Text>
+          <Text style={styles.brandSub}>Business Enterprise</Text>
         </View>
       </View>
 
-      {/* Car illustration */}
-      <View style={styles.carRow}>
-        <View style={styles.trailLeft} />
-        <View style={styles.carWrap}>
-          <FontAwesome5 name="car-side" size={64} color="#0B1F3F" />
-          <View style={styles.rupeeWrap}>
-            <FontAwesome5 name="rupee-sign" size={20} color="#0B1F3F" />
-          </View>
-        </View>
-        <View style={styles.trailRight} />
-      </View>
-
-      {/* Tagline */}
+      {/* Tagline with enhanced lines */}
       <View style={styles.tagRow}>
         <View style={styles.tagRule} />
         <Text style={styles.tagline}>Track. Control. Profit.</Text>
@@ -100,134 +51,64 @@ const styles = StyleSheet.create({
     paddingBottom: 18,
   },
 
-  // Cityscape
-  cityRow: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 80,
-    height: 80,
-    flexDirection: "row",
-    alignItems: "flex-end",
-    justifyContent: "center",
-    opacity: 0.5,
-  },
-  building: {
-    backgroundColor: authColors.cityTint,
-    borderTopLeftRadius: 2,
-    borderTopRightRadius: 2,
-  },
-
-  // Wordmark
+  // Wordmark / Logo
   wordmark: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
     gap: 12,
-    marginTop: 6,
+    marginTop: 0,
+    paddingTop: 24,
   },
-  badge: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    borderWidth: 4,
-    borderColor: authColors.yellow,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#FFFFFF",
-  },
-  badgeInner: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  pin: {
-    position: "absolute",
-    right: -6,
-    bottom: -4,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: authColors.yellow,
-    alignItems: "center",
-    justifyContent: "center",
+  logoImage: {
+    width: 120,
+    height: 120,
   },
   wordmarkText: {
     alignItems: "flex-start",
+    justifyContent: "center",
   },
   brandLine: {
-    fontSize: 28,
-    fontWeight: "800",
-    letterSpacing: 0.2,
+    fontSize: 30,
+    fontWeight: "900",
+    letterSpacing: 0.5,
+    lineHeight: 34,
   },
-  brandDark: {
-    color: authColors.heading,
-  },
-  brandYellow: {
+  brandPrimary: {
     color: authColors.yellow,
+    fontWeight: "900",
+  },
+  brandAccent: {
+    color: authColors.YALINI_COLOR2,
+    fontWeight: "900",
   },
   brandSub: {
-    fontSize: 13,
+    fontSize: 14,
     color: authColors.heading,
     fontWeight: "500",
-    marginTop: -2,
-  },
-
-  // Car
-  carRow: {
-    marginTop: 18,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-  },
-  carWrap: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 12,
-  },
-  rupeeWrap: {
-    position: "absolute",
-    right: -14,
-    bottom: -2,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: authColors.yellowSoft,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  trailLeft: {
-    flex: 1,
-    height: 6,
-    backgroundColor: authColors.yellow,
-    borderRadius: 3,
-    opacity: 0.85,
-  },
-  trailRight: {
-    flex: 1,
-    height: 6,
-    backgroundColor: authColors.yellow,
-    borderRadius: 3,
-    opacity: 0.85,
+    marginTop: 2,
+    lineHeight: 18,
   },
 
   // Tagline
   tagRow: {
-    marginTop: 18,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 10,
+    gap: 15,
+    marginTop: 24,
   },
   tagRule: {
-    width: 24,
+    flex: 1,
     height: 2,
-    backgroundColor: authColors.heading,
+    backgroundColor: authColors.yellow,
+    borderRadius: 1,
   },
   tagline: {
     fontSize: 15,
     fontWeight: "700",
     color: authColors.heading,
-    letterSpacing: 0.4,
+    letterSpacing: 0.8,
   },
+
 });

@@ -14,7 +14,8 @@ export const authColors = {
   yellowSoft: "#FFEDB3",
   yellowBorder: "#FCC419",
   yellowDeep: "#F5A700",
-
+  YALINI_COLOR1: '#EFCD39',
+  YALINI_COLOR2: '#A01808',
   // Curved cream area below the hero
   cream: "#FFF4D6",
   creamSoft: "#FFFBEC",

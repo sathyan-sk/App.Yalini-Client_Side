@@ -107,56 +107,57 @@ export default function LoginScreen() {
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView
-          contentContainerStyle={[
-            styles.scrollContent,
-            {
-              paddingTop: insets.top + 8,
-              minHeight: minContentHeight,
-            },
-          ]}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          bounces={true}
-          alwaysBounceVertical={true}
-          contentInsetAdjustmentBehavior="automatic"
-        >
-          {/* Brand hero on white */}
-          <LoginHero topPadding={insets.top} />
+          <View style={styles.flex}>
+            {/* Brand hero on white - static, not scrollable */}
+            <LoginHero />
 
-          {/* Curved cream container holding welcome + form */}
-          <View style={styles.creamShell}>
-            <Text style={styles.welcome} testID="login-welcome">
-              Welcome!
-            </Text>
-            <Text style={styles.welcomeSub}>Login to continue to your app</Text>
+            <ScrollView
+              contentContainerStyle={[
+                styles.scrollContent,
+                {
+                  minHeight: minContentHeight - 300,
+                },
+              ]}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              bounces={true}
+              alwaysBounceVertical={true}
+              contentInsetAdjustmentBehavior="automatic"
+            >
+              {/* Curved cream container holding welcome + form */}
+              <View style={styles.creamShell}>
+                <Text style={styles.welcome} testID="login-welcome">
+                  Welcome!
+                </Text>
+                <Text style={styles.welcomeSub}>Login to the app</Text>
 
-            <View style={styles.formCard} testID="login-form-card">
-              <MobileField
-                value={mobile}
-                onChangeText={setMobile}
-                editable={!isSubmitting}
-              />
+                <View style={styles.formCard} testID="login-form-card">
+                  <MobileField
+                    value={mobile}
+                    onChangeText={setMobile}
+                    editable={!isSubmitting}
+                  />
 
-              <View style={styles.fieldGap} />
+                  <View style={styles.fieldGap} />
 
-              <PinField
-                value={pin}
-                onChangeText={setPin}
-                editable={!isSubmitting}
-                onSubmitEditing={canSubmit ? handleLogin : undefined}
-              />
+                  <PinField
+                    value={pin}
+                    onChangeText={setPin}
+                    editable={!isSubmitting}
+                    onSubmitEditing={canSubmit ? handleLogin : undefined}
+                  />
 
-              <View style={styles.ctaWrap}>
-                <LoginButton
-                  onPress={handleLogin}
-                  loading={isSubmitting}
-                  disabled={!canSubmit && !isSubmitting}
-                />
+                  <View style={styles.ctaWrap}>
+                    <LoginButton
+                      onPress={handleLogin}
+                      loading={isSubmitting}
+                      disabled={!canSubmit && !isSubmitting}
+                    />
+                  </View>
+                </View>
               </View>
-            </View>
+            </ScrollView>
           </View>
-        </ScrollView>
         </TouchableWithoutFeedback>
 
       </KeyboardAvoidingView>
@@ -174,19 +175,16 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 24,
     justifyContent: 'center',
   },
 
   // Cream curved area below hero
   creamShell: {
     backgroundColor: authColors.cream,
-    borderTopLeftRadius: 40,
-    borderTopRightRadius: 40,
-    marginTop: -18,
-    paddingTop: 28,
+    borderTopLeftRadius: 80,
+    borderTopRightRadius: 80,
+    paddingTop: 8,
     paddingHorizontal: 20,
-    paddingBottom: 32,
     alignSelf: 'stretch',
   },
   welcome: {
@@ -209,7 +207,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 22,
     padding: 20,
-    shadowColor: "#101828",
+    shadowColor: "#262810",
     shadowOpacity: 0.08,
     shadowRadius: 16,
     shadowOffset: { width: 0, height: 8 },
